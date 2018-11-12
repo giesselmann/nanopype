@@ -1,0 +1,13 @@
+# data paths
+DATADIR: '/project/minion/src/nanopype/data'
+reference: /project/bioinf_meissner/references/hg19/hg19.fa
+
+# common tool paths
+samtools: /project/bioinf_meissner/src/samtools/samtools-1.6/samtools
+bedtools: /project/bioinf_meissner/src/bedtools/bedtools/bin/bedtools
+
+# naopore tool paths
+albacore: '/project/minion/bin/read_fast5_basecaller.py'
+minimap2: /project/minion/bin/minimap2
+graphmap: /project/minion/bin/graphmap
+nanopolish: /project/minion/bin/nanopolish

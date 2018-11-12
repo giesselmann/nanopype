@@ -1,0 +1,9 @@
+# per node local storage
+shadow-prefix: /scratch/local2/mdprj
+cluster: "mxq-submit.py"
+cluster-status: "mxq-status.py"
+jobscript: "mxq-jobscript.sh"
+latency-wait: 15
+jobs: 1000
+restart-times: 0
+immediate-submit: false
