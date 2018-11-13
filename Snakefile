@@ -35,7 +35,7 @@
 configfile: "config.yaml"
 
 
-localrules: all, basecaller_merge, aligner_merge, nanopolish_methylation_merge, nanopolish_methylation_frequencies
+localrules: all, basecaller_merge, aligner_merge_run, nanopolish_methylation_merge_run, nanopolish_methylation_merge_runs, nanopolish_methylation_frequencies
 
 
 def get_batches(wildcards):
@@ -61,7 +61,7 @@ rule albacore:
     shadow: "minimal"
     threads: 16
     resources:
-        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 16000),
+        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 32000),
         time_min = 60
     params:
         flowcell="FLO-MIN106",
@@ -103,7 +103,7 @@ rule minimap2:
     shadow: "minimal"
     threads: 16
     resources:
-        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 16000),
+        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 32000),
         time_min = 240
     shell:
         """
@@ -128,7 +128,7 @@ rule graphmap:
         {config[samtools]} index {output.bam}
         """
         
-rule aligner_merge:
+rule aligner_merge_run:
     input:
         get_batches_aligner
     output:
@@ -155,8 +155,8 @@ rule nanopolish_methylation:
     shadow: "minimal"
     threads: 16
     resources:
-        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 16000),
-        time_min = 60
+        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 32000),
+        time_min = 120
     shell:
         """
         mkdir -p raw
@@ -165,7 +165,7 @@ rule nanopolish_methylation:
         {config[nanopolish]} call-methylation -t {threads} -r {input.sequences} -g {config[reference]} -b {input.bam} > {output}
         """
         
-rule nanopolish_methylation_merge:
+rule nanopolish_methylation_merge_run:
     input:
         get_batches_methylation
     output:
@@ -183,6 +183,10 @@ rule nanopolish_methylation_merge:
                         for begin, end, ratio, log_methylated, log_unmethylated in sites:
                             print('\t'.join([chr, str(begin), str(end), name, str(ratio), str(log_methylated), str(log_unmethylated)]), file=fp_out)
 
+rule nanopolish_methylation_merge_runs:
+    input:
+        ['runs/{runname}.nanopolish.tsv'.format(runname=runname) for runname in config["runs"]]
+                            
 rule nanopolish_methylation_frequencies:
     input:
         "runs/{runname}.{methylation_caller}.tsv"
