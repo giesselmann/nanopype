@@ -2,7 +2,7 @@
 #
 #  CONTENTS      : Snakemake nanopore data pipeline
 #
-#  DESCRIPTION   : none
+#  DESCRIPTION   : Raw data storage, indexing, extraction etc.
 #
 #  RESTRICTIONS  : none
 #
@@ -31,32 +31,6 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-configfile: "config.yaml"
-include : "rules/basecalling.snakemake"
-include : "rules/alignment.snakemake"
-include : "rules/methylation.snakemake"
-
-localrules: albacore_basecalling_runs, graphmap_alignment_runs, nanopolish_methylation_runs
+include: "utils.snakemake"
 
 
-# basecalling 
-rule albacore_basecalling_runs:
-    input:
-        ['runs/{runname}.albacore.fa.gz'.format(runname=runname) for runname in config["runs"]]
-
-# alignment   
-rule graphmap_alignment_runs:
-    input:
-        ['runs/{runname}.graphmap.bam'.format(runname=runname) for runname in config["runs"]]
-
-# create nanopolish raw methylation calling for set of runs
-rule nanopolish_methylation_runs:
-    input:
-        ['runs/{runname}.nanopolish.tsv.gz'.format(runname=runname) for runname in config["runs"]]
-
-
-
-
-
-        
-        

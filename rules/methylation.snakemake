@@ -1,0 +1,110 @@
+# \HEADER\-------------------------------------------------------------------------
+#
+#  CONTENTS      : Snakemake nanopore data pipeline
+#
+#  DESCRIPTION   : nanopore methylation detection rules
+#
+#  RESTRICTIONS  : none
+#
+#  REQUIRES      : none
+#
+# ---------------------------------------------------------------------------------
+# Copyright (c) 2018,  Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# Written by Pay Giesselmann
+# ---------------------------------------------------------------------------------
+include: "utils.snakemake"
+localrules: nanopolish_methylation_merge_run, nanopolish_methylation_merge_run2, nanopolish_methylation_compress, nanopolish_methylation_frequencies
+ruleorder: nanopolish_methylation_merge_run2 > nanopolish_methylation_merge_run
+
+# get batches
+def get_batches_methylation(wildcards):
+    return expand("runs/{wildcards.runname}/methylation/{{batch}}.{wildcards.methylation_caller}.tsv".format(wildcards=wildcards), batch=get_batches(wildcards))    
+
+
+# nanopolish methylation detection
+rule nanopolish_methylation:
+    input:
+        sequences = "runs/{runname}/sequences/{batch}.albacore.fa",
+        bam = "runs/{runname}/alignments/{batch}.graphmap.bam",
+        bai = "runs/{runname}/alignments/{batch}.graphmap.bam.bai"
+    output:
+        "runs/{runname}/methylation/{batch}.nanopolish.tsv"
+    shadow: "minimal"
+    threads: 16
+    resources:
+        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 32000),
+        time_min = 60
+    shell:
+        """
+        mkdir -p raw
+        tar -C raw/ -xf {config[DATADIR]}/{wildcards.runname}/reads/{wildcards.batch}.tar
+        {config[nanopolish]} index -d raw/ {input.sequences}
+        {config[nanopolish]} call-methylation -t {threads} -r {input.sequences} -g {config[reference]} -b {input.bam} > {output}
+        """
+ 
+# merge batch tsv files and split connected CpGs
+rule nanopolish_methylation_merge_run:
+    input:
+        get_batches_methylation
+    output:
+        "runs/{runname, [a-zA-Z0-9_-]+}.{methylation_caller}.tsv"
+    run:
+        from scripts.nanopolish import tsvParser
+        recordIterator = tsvParser()
+        with open(output[0], 'w') as fp_out:
+            for ip in input:
+                with open(ip, 'r') as fp_in:
+                    # skip header
+                    next(fp_in)
+                    # iterate input
+                    for name, chr, sites in recordIterator.records(iter(fp_in)):
+                        for begin, end, ratio, log_methylated, log_unmethylated in sites:
+                            print('\t'.join([chr, str(begin), str(end), name, str(ratio), str(log_methylated), str(log_unmethylated)]), file=fp_out)
+
+rule nanopolish_methylation_merge_run2:
+    input:
+        "runs/{runname}.{methylation_caller}.tsv.gz"
+    output:
+        "runs/{runname, [a-zA-Z0-9_-]+}.{methylation_caller}.tsv"
+    shell:
+        "gunzip {input}"
+
+rule nanopolish_methylation_compress:
+    input:
+        "runs/{runname}.{methylation_caller}.tsv"
+    output:
+        "runs/{runname, [a-zA-Z0-9_-]+}.{methylation_caller}.tsv.gz"
+    shell:
+        "gzip {input}"
+
+# nanopolish log-p to mean methylation
+rule nanopolish_methylation_frequencies:
+    input:
+        "runs/{runname}.{methylation_caller}.tsv"
+    output:
+        "runs/{runname, [a-zA-Z0-9_-]+}.{methylation_caller}.bedGraph"
+    params:
+        log_p_threshold = 2.5
+    shell:
+        """
+        cat {input} | cut -f1-3,5 | perl -anle 'if(abs($F[3]) > {params.log_p_threshold}){{if($F[3]>{params.log_p_threshold}){{print join("\t", @F[0..2], "1")}}else{{print join("\t", @F[0..2], "0")}}}}' | sort -k1,1 -k2,2n | {config[bedtools]} groupby -g 1,2,3 -c 4 -o mean > {output}
+        """
