@@ -31,13 +31,13 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-include: "utils.snakemake"
-localrules: aligner_merge_run
+include: "utils.smk"
+localrules: aligner_merge_run, aligner_merge_runs
 
 
 # get batches
 def get_batches_aligner(wildcards):
-    return expand("runs/{wildcards.runname}/alignments/{{batch}}.{wildcards.aligner}.bam".format(wildcards=wildcards), batch=get_batches(wildcards))    
+    return expand("runs/{wildcards.runname}/alignments/{{batch}}.{wildcards.aligner}.{wildcards.reference}.bam".format(wildcards=wildcards), batch=get_batches(wildcards))    
 
 
 # minimap alignment
@@ -45,16 +45,18 @@ rule minimap2:
     input:
         "runs/{runname}/sequences/{batch}.albacore.fa"
     output:
-        bam = "runs/{runname}/alignments/{batch}.minimap2.bam",
-        bai = "runs/{runname}/alignments/{batch}.minimap2.bam.bai"
+        bam = "runs/{runname}/alignments/{batch}.minimap2.{reference}.bam",
+        bai = "runs/{runname}/alignments/{batch}.minimap2.{reference}.bam.bai"
     shadow: "minimal"
     threads: 16
+    params:
+        reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 32000),
         time_min = 240
     shell:
         """
-        {config[minimap2]} -ax map-ont {config[reference]} {input} -t {threads} | {config[samtools]} view -Sb - | {config[samtools]} sort -m 4G > {output.bam}
+        {config[minimap2]} -ax map-ont {params.reference} {input} -t {threads} | {config[samtools]} view -Sb - | {config[samtools]} sort -m 4G > {output.bam}
         {config[samtools]} index {output.bam}
         """
 
@@ -63,25 +65,61 @@ rule graphmap:
     input:
         "runs/{runname}/sequences/{batch}.albacore.fa"
     output:
-        bam = "runs/{runname}/alignments/{batch}.graphmap.bam",
-        bai = "runs/{runname}/alignments/{batch}.graphmap.bam.bai"
+        bam = "runs/{runname}/alignments/{batch}.graphmap.{reference}.bam",
+        bai = "runs/{runname}/alignments/{batch}.graphmap.{reference}.bam.bai"
     shadow: "minimal"
     threads: 16
+    params:
+        reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 80000),
         time_min = 240
     shell:
         """
-        {config[graphmap]} align -r {config[reference]} -d {input} -t {threads} -B 100 | {config[samtools]} view -Sb - | {config[samtools]} sort -m 4G > {output.bam}
+        {config[graphmap]} align -r {params.reference} -d {input} -t {threads} -B 100 | {config[samtools]} view -Sb - | {config[samtools]} sort -m 4G > {output.bam}
         {config[samtools]} index {output.bam}
         """
-        
+ 
+# NGMLR alignment 
+rule ngmlr:
+    input:
+        "runs/{runname}/sequences/{batch}.albacore.fa"
+    output:
+        bam = "runs/{runname}/alignments/{batch}.ngmlr.{reference}.bam",
+        bai = "runs/{runname}/alignments/{batch}.ngmlr.{reference}.bam.bai"
+    shadow: "minimal"
+    threads: 16
+    params:
+        reference = lambda wildcards: config['references'][wildcards.reference]['genome']
+    resources:
+        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 32000),
+        time_min = 240
+    shell:
+        """
+        {config[ngmlr]} -r {params.reference} -q {input} -x ont -t {threads} --bam-fix | {config[samtools]} view -Sb - | {config[samtools]} sort -m 4G > {output.bam}
+        {config[samtools]} index {output.bam}
+        """
+
 # merge batch files
 rule aligner_merge_run:
     input:
         get_batches_aligner
     output:
-        "runs/{runname, [a-zA-Z0-9_-]+}.{aligner}.bam"
+        "runs/{runname, [a-zA-Z0-9_-]+}.{aligner}.{reference}.bam"
+    shell:
+        """
+        {config[samtools]} merge {output} {input}
+        {config[samtools]} index {output}
+        """
+      
+# merge run files      
+rule aligner_merge_runs:
+    input:
+        ['runs/{runname}.{{aligner}}.{{reference}}.bam'.format(runname=runname) for runname in [line.rstrip('\n') for line in open('runnames.txt')]]
+    output:
+        "{trackname, [a-zA-Z0-9_-]+}.{aligner}.{reference}.bam"
+    params:
+        min_coverage = 1
     shell:
         """
         {config[samtools]} merge {output} {input}

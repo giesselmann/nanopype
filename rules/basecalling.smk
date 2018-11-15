@@ -31,7 +31,7 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-include: "utils.snakemake"
+include: "utils.smk"
 localrules: basecaller_merge, basecaller_merge2, basecaller_compress
 ruleorder: basecaller_merge2 > basecaller_merge
 
@@ -50,7 +50,7 @@ def get_flowcell(wildcards):
     
 def get_kit(wildcards):
     fields = wildcards.runname.split('_')
-    if fields[3] in ['SQK-DCS108','SQK-LRK001','SQK-LSK108','SQK-LSK109','SQK-LWB001','SQK-LWP001','SQK-PBK004','SQK-PCS108','SQK-PSK004','SQK-RAB201','SQK-RAB204','SQK-RAD002','SQK-RAD003','SQK-RAD004','SQK-RAS201','SQK-RBK001','SQK-RBK004','SQK-RLB001','SQK-RLI001','SQK-RNA001','SQK-RPB004','VSK-VBK001','VSK-VMK001','VSK-VSK001']:
+    if fields[3] in ['SQK-DCS108','SQK-LRK001','SQK-LSK108','SQK-LSK109', 'SQK-LSK308', 'SQK-LWB001','SQK-LWP001','SQK-PBK004','SQK-PCS108','SQK-PSK004','SQK-RAB201','SQK-RAB204','SQK-RAD002','SQK-RAD003','SQK-RAD004','SQK-RAS201','SQK-RBK001','SQK-RBK004','SQK-RLB001','SQK-RLI001','SQK-RNA001','SQK-RPB004','VSK-VBK001','VSK-VMK001','VSK-VSK001']:
         return fields[3]
     else:
         raise ValueError('Could not detect kit from ' + wildcards.runname)
