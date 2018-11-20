@@ -31,7 +31,6 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-include: "utils.smk"
 localrules: aligner_merge_run, aligner_merge_runs
 
 
@@ -52,12 +51,12 @@ rule minimap2:
     params:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
-        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 32000),
-        time_min = 240
+        mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 32000),
+        time_min = lambda wildcards, attempt: int(240 * attempt)
     shell:
         """
-        {config[minimap2]} -ax map-ont {params.reference} {input} -t {threads} | {config[samtools]} view -Sb - | {config[samtools]} sort -m 4G > {output.bam}
-        {config[samtools]} index {output.bam}
+        {config[bin][minimap2]} -ax map-ont {params.reference} {input} -t {threads} | {config[bin][samtools]} view -Sb - | {config[bin][samtools]} sort -m 4G > {output.bam}
+        {config[bin][samtools]} index {output.bam}
         """
 
 # graphmap alignment
@@ -72,12 +71,12 @@ rule graphmap:
     params:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
-        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 80000),
-        time_min = 240
+        mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 80000),
+        time_min = lambda wildcards, attempt: int(240 * attempt)
     shell:
         """
-        {config[graphmap]} align -r {params.reference} -d {input} -t {threads} -B 100 | {config[samtools]} view -Sb - | {config[samtools]} sort -m 4G > {output.bam}
-        {config[samtools]} index {output.bam}
+        {config[bin][graphmap]} align -r {params.reference} -d {input} -t {threads} -B 100 | {config[bin][samtools]} view -Sb - | {config[bin][samtools]} sort -m 4G > {output.bam}
+        {config[bin][samtools]} index {output.bam}
         """
  
 # NGMLR alignment 
@@ -92,12 +91,12 @@ rule ngmlr:
     params:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
-        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 32000),
-        time_min = 240
+        mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 32000),
+        time_min = lambda wildcards, attempt: int(60 * attempt)
     shell:
         """
-        {config[ngmlr]} -r {params.reference} -q {input} -x ont -t {threads} --bam-fix | {config[samtools]} view -Sb - | {config[samtools]} sort -m 4G > {output.bam}
-        {config[samtools]} index {output.bam}
+        cat {input} | {config[bin][ngmlr]} -r {params.reference} -x ont -t {threads} --bam-fix | {config[bin][samtools]} view -Sb - | {config[bin][samtools]} sort -m 4G > {output.bam}
+        {config[bin][samtools]} index {output.bam}
         """
 
 # merge batch files
@@ -108,20 +107,20 @@ rule aligner_merge_run:
         "runs/{runname, [a-zA-Z0-9_-]+}.{aligner}.{reference}.bam"
     shell:
         """
-        {config[samtools]} merge {output} {input}
-        {config[samtools]} index {output}
+        {config[bin][samtools]} merge {output} {input} -p
+        {config[bin][samtools]} index {output}
         """
       
 # merge run files      
 rule aligner_merge_runs:
     input:
-        ['runs/{runname}.{{aligner}}.{{reference}}.bam'.format(runname=runname) for runname in [line.rstrip('\n') for line in open('runnames.txt')]]
+        ['runs/{runname}.{{aligner}}.{{reference}}.bam'.format(runname=runname) for runname in config['runnames']]
     output:
         "{trackname, [a-zA-Z0-9_-]+}.{aligner}.{reference}.bam"
     params:
         min_coverage = 1
     shell:
         """
-        {config[samtools]} merge {output} {input}
-        {config[samtools]} index {output}
+        {config[bin][samtools]} merge {output} {input} -p
+        {config[bin][samtools]} index {output}
         """

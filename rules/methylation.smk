@@ -31,7 +31,6 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-include: "utils.smk"
 localrules: nanopolish_methylation_merge_run, nanopolish_methylation_compress, nanopolish_methylation_bedGraph, nanopolish_methylation_frequencies, methylation_bigwig
 
 # get batches
@@ -42,6 +41,7 @@ def get_batches_methylation(wildcards, methylation_caller):
 # nanopolish methylation detection
 rule nanopolish_methylation:
     input:
+        signals = "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["data_raw"]),
         sequences = "runs/{runname}/sequences/{batch}.albacore.fa",
         bam = "runs/{runname}/alignments/{batch}.graphmap.{reference}.bam",
         bai = "runs/{runname}/alignments/{batch}.graphmap.{reference}.bam.bai"
@@ -57,9 +57,9 @@ rule nanopolish_methylation:
     shell:
         """
         mkdir -p raw
-        tar -C raw/ -xf {config[DATADIR]}/{wildcards.runname}/reads/{wildcards.batch}.tar
-        {config[nanopolish]} index -d raw/ {input.sequences}
-        {config[nanopolish]} call-methylation -t {threads} -r {input.sequences} -g {params.reference} -b {input.bam} > {output}
+        tar -C raw/ -xf {input.signals}
+        {config[bin][nanopolish]} index -d raw/ {input.sequences}
+        {config[bin][nanopolish]} call-methylation -t {threads} -r {input.sequences} -g {params.reference} -b {input.bam} > {output}
         """
  
 # merge batch tsv files and split connected CpGs
@@ -92,14 +92,14 @@ rule nanopolish_methylation_compress:
 # nanopolish methylation probability to frequencies
 rule nanopolish_methylation_frequencies:
     input:
-        ['runs/{runname}.nanopolish.{{reference}}.tsv.gz'.format(runname=runname) for runname in [line.rstrip('\n') for line in open('runnames.txt')]]
+        ['runs/{runname}.nanopolish.{{reference}}.tsv.gz'.format(runname=runname) for runname in config['runnames']]
     output:
         "{trackname, [a-zA-Z0-9_-]+}.nanopolish.{reference}.frequencies.tsv"
     params:
         log_p_threshold = 2.5
     shell:
         """
-        zcat {input} | cut -f1-3,5 | perl -anle 'if(abs($F[3]) > {params.log_p_threshold}){{if($F[3]>{params.log_p_threshold}){{print join("\t", @F[0..2], "1")}}else{{print join("\t", @F[0..2], "0")}}}}' | sort -k1,1 -k2,2n | {config[bedtools]} groupby -g 1,2,3 -c 4 -o mean,count > {output}
+        zcat {input} | cut -f1-3,5 | perl -anle 'if(abs($F[3]) > {params.log_p_threshold}){{if($F[3]>{params.log_p_threshold}){{print join("\t", @F[0..2], "1")}}else{{print join("\t", @F[0..2], "0")}}}}' | sort -k1,1 -k2,2n | {config[bin][bedtools]} groupby -g 1,2,3 -c 4 -o mean,count > {output}
         """
 
 # nanopolish frequencies to bedGraph
@@ -108,11 +108,9 @@ rule nanopolish_methylation_bedGraph:
         "{trackname}.nanopolish.{reference}.frequencies.tsv"
     output:
         "{trackname, [a-zA-Z0-9_-]+}.{coverage}.nanopolish.{reference}.bedGraph"
-    params:
-        min_coverage = 1
     shell:
         """
-        cat {input} | perl -anle 'print $_ if $F[4] >= {config[min_coverage]}' | cut -f1-4 > {output}
+        cat {input} | perl -anle 'print $_ if $F[4] >= {config[methylation_min_coverage]}' | cut -f1-4 > {output}
         """
 
 # bedGraph to bigWig
@@ -123,5 +121,5 @@ rule methylation_bigwig:
         "{trackname, [a-zA-Z0-9_-]+}.{coverage}.{methylation_caller}.bw"
     shell:
         """
-        {config[ucsctools]}bedGraphToBigWig {input} {config[reference][chr_sizes]} {output}
+        {config[bin_dir][ucsctools]}bedGraphToBigWig {input} {config[reference][chr_sizes]} {output}
         """

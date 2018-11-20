@@ -33,5 +33,5 @@
 # ---------------------------------------------------------------------------------
 # batches of packed fast5 files
 def get_batches(wildcards):
-    batches, = glob_wildcards("{datadir}/{wildcards.runname}/reads/{{id}}.tar".format(datadir=config["DATADIR"], wildcards=wildcards))
+    batches, = glob_wildcards("{datadir}/{wildcards.runname}/reads/{{id}}.tar".format(datadir=config["data_raw"], wildcards=wildcards))
     return batches

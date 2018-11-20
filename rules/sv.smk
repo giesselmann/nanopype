@@ -31,9 +31,8 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-include: "utils.smk"
 
-# NGMLR alignment 
+# sniffles sv detection 
 rule sniffles:
     input:
         "{trackname}.{aligner}.{reference}.bam"

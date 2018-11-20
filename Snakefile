@@ -31,32 +31,44 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
+# snakemake config
 configfile: "config.yaml"
+
+
+# parse pipeline environment
+import os, yaml
+with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as fp:
+    nanopype_env = yaml.load(fp)
+    config.update(nanopype_env)
+
+
+# multi-run rules
+runnames = []
+config['runnames'] = runnames
+if os.path.isfile('runnames.txt'):
+    localrules: albacore_basecalling_runs, graphmap_alignment_runs, nanopolish_methylation_runs
+    runnames = [line.rstrip('\n') for line in open('runnames.txt')]
+    
+    # basecalling for set of runs
+    rule albacore_basecalling_runs:
+        input:
+            ['runs/{runname}.albacore.fa.gz'.format(runname=runname) for runname in runnames]
+
+    # alignment for set of runs
+    rule graphmap_alignment_runs:
+        input:
+            ['runs/{runname}.graphmap.bam'.format(runname=runname) for runname in runnames]
+
+    # create nanopolish raw methylation calling for set of runs
+    rule nanopolish_methylation_runs:
+        input:
+            ['runs/{runname}.nanopolish.tsv.gz'.format(runname=runname) for runname in runnames]
+
+
+# include modules
+include: "rules/utils.smk"
+include : "rules/storage.smk"
 include : "rules/basecalling.smk"
 include : "rules/alignment.smk"
 include : "rules/methylation.smk"
 include : "rules/sv.smk"
-localrules: albacore_basecalling_runs, graphmap_alignment_runs, nanopolish_methylation_runs
-
-
-import os
-runname = []
-if os.path.isfile('runnames.txt'):
-    runnames = [line.rstrip('\n') for line in open('runnames.txt')]
-
-# basecalling for set of runs
-rule albacore_basecalling_runs:
-    input:
-        ['runs/{runname}.albacore.fa.gz'.format(runname=runname) for runname in runnames]
-
-# alignment for set of runs
-rule graphmap_alignment_runs:
-    input:
-        ['runs/{runname}.graphmap.bam'.format(runname=runname) for runname in runnames]
-
-# create nanopolish raw methylation calling for set of runs
-rule nanopolish_methylation_runs:
-    input:
-        ['runs/{runname}.nanopolish.tsv.gz'.format(runname=runname) for runname in runnames]
-
-        
