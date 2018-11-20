@@ -32,8 +32,6 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-
-
 import sys, subprocess
 from snakemake.utils import read_job_properties
 
@@ -42,13 +40,14 @@ if __name__ == '__main__':
     jobscript = sys.argv[-1]
     job_properties = read_job_properties(jobscript)
     
-    # parse resources
+    # default resources
     threads = '1'
     runtime = '60'
+    memory = '16000'
+    # parse resources
     group_name = job_properties["rule"]
     if "threads" in job_properties:
         threads = str(job_properties["threads"])
-    memory = '16000'
     if "resources" in job_properties:
         resources = job_properties["resources"]
         if "mem_mb" in resources: memory = str(resources["mem_mb"])
@@ -65,4 +64,5 @@ if __name__ == '__main__':
     out = ret.stdout.decode()
     sub = {key:value for key, value in [line.split('=') for line in out.strip().split()]}
     
+    # print job id for snakemake
     print(sub['mxq_job_id'])

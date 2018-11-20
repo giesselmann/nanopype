@@ -32,6 +32,5 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-
 # properties = {properties}
 {exec_job}

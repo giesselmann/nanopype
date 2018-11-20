@@ -32,8 +32,6 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-
-
 import sys, subprocess
 
 
@@ -44,7 +42,7 @@ if __name__ == '__main__':
         ret = subprocess.run('mxqdump --job-id {job_id}'.format(job_id=job_id), check=True, shell=True, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         raise e
-    # parse dump output to dictionary
+    # parse nxqdump output to dictionary
     out = ret.stdout.decode()
     status = {key:value for key, value in [line.split('=') for line in out.strip().split(' ')]}
     # summarize mxq status to snakemake codes
