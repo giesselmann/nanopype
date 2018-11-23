@@ -31,9 +31,7 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-
 import os, sys, re
-import argparse
 
 
 # iterator for nanopolish tsv output

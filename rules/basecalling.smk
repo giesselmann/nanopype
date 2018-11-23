@@ -10,17 +10,17 @@
 #
 # ---------------------------------------------------------------------------------
 # Copyright (c) 2018,  Pay Giesselmann, Max Planck Institute for Molecular Genetics
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,22 +37,7 @@ localrules: basecaller_merge_run, basecaller_compress_run, basecaller_merge_runs
 
 # get batches
 def get_batches_basecaller(wildcards):
-    return expand("runs/{wildcards.runname}/sequences/{{batch}}.{wildcards.basecaller}.{wildcards.format}".format(wildcards=wildcards), batch=get_batches(wildcards))
-
-# flowcell and kit parsing
-def get_flowcell(wildcards):
-    fields = wildcards.runname.split(config['runname']['delimiter'])
-    if fields[config['runname']['field_flowcell']] in ['FLO-MIN106', 'FLO-MIN107', 'FLO-PRO001']:
-        return fields[config['runname']['field_flowcell']]
-    else:
-        raise ValueError('Could not detect flowcell from ' + wildcards.runname)
-    
-def get_kit(wildcards):
-    fields = wildcards.runname.split(config['runname']['delimiter'])
-    if fields[config['runname']['filed_kit']] in ['SQK-DCS108','SQK-LRK001','SQK-LSK108','SQK-LSK109', 'SQK-LSK308', 'SQK-LWB001','SQK-LWP001','SQK-PBK004','SQK-PCS108','SQK-PSK004','SQK-RAB201','SQK-RAB204','SQK-RAD002','SQK-RAD003','SQK-RAD004','SQK-RAS201','SQK-RBK001','SQK-RBK004','SQK-RLB001','SQK-RLI001','SQK-RNA001','SQK-RPB004','VSK-VBK001','VSK-VMK001','VSK-VSK001']:
-        return fields[config['runname']['filed_kit']]
-    else:
-        raise ValueError('Could not detect kit from ' + wildcards.runname)
+    return expand("sequences/{wildcards.runname}/{{batch}}.{wildcards.basecaller}.{wildcards.format}".format(wildcards=wildcards), batch=get_batches(wildcards))
 
 
 # albacore basecalling
@@ -60,7 +45,7 @@ rule albacore:
     input:
         "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["data_raw"])
     output:
-        "runs/{runname}/sequences/{batch}.albacore.{format}"
+        "sequences/{runname}/{batch}.albacore.{format}"
     shadow: "minimal"
     threads: 16
     resources:
@@ -87,28 +72,28 @@ rule albacore:
             cat {wildcards.batch}.fq | paste - - - - | cut -f1,2 | tr '@' '>' | tr '\t' '\n' > {output}
         fi
         """
-        
+
 # merge and compression
 rule basecaller_merge_run:
     input:
         get_batches_basecaller
     output:
-        "runs/{runname, [a-zA-Z0-9_-]+}.{basecaller}.{format, (fasta|fastq|fa|fq)}"
+        "sequences/{runname, [a-zA-Z0-9_-]+}.{basecaller}.{format, (fasta|fastq|fa|fq)}"
     shell:
         "cat {input} > {output}"
 
 rule basecaller_compress_run:
     input:
-        "runs/{runname}.{basecaller}.{format}"
+        "sequences/{runname}.{basecaller}.{format}"
     output:
-        "runs/{runname, [a-zA-Z0-9_-]+}.{basecaller}.{format, (fasta|fastq|fa|fq)}.gz"
+        "sequences/{runname, [a-zA-Z0-9_-]+}.{basecaller}.{format, (fasta|fastq|fa|fq)}.gz"
     shell:
         "gzip {input}"
-        
-# merge run files      
+
+# merge run files
 rule basecaller_merge_runs:
     input:
-        ['runs/{runname}.{{basecaller}}.{{format}}'.format(runname=runname) for runname in config['runnames']]
+        ['sequences/{runname}.{{basecaller}}.{{format}}'.format(runname=runname) for runname in config['runnames']]
     output:
         "{trackname, [a-zA-Z0-9_-]+}.{basecaller}.{format, (fasta|fastq|fa|fq)}"
     params:
@@ -117,7 +102,7 @@ rule basecaller_merge_runs:
         """
         cat {input} > {output}
         """
-        
+
 rule basecaller_compress_runs:
     input:
         "{trackname}.{basecaller}.{format}"

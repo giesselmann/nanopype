@@ -68,7 +68,7 @@ rule index_batch:
                 except:
                     pass
  
-# merge batch indices 
+# merge batch indices
 rule index_run:
     input:
         get_batches_indexing

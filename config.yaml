@@ -1,6 +1,6 @@
 # data paths
-data_raw : /project/minion/src/nanopype_dev/build/raw
-data_import : /project/miniondata/incoming
+data_raw : /path/to/raw_data
+data_import : /path/to/import_data
 runname:
     delimiter: '_'
     field_ID: 1

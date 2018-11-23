@@ -35,18 +35,18 @@ localrules: nanopolish_methylation_merge_run, nanopolish_methylation_compress, n
 
 # get batches
 def get_batches_methylation(wildcards, methylation_caller):
-    return expand("runs/{wildcards.runname}/methylation/{{batch}}.{methylation_caller}.{wildcards.reference}.tsv".format(wildcards=wildcards, methylation_caller=methylation_caller), batch=get_batches(wildcards))    
+    return expand("methylation/{wildcards.runname}/{{batch}}.{methylation_caller}.{wildcards.reference}.tsv".format(wildcards=wildcards, methylation_caller=methylation_caller), batch=get_batches(wildcards))    
 
 
 # nanopolish methylation detection
 rule nanopolish_methylation:
     input:
         signals = "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["data_raw"]),
-        sequences = "runs/{runname}/sequences/{batch}.albacore.fa",
-        bam = "runs/{runname}/alignments/{batch}.graphmap.{reference}.bam",
-        bai = "runs/{runname}/alignments/{batch}.graphmap.{reference}.bam.bai"
+        sequences = "sequences/{runname}/{batch}.albacore.fa",
+        bam = "alignments/{runname}/{batch}.graphmap.{reference}.bam",
+        bai = "alignments/{runname}/{batch}.graphmap.{reference}.bam.bai"
     output:
-        "runs/{runname}/methylation/{batch}.nanopolish.{reference}.tsv"
+        "methylation/{runname, [^./]*}/{batch, [0-9]+}.nanopolish.{reference, [^./]*}.tsv"
     shadow: "minimal"
     threads: 16
     params:
@@ -67,7 +67,7 @@ rule nanopolish_methylation_merge_run:
     input:
         lambda wildcards: get_batches_methylation(wildcards, 'nanopolish')
     output:
-        "runs/{runname, [a-zA-Z0-9_-]+}.nanopolish.{reference}.tsv"
+        "methylation/{runname, [^./]*}.nanopolish.{reference, [^./]*}.tsv"
     run:
         from scripts.nanopolish import tsvParser
         recordIterator = tsvParser()
@@ -83,18 +83,18 @@ rule nanopolish_methylation_merge_run:
 
 rule nanopolish_methylation_compress:
     input:
-        "runs/{runname}.{methylation_caller}.{reference}.tsv"
+        "methylation/{runname}.{methylation_caller}.{reference}.tsv"
     output:
-        "runs/{runname, [a-zA-Z0-9_-]+}.{methylation_caller}.{reference}.tsv.gz"
+        "methylation/{runname, [^./]*}.{methylation_caller, [^./]*}.{reference, [^./]*}.tsv.gz"
     shell:
         "gzip {input}"
 
 # nanopolish methylation probability to frequencies
 rule nanopolish_methylation_frequencies:
     input:
-        ['runs/{runname}.nanopolish.{{reference}}.tsv.gz'.format(runname=runname) for runname in config['runnames']]
+        ['methylation/{runname}.nanopolish.{{reference}}.tsv.gz'.format(runname=runname) for runname in config['runnames']]
     output:
-        "{trackname, [a-zA-Z0-9_-]+}.nanopolish.{reference}.frequencies.tsv"
+        "{trackname, [^./]*}.nanopolish.{reference, [^./]*}.frequencies.tsv"
     params:
         log_p_threshold = 2.5
     shell:
@@ -107,7 +107,7 @@ rule nanopolish_methylation_bedGraph:
     input:
         "{trackname}.nanopolish.{reference}.frequencies.tsv"
     output:
-        "{trackname, [a-zA-Z0-9_-]+}.{coverage}.nanopolish.{reference}.bedGraph"
+        "{trackname, [^./]*}.{coverage, [^./]*}.nanopolish.{reference, [^./]*}.bedGraph"
     shell:
         """
         cat {input} | perl -anle 'print $_ if $F[4] >= {config[methylation_min_coverage]}' | cut -f1-4 > {output}
@@ -118,7 +118,7 @@ rule methylation_bigwig:
     input:
         "{trackname}.{coverage}.{methylation_caller}.{reference}.bedGraph"
     output:
-        "{trackname, [a-zA-Z0-9_-]+}.{coverage}.{methylation_caller}.bw"
+        "{trackname, [^./]*}.{coverage, [^./]*}.{methylation_caller, [^./]*}.bw"
     shell:
         """
         {config[bin_dir][ucsctools]}bedGraphToBigWig {input} {config[reference][chr_sizes]} {output}

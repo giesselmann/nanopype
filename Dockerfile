@@ -2,6 +2,8 @@
 # BUILD STAGE
 FROM ubuntu:16.04 as build_stage
 
+MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
+
 ## system packages
 RUN apt-get --yes update
 RUN apt-get --yes install wget
@@ -71,8 +73,10 @@ COPY --from=build_stage /src/ngmlr/bin/*/ngmlr /bin/
 COPY --from=build_stage /src/nanopolish/nanopolish /bin/
 COPY --from=build_stage /src/Sniffles/bin/*/sniffles /bin/
 
-#RUN cd /bin && wget ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/*
+RUN cd /bin && wget ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/*
 
 ## set up nanopye
+RUN mkdir -p /app
+WORKDIR /app
+COPY . /app/
 
- 
