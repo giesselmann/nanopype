@@ -1,6 +1,12 @@
 # data paths
 data_raw : /project/minion/src/nanopype_dev/build/raw
 data_import : /project/miniondata/incoming
+runname:
+    delimiter: '_'
+    field_ID: 1
+    field_flowcell: 2
+    filed_kit: 3
+
 
 # basecalling
 albacore_barcoding: false
