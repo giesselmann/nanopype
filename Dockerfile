@@ -52,7 +52,7 @@ RUN mkdir -p Sniffles/build && cd Sniffles/build && cmake .. && make
 RUN mkdir -p /app
 WORKDIR /app
 COPY . /app/
-pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 # PACKAGE STAGE
 FROM ubuntu:16.04
