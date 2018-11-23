@@ -32,8 +32,8 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 import os
-localrules: aligner_merge_run, aligner_merge_runs, aligner_split_run
-ruleorder: aligner_split_run > aligner_sam2bam
+localrules: aligner_merge_run, aligner_merge_runs
+#ruleorder: aligner_split_run > aligner_sam2bam
 
 # get batches
 def get_batches_aligner(wildcards):
