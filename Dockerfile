@@ -48,6 +48,11 @@ RUN cd nanopolish && make
 RUN git clone https://github.com/fritzsedlazeck/Sniffles
 RUN mkdir -p Sniffles/build && cd Sniffles/build && cmake .. && make
 
+# copy and configure nanopype
+RUN mkdir -p /app
+WORKDIR /app
+COPY . /app/
+pip3 install -r requirements.txt
 
 # PACKAGE STAGE
 FROM ubuntu:16.04
@@ -55,8 +60,10 @@ RUN apt-get --yes update && \
 apt-get install -y --no-install-recommends wget gcc g++ \
 	zlib1g-dev bzip2 libbz2-dev \
 	liblzma-dev libncurses5-dev \
+	ca-certificates \
 	python python3.5
 
+RUN update-ca-certificates
 RUN ln -s /usr/bin/python3.5 /usr/bin/python3
 RUN mkdir -p /src
 WORKDIR /src
@@ -80,4 +87,3 @@ RUN wget ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
 RUN mkdir -p /app
 WORKDIR /app
 COPY . /app/
-
