@@ -73,7 +73,8 @@ COPY --from=build_stage /src/ngmlr/bin/*/ngmlr /bin/
 COPY --from=build_stage /src/nanopolish/nanopolish /bin/
 COPY --from=build_stage /src/Sniffles/bin/*/sniffles /bin/
 
-RUN cd /bin && wget ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/*
+WORKDIR /bin
+RUN wget ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig 
 
 ## set up nanopye
 RUN mkdir -p /app
