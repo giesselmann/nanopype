@@ -14,7 +14,7 @@ RUN apt-get --yes install autoconf
 RUN apt-get --yes install make cmake
 RUN apt-get --yes install zlib1g-dev bzip2 libbz2-dev
 RUN apt-get --yes install liblzma-dev libncurses5-dev
-RUN apt-get --yes install python python3.5
+RUN apt-get --yes install python python3.5 python3.5-dev
 
 ## set up python 3
 RUN ln -s /usr/bin/python3.5 /usr/bin/python3
@@ -48,11 +48,6 @@ RUN cd nanopolish && make
 RUN git clone https://github.com/fritzsedlazeck/Sniffles
 RUN mkdir -p Sniffles/build && cd Sniffles/build && cmake .. && make
 
-# copy and configure nanopype
-RUN mkdir -p /app
-WORKDIR /app
-COPY . /app/
-RUN pip3 install -r requirements.txt
 
 # PACKAGE STAGE
 FROM ubuntu:16.04
@@ -61,7 +56,7 @@ apt-get install -y --no-install-recommends wget gcc g++ \
 	zlib1g-dev bzip2 libbz2-dev \
 	liblzma-dev libncurses5-dev \
 	ca-certificates \
-	python python3.5
+	python python3.5 python3.5-dev
 
 RUN update-ca-certificates
 RUN ln -s /usr/bin/python3.5 /usr/bin/python3
@@ -84,6 +79,11 @@ WORKDIR /bin
 RUN wget ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig 
 
 ## set up nanopye
+# copy and configure nanopype
 RUN mkdir -p /app
 WORKDIR /app
 COPY . /app/
+RUN pip3 install -r requirements.txt
+
+
+
