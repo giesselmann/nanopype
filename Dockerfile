@@ -85,5 +85,9 @@ WORKDIR /app
 COPY . /app/
 RUN pip3 install -r requirements.txt
 
-
+# create working directories
+RUN mkdir -p /data/raw
+RUN mkdir -p /data/import
+RUN mkdir -p /data/processing
+WORKDIR /data/processing
 
