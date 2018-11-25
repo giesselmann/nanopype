@@ -1,6 +1,6 @@
 # data paths
-data_raw : /path/to/raw_data
-data_import : /path/to/import_data
+data_raw : /data/raw
+data_import : /data/import
 runname:
     delimiter: '_'
     field_ID: 1
