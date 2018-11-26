@@ -1,17 +1,14 @@
-# Welcome to Nanopype
+# Welcome to the Nanopype documentation
 
-For full documentation visit [mkdocs.org](https://mkdocs.org).
+Nanopype is a snakemake based pipeline providing convinient nanopore data processing and storage solutions.
 
-## Commands
+Install nanopype into an existing python3 installation from [github.com](https://github.com/giesselmann/nanopype/) 
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs help` - Print this help message.
+    git clone https://github.com/giesselmann/nanopype
+    cd nanopype
+    pip3 install -r requirements.txt
 
-## Project layout
+or use automated Docker builds from [hub.docker.com](https://hub.docker.com/r/giesselmann/nanopype/).
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+    docker pull giesselmann/nanopype
+    docker run -it giesselmann/nanopype

@@ -31,7 +31,7 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-site_name: Nanopype
+site_name: Nanopype Documentation
 site_description: 'Snakemake pipelines for nanopore sequencing data archiving and processing and analysis'
 site_author: 'Pay Giesselmann'
 site_url: 'https://nanopype.readthedocs.io'
@@ -79,7 +79,11 @@ markdown_extensions:
 
 # Page tree
 nav:
-  - Material: index.md
-  - Getting started: getting-started.md
+  - Getting started: index.md
+  - Installation: installation.md
+  - Configuration: configuration.md
+  - Rules:
+    - Basecalling: rules/basecalling.md
+    - Alignment: rules/alignment.md
   - Release notes: release-notes.md
   - License: license.md
