@@ -1,0 +1,6 @@
+site_name: Nanopype
+site_description: 'Snakemake pipelines for nanopore sequencing data archiving and processing and analysis'
+site_author: 'Pay Giesselmann'
+site_url: 'https://nanopype.readthedocs.io'
+theme:
+  name: 'material'
