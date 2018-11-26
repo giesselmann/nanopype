@@ -1,5 +1,7 @@
 # nanopype 
-[![Docker Automated build](https://img.shields.io/docker/automated/giesselmann/nanopype.svg)](https://hub.docker.com/r/giesselmann/nanopype/)  [![Read the Docs (version)](https://readthedocs.org/projects/nanopype/badge/?version=development)](https://nanopype.readthedocs.io/en/development/)
+
+[![Docker Automated build](https://img.shields.io/docker/automated/giesselmann/nanopype.svg)](https://hub.docker.com/r/giesselmann/nanopype/) [![Read the Docs (version)](https://img.shields.io/readthedocs/nanopype/development.svg)](https://nanopype.readthedocs.io/en/development/)
+
 
 Snakemake pipelines for nanopore sequencing data archiving and processing and analysis
 
