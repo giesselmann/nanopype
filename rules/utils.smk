@@ -44,7 +44,12 @@ def get_ID(wildcards):
 
 def get_flowcell(wildcards):
     fields = wildcards.runname.split(config['storage_runname']['delimiter'])
-    if fields[config['storage_runname']['field_flowcell']] in ['FLO-MIN106', 'FLO-MIN107', 'FLO-PRO001']:
+    if len(fields) > config['storage_runname']['field_flowcell'] and fields[config['storage_runname']['field_flowcell']] in ['FLO-MIN106', 'FLO-MIN107', 'FLO-PRO001', 'FLO-PRO002']:
+        flowcell = fields[config['storage_runname']['field_flowcell']]
+        # TODO fix as soon as albacore supports FLO-PRO002
+        if flowcell == 'FLO-PRO002':
+            flowcell = 'FLO-PRO001'
+        # end
         return fields[config['storage_runname']['field_flowcell']]
     else:
         raise ValueError('Could not detect flowcell from ' + wildcards.runname)

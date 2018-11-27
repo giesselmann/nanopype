@@ -45,8 +45,8 @@ rule sniffles:
         min_length = lambda wildcards : config["sniffles_min_length"] if "sniffles_min_length" in config else 30,
         min_seq_size = lambda wildcards : config["sniffles_min_seq_size"] if "sniffles_min_seq_size" in config else 2000
     resources:
-        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 32000),
-        time_min = 240
+        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 1000 * threads)),
+        time_min = lambda wildcards, threads, attempt: int((3840 / threads) * attempt)   # 240 min / 16 threads
     shell:
         """
         {config[sniffles]} -m {input} -v {output} --genotype -t {threads} -s {params.min_support} -l {params.min_length} -r {params.min_seq_size}

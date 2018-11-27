@@ -50,7 +50,7 @@ rule index_batch:
     shadow: "minimal"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 8000),
+        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 4000),
         time_min = 15
     run:
         import os, subprocess, h5py
