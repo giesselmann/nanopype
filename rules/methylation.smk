@@ -43,8 +43,8 @@ rule nanopolish_methylation:
     input:
         signals = "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["data_raw"]),
         sequences = "sequences/{runname}/{batch}.albacore.fa",
-        bam = "alignments/{runname}/{batch}.graphmap.{reference}.bam",
-        bai = "alignments/{runname}/{batch}.graphmap.{reference}.bam.bai"
+        bam = "alignments/{{runname}}/{{batch}}.{aligner}.{{reference}}.bam".format(aligner = config["methylation_nanopolish_aligner"]),
+        bai = "alignments/{{runname}}/{{batch}}.{aligner}.{{reference}}.bam.bai".format(aligner = config["methylation_nanopolish_aligner"])
     output:
         "methylation/{runname, [^./]*}/{batch, [0-9]+}.nanopolish.{reference, [^./]*}.tsv"
     shadow: "minimal"
@@ -96,7 +96,7 @@ rule nanopolish_methylation_frequencies:
     output:
         "{trackname, [^./]*}.nanopolish.{reference, [^./]*}.frequencies.tsv"
     params:
-        log_p_threshold = 2.5
+        log_p_threshold = config['methylation_nanopolish_logp_threshold']
     shell:
         """
         zcat {input} | cut -f1-3,5 | perl -anle 'if(abs($F[3]) > {params.log_p_threshold}){{if($F[3]>{params.log_p_threshold}){{print join("\t", @F[0..2], "1")}}else{{print join("\t", @F[0..2], "0")}}}}' | sort -k1,1 -k2,2n | {config[bin][bedtools]} groupby -g 1,2,3 -c 4 -o mean,count > {output}

@@ -13,4 +13,6 @@ albacore_barcoding: false
 albacore_disable_filtering: true
 
 # methylation detection
+methylation_nanopolish_logp_threshold: 2.5
+methylation_nanopolish_aligner: graphmap
 methylation_min_coverage: 1
