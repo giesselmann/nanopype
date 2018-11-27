@@ -1,6 +1,20 @@
 # Configuration
 
-Nanopype has two configuration layers: The installation bound central **environment** configuration covers tool paths and reference genomes. The environment configuration is stored in the installation directory. For a project an additional **workflow** configuration is required providing data sources, tool flags and parameters. The workflow config is stored in the root of each project directory. Configuration files are in .yaml format.
+Nanopype has two configuration layers: The central **environment** configuration covers application paths and reference genomes. The environment configuration is stored in the installation directory. For a project an additional **workflow** configuration is required providing data sources, tool flags and parameters. The workflow config is stored in the root of each project directory. Configuration files are in .yaml format.
+
+## Storage
+
+**Binaries**
+:	Executables of nanopype and and its integrated tools can be installed system wide or build from source by the user. In case of cluster execution of workflows they must be accessible from each node.
+
+**Raw data**
+:	Raw nanopore read data is organized in directories per flow-cell. The name is used to parse important experimental information such as flow-cell type and sequencing kit.
+	A suggested pattern is *20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01* with fixed first four fields and an arbitrary number of user defined fields at the end.
+	Nanopype will search a *reads/* subfolder for tar archives containing packed fast5 files with signal values from the sequencer. A *reads.fofn* can be created to index the run and enable efficient extraction of reads of interest.
+
+**Processing**
+:	One or multiple sequencing runs are processed batch-wise and merged into tracks. A working directory requires a local workflow configuration. 
+
 
 ## Environment
 
@@ -8,9 +22,9 @@ The default environment configuration **env.yaml** assumes all required tools to
 
 ```
 bin:
-    # tool is in PATH variable
+    # executable is in PATH variable
     albacore: read_fast5_basecaller.py
-    # tool is not in PATH variable
+    # executable is not in PATH variable
     bedtools: /src/bedtools2/bin/bedtools
 ```
 
@@ -30,7 +44,7 @@ Raw data is stored in per flow-cell run folders. Nanopype is parsing the Flow-Ce
 
 > 20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01
 
-with the corresponding configuration:
+with the corresponding configuration entries:
 
 ```
 storage_runname:
@@ -42,7 +56,7 @@ storage_runname:
 
 ## Cluster
 
-Snakemake supports both, cloud and cluster execution of workflows. As of now only cluster execution is implemented in nanopype. For supported cluster engines please refer to the [snakemake](https://snakemake.readthedocs.io/en/stable/executable.html#cluster-execution) documentation. An example on how to enable a not yet supported cluster system is given in *profiles/mxq/*. Briefly four components are required:
+Snakemake allows both, cloud and cluster execution of workflows. As of now only cluster execution is implemented in nanopype. For supported cluster engines please refer to the [snakemake](https://snakemake.readthedocs.io/en/stable/executable.html#cluster-execution) documentation. An example on how to enable a not yet supported cluster system is given in *profiles/mxq/* of the git repository. Briefly four components are required:
 
 :	* config.yaml - cluster specific command line arguments
 	* jobscript.sh - wrapper script for rules to be executed
