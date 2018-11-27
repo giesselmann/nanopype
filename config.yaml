@@ -1,16 +1,15 @@
 # data paths
-data_raw : /data/raw
-data_import : /data/import
-runname:
+storage_data_raw : /data/raw
+storage_data_import : /data/import
+storage_runname:
     delimiter: '_'
     field_ID: 1
     field_flowcell: 2
     filed_kit: 3
 
-
 # basecalling
-albacore_barcoding: false
-albacore_disable_filtering: true
+basecalling_albacore_barcoding: false
+basecalling_albacore_disable_filtering: true
 
 # methylation detection
 methylation_nanopolish_logp_threshold: 2.5

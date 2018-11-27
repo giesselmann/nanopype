@@ -33,25 +33,25 @@
 # ---------------------------------------------------------------------------------
 # batches of packed fast5 files
 def get_batches(wildcards):
-    batches, = glob_wildcards("{datadir}/{wildcards.runname}/reads/{{id}}.tar".format(datadir=config["data_raw"], wildcards=wildcards))
+    batches, = glob_wildcards("{datadir}/{wildcards.runname}/reads/{{id}}.tar".format(datadir=config["storage_data_raw"], wildcards=wildcards))
     return batches
 
 
 # flowcell and kit parsing
 def get_ID(wildcards):
-    fields = wildcards.runname.split(config['runname']['delimiter'])
-    return fields[config['runname']['field_ID']]
+    fields = wildcards.runname.split(config['storage_runname']['delimiter'])
+    return fields[config['storage_runname']['field_ID']]
 
 def get_flowcell(wildcards):
-    fields = wildcards.runname.split(config['runname']['delimiter'])
-    if fields[config['runname']['field_flowcell']] in ['FLO-MIN106', 'FLO-MIN107', 'FLO-PRO001']:
-        return fields[config['runname']['field_flowcell']]
+    fields = wildcards.runname.split(config['storage_runname']['delimiter'])
+    if fields[config['storage_runname']['field_flowcell']] in ['FLO-MIN106', 'FLO-MIN107', 'FLO-PRO001']:
+        return fields[config['storage_runname']['field_flowcell']]
     else:
         raise ValueError('Could not detect flowcell from ' + wildcards.runname)
 
 def get_kit(wildcards):
-    fields = wildcards.runname.split(config['runname']['delimiter'])
-    if fields[config['runname']['filed_kit']] in ['SQK-DCS108','SQK-LRK001','SQK-LSK108','SQK-LSK109', 'SQK-LSK308', 'SQK-LWB001','SQK-LWP001','SQK-PBK004','SQK-PCS108','SQK-PSK004','SQK-RAB201','SQK-RAB204','SQK-RAD002','SQK-RAD003','SQK-RAD004','SQK-RAS201','SQK-RBK001','SQK-RBK004','SQK-RLB001','SQK-RLI001','SQK-RNA001','SQK-RPB004','VSK-VBK001','VSK-VMK001','VSK-VSK001']:
-        return fields[config['runname']['filed_kit']]
+    fields = wildcards.runname.split(config['storage_runname']['delimiter'])
+    if fields[config['storage_runname']['filed_kit']] in ['SQK-DCS108','SQK-LRK001','SQK-LSK108','SQK-LSK109', 'SQK-LSK308', 'SQK-LWB001','SQK-LWP001','SQK-PBK004','SQK-PCS108','SQK-PSK004','SQK-RAB201','SQK-RAB204','SQK-RAD002','SQK-RAD003','SQK-RAD004','SQK-RAS201','SQK-RBK001','SQK-RBK004','SQK-RLB001','SQK-RLI001','SQK-RNA001','SQK-RPB004','VSK-VBK001','VSK-VMK001','VSK-VSK001']:
+        return fields[config['storage_runname']['filed_kit']]
     else:
         raise ValueError('Could not detect kit from ' + wildcards.runname)

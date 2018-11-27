@@ -38,15 +38,15 @@ LOC_RAW = "/Raw/"
 
 
 def get_batches_indexing(wildcards):
-    return expand("{data_raw}/{wildcards.runname}/reads/{{batch}}.fofn".format(data_raw = config["data_raw"], wildcards=wildcards), batch=get_batches(wildcards))
+    return expand("{data_raw}/{wildcards.runname}/reads/{{batch}}.fofn".format(data_raw = config["storage_data_raw"], wildcards=wildcards), batch=get_batches(wildcards))
 
 
 # extract read ID from individual fast5 files
 rule index_batch:
     input:
-        "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["data_raw"])
+        "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"])
     output:
-        temp("{data_raw}/{{runname}}/reads/{{batch}}.fofn".format(data_raw = config["data_raw"]))
+        temp("{data_raw}/{{runname}}/reads/{{batch}}.fofn".format(data_raw = config["storage_data_raw"]))
     shadow: "minimal"
     threads: 1
     resources:
@@ -73,7 +73,7 @@ rule index_run:
     input:
         get_batches_indexing
     output:
-        "{data_raw}/{{runname}}/reads.fofn".format(data_raw = config["data_raw"])
+        "{data_raw}/{{runname}}/reads.fofn".format(data_raw = config["storage_data_raw"])
     shell:
         """
         cat {input} > {output}

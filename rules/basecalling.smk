@@ -43,7 +43,7 @@ def get_batches_basecaller(wildcards):
 # albacore basecalling
 rule albacore:
     input:
-        "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["data_raw"])
+        "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"])
     output:
         "sequences/{runname}/{batch}.albacore.{format}"
     shadow: "minimal"
@@ -54,8 +54,8 @@ rule albacore:
     params:
         flowcell = get_flowcell,
         kit = get_kit,
-        barcoding = lambda wildcards : '--barcoding' if config['albacore_barcoding'] else '',
-        filtering = lambda wildcards : '--disable_filtering' if config['albacore_disable_filtering'] else ''
+        barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
+        filtering = lambda wildcards : '--disable_filtering' if config['basecalling_albacore_disable_filtering'] else ''
     shell:
         """
         mkdir -p raw
