@@ -1,16 +1,16 @@
 # Installation
 
-## Docker
-Run nanopype with all its dependencies from within an automated built docker container. This is primarily for local usage and does currently not support snakemakes cluster engine. 
-
-    docker pull giesselmann/nanopype
-
 ## Python
 Install nanopype into an existing python3 installation from [github.com/giesselmann](https://github.com/giesselmann/nanopype/):
 
     git clone https://github.com/giesselmann/nanopype
     cd nanopype
     pip3 install -r requirements.txt
+	
+## Docker
+Run nanopype with all its dependencies from within an automated built docker container. This is primarily for local usage and does currently not support snakemakes cluster engine. 
+
+    docker pull giesselmann/nanopype
 
 ## Tools
 Nanopype integrates a variety of different tools merged into processing pipelines for common use cases. If you don't use the docker image, you will need to install them separately and tell nanopype via the environment [configuration](configuration.md) where to find them. The Dockerfile in the [github](https://github.com/giesselmann/nanopype/) repository can be used as a detailed guide.
