@@ -82,8 +82,12 @@ nav:
   - Getting started: index.md
   - Installation: installation.md
   - Configuration: configuration.md
-  - Rules:
+  - Modules:
     - Basecalling: rules/basecalling.md
     - Alignment: rules/alignment.md
+    - Methylation: rules/methylation.md
+    - SV: rules/sv.md
+    - Storage: rules/storage.md
+  - Examples: examples.md
   - Release notes: release-notes.md
   - License: license.md
