@@ -121,5 +121,5 @@ rule methylation_bigwig:
         "{trackname, [^./]*}.{coverage, [^./]*}.{methylation_caller, [^./]*}.bw"
     shell:
         """
-        {config[bin_dir][ucsctools]}bedGraphToBigWig {input} {config[reference][chr_sizes]} {output}
+        {config[bin][bedGraphToBigWig]} {input} {config[reference][chr_sizes]} {output}
         """
