@@ -44,7 +44,6 @@ with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as
 
 # multi-run rules
 runnames = []
-config['runnames'] = runnames
 if os.path.isfile('runnames.txt'):
     localrules: albacore_basecalling_runs, graphmap_alignment_runs, nanopolish_methylation_runs
     runnames = [line.rstrip('\n') for line in open('runnames.txt')]
@@ -64,6 +63,7 @@ if os.path.isfile('runnames.txt'):
         input:
             ['runs/{runname}.nanopolish.tsv.gz'.format(runname=runname) for runname in runnames]
 
+config['runnames'] = runnames
 
 # include modules
 include : "rules/utils.smk"
