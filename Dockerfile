@@ -23,31 +23,14 @@ WORKDIR /src
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3 get-pip.py
 
-## set up tools for nanopype
-RUN git clone https://github.com/arq5x/bedtools2
-RUN cd bedtools2 && make
+# copy and configure nanopype
+RUN mkdir -p /app
+WORKDIR /app
+COPY . /app/
+RUN pip3 install -r requirements.txt
 
-RUN git clone https://github.com/samtools/htslib
-RUN cd htslib && autoheader && autoconf && ./configure && make && make install
-
-RUN git clone https://github.com/samtools/samtools
-RUN cd samtools && autoheader && autoconf -Wno-syntax && ./configure && make && make install
-
-RUN git clone https://github.com/lh3/minimap2
-RUN cd minimap2 && make
-
-RUN git clone https://github.com/isovic/graphmap
-RUN cd graphmap && make modules && make
-
-RUN git clone https://github.com/philres/ngmlr
-RUN mkdir -p ngmlr/build && cd ngmlr/build && cmake .. && make
-
-RUN git clone --recursive https://github.com/jts/nanopolish
-RUN cd nanopolish && make
-
-RUN git clone https://github.com/fritzsedlazeck/Sniffles
-RUN mkdir -p Sniffles/build && cd Sniffles/build && cmake .. && make
-
+# run setup rules
+RUN snakemake --snakefile scripts/build.smk -j 2 all
 
 # PACKAGE STAGE
 FROM ubuntu:16.04
@@ -67,16 +50,8 @@ RUN python3 get-pip.py
 
 ## copy binaries from build stage
 RUN mkdir -p /bin
-COPY --from=build_stage /src/bedtools2/bin/* /bin/
-COPY --from=build_stage /src/samtools/samtools /bin/
-COPY --from=build_stage /src/minimap2/minimap2 /bin/
-COPY --from=build_stage /src/graphmap/bin/Linux-x64/graphmap /bin/
-COPY --from=build_stage /src/ngmlr/bin/*/ngmlr /bin/
-COPY --from=build_stage /src/nanopolish/nanopolish /bin/
-COPY --from=build_stage /src/Sniffles/bin/*/sniffles /bin/
-
 WORKDIR /bin
-RUN wget ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig 
+COPY --from=build_stage /app/bin/* /bin/
 
 ## set up nanopye
 # copy and configure nanopype

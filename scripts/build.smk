@@ -39,7 +39,16 @@ rule all:
         "bin/graphmap",
         "bin/ngmlr",
         "bin/nanopolish",
-        "bin/sniffles"
+        "bin/sniffles",
+		"bin/bedGraphToBigWig"
+		
+rule UCSCtools:
+	output:
+		"bin/bedGraphToBigWig"
+	shell:
+		"""
+		cd bin && wget ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig 
+		"""
 
 rule bedtools:
     output:
@@ -143,3 +152,5 @@ rule sniffles:
         mkdir -p Sniffles/build && cd Sniffles/build && cmake .. && make
         cp ../bin/*/sniffles ../../../bin
         """
+
+	
