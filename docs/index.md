@@ -29,4 +29,8 @@ or use automated Docker builds from [hub.docker.com](https://hub.docker.com/r/gi
     docker pull giesselmann/nanopype
     docker run -it giesselmann/nanopype
 
+Snakemake is controlled by requesting output files from existing inputs. To obtain for instance a complete basecalling and alignment you just have to run
 
+    snakemake [OPTIONS...] alignments/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.minimap2.hg19.bam
+    
+to trigger basecalling and minimap2 alignment against the hg19 reference genome. Snakemake will create a graph containing all intermediate results and execute required rules in respective order.

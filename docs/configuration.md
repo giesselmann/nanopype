@@ -2,7 +2,7 @@
 
 Nanopype has two configuration layers: The central **environment** configuration covers application paths and reference genomes. The environment configuration is stored in the installation directory. For a project an additional **workflow** configuration is required providing data sources, tool flags and parameters. The workflow config is stored in the root of each project directory. Configuration files are in .yaml format.
 
-## Storage
+## File Structure
 
 **Binaries**
 :	Executables of nanopype and and its integrated tools can be installed system wide or build from source by the user. In case of cluster execution of workflows they must be accessible from each node.
@@ -63,10 +63,18 @@ Snakemake allows both, cloud and cluster execution of workflows. As of now only 
 	* status.py - job status request from cluster management
 	* submit.py - job submission to cluster management
 	
-**Important:** When working with batches of raw nanopore reads, nanopype makes use of snakemakes shadow mechanism. A shadow directory is temporary per rule execution and can be placed on per node local storage to reduce network overhead. The shadow prefix e.g. */scratch/local/* is set in the config.yaml.
+**Important:** When working with batches of raw nanopore reads, nanopype makes use of snakemakes shadow mechanism. A shadow directory is temporary per rule execution and can be placed on per node local storage to reduce network overhead. The shadow prefix e.g. */scratch/local/* is set in the profiles config.yaml. The *--profile* argument tells snakemake to use a specific profile:
+
+    snakemake --profile /path/nanopype/profiles/mxq [OPTIONS...] [FILE]
 
 
+## Test
 
+To test if the installation and configuration was successful, we provide a small MinION dataset of a human cell line.
+
+### Python
+
+### Docker
 
 
 
