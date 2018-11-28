@@ -10,17 +10,17 @@
 #
 # ---------------------------------------------------------------------------------
 # Copyright (c) 2018,  Pay Giesselmann, Max Planck Institute for Molecular Genetics
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,7 +35,7 @@ localrules: nanopolish_methylation_merge_run, nanopolish_methylation_compress, n
 
 # get batches
 def get_batches_methylation(wildcards, methylation_caller):
-    return expand("methylation/{wildcards.runname}/{{batch}}.{methylation_caller}.{wildcards.reference}.tsv".format(wildcards=wildcards, methylation_caller=methylation_caller), batch=get_batches(wildcards))    
+    return expand("methylation/{wildcards.runname}/{{batch}}.{methylation_caller}.{wildcards.reference}.tsv".format(wildcards=wildcards, methylation_caller=methylation_caller), batch=get_batches(wildcards))
 
 
 # nanopolish methylation detection
@@ -61,7 +61,7 @@ rule nanopolish_methylation:
         {config[bin][nanopolish]} index -d raw/ {input.sequences}
         {config[bin][nanopolish]} call-methylation -t {threads} -r {input.sequences} -g {params.reference} -b {input.bam} > {output}
         """
- 
+
 # merge batch tsv files and split connected CpGs
 rule nanopolish_methylation_merge_run:
     input:
@@ -69,7 +69,7 @@ rule nanopolish_methylation_merge_run:
     output:
         "methylation/{runname, [^./]*}.nanopolish.{reference, [^./]*}.tsv"
     run:
-        from scripts.nanopolish import tsvParser
+        from rules.utils.nanopolish import tsvParser
         recordIterator = tsvParser()
         with open(output[0], 'w') as fp_out:
             for ip in input:
