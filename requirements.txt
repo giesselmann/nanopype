@@ -1,3 +1,4 @@
+unittest
 tarfile
 itertools
 snakemake>=5.3.0
