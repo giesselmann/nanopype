@@ -35,7 +35,7 @@ site_name: Nanopype Documentation
 site_description: 'Snakemake pipelines for nanopore sequencing data archiving and processing and analysis'
 site_author: 'Pay Giesselmann'
 site_url: 'https://nanopype.readthedocs.io'
-copyright: 'Copyright &copy; 2018 - 2018 Pay Giesselmann'
+copyright: 'Copyright &copy; 2018 - 2018 Pay Giesselmann, Max Planck Institute for Molecular Genetics'
 
 repo_name: 'giesselmann/nanopype'
 repo_url: 'https://github.com/giesselmann/nanopype/'
