@@ -31,9 +31,9 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-localrules: index_run
+localrules: storage_index_run, storage_extract
 
-
+# fast5 signal location
 LOC_RAW = "/Raw/"
 
 
@@ -42,7 +42,7 @@ def get_batches_indexing(wildcards):
 
 
 # extract read ID from individual fast5 files
-rule index_batch:
+rule storage_index_batch:
     input:
         "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"])
     output:
@@ -64,12 +64,12 @@ rule index_batch:
                     with h5py.File(f5file, 'r') as f5:
                         s = f5[LOC_RAW].visit(lambda name: name if 'Signal' in name else None)
                         ID = str(f5[LOC_RAW + '/' + s.rpartition('/')[0]].attrs['read_id'], 'utf-8')
-                        print('\t'.join([os.path.join('reads', wildcards.batch, os.path.relpath(f5file, start='./reads')), ID]), file=fp_out)
+                        print('\t'.join([os.path.join('reads', wildcards.batch + '.tar', os.path.relpath(f5file, start='./reads')), ID]), file=fp_out)
                 except:
                     pass
  
 # merge batch indices
-rule index_run:
+rule storage_index_run:
     input:
         get_batches_indexing
     output:
@@ -78,3 +78,51 @@ rule index_run:
         """
         cat {input} > {output}
         """
+        
+# extract reads from indexed run
+rule storage_extract:
+    input:
+        index = "{data_raw}/{{runname}}/reads.fofn".format(data_raw = config["storage_data_raw"]),
+        names = "subset/{tag}.txt"
+    output:
+        directory("subset/{tag, [^./]*}/{runname, [^./]*}")
+    run:
+        import os, itertools, tarfile
+        # read target names
+        ids = []
+        with open(input.names, 'r') as fp:
+            for line in fp:
+                ids.append(line.strip())
+        # read index
+        records = {}
+        with open(input.index, 'r') as fp:
+            records = {read_ID:filename for filename, read_ID in [line.rstrip().split('\t')[0:2] for line in fp]}
+        # lookup file locations per ID
+        batches = [file.rpartition(".tar/") for file in [records[id] for id in ids if id in records]]
+        batches.sort(key = lambda x : x[0])
+        # group and extract per batch
+        for archive, batch in itertools.groupby(batches, key= lambda x : x[0]):
+            tarFiles = [os.path.basename(x[2]) for x in batch]
+            try:
+                tar = tarfile.open(os.path.join(config["storage_data_raw"], wildcards.runname, archive + ".tar"))
+                tar_members = tar.getmembers()
+                for tar_member in tar_members:
+                    if any(s in tar_member.name for s in tarFiles):
+                        try:
+                            tar_member.name = os.path.basename(tar_member.name)
+                            tar.extract(tar_member, path=output[0])
+                        except:
+                            print("Failed to extract " + tar_member.name + 'from batch' + archive)
+            except:
+                print("Failed to open batch " + archive)
+
+# extract reads from indexed runs
+rule storage_extract_multi:
+    input:
+        names = "subset/{tag}.txt",
+        files = lambda wildcards : [directory("subset/{tag}/{runname}".format(tag=wildcards.tag, runname=rn)) for rn in config['runnames']]
+    output:
+        touch("subset/{tag}.done")
+    run:
+        print(input.files)
+        
