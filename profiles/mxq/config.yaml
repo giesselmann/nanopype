@@ -1,5 +1,5 @@
 # per node local storage
-shadow-prefix: "/scratch/local2/{USER}"
+shadow-prefix: "/scratch/local2/"
 # jobscripts
 cluster: "mxq-submit.py"
 cluster-status: "mxq-status.py"
