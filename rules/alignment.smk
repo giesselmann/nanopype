@@ -46,6 +46,7 @@ rule minimap2:
     output:
         pipe("alignments/{runname, [^.]*}/{batch, [0-9]+}.minimap2.{reference}.sam")
     threads: 16
+    group: "minimap2"
     params:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
@@ -63,11 +64,12 @@ rule graphmap:
     output:
         pipe("alignments/{runname, [^.]*}/{batch, [0-9]+}.graphmap.{reference}.sam")
     threads: 16
+    group: "graphmap"
     params:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 80000),
-        time_min = lambda wildcards, threads=16, attempt=1: int((1440 / threads) * attempt)   # 90 min / 16 threads
+        time_min = lambda wildcards, threads=16, attempt=1: int((1440 / threads) * attempt),   # 90 min / 16 threads
     shell:
         """
         {config[bin][graphmap]} align -r {params.reference} -d {input} -t {threads} -B 100 >> {output}
@@ -80,6 +82,7 @@ rule ngmlr:
     output:
         pipe("alignments/{runname, [^.]*}/{batch, [0-9]+}.ngmlr.{reference, [^./]*}.sam")
     threads: 16
+    group: "ngmlr"
     params:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
@@ -98,6 +101,7 @@ rule aligner_sam2bam:
         bam = "alignments/{runname, [^/.]*}/{batch, [0-9]+}.{aligner, [^/.]*}.{reference, [^./]*}.bam",
         bai = "alignments/{runname, [^/.]*}/{batch, [0-9]+}.{aligner, [^/.]*}.{reference, [^./]*}.bam.bai"
     shadow: "minimal"
+    threads: 0
     params:
         ID = get_ID
     resources:
