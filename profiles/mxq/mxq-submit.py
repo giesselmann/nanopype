@@ -45,7 +45,10 @@ if __name__ == '__main__':
     runtime = '60'
     memory = '16000'
     # parse resources
-    group_name = job_properties["rule"]
+    if job_properties["type"] == "group":
+        group_name = job_properties["groupid"]
+    else:
+        group_name = job_properties["rule"]
     if "threads" in job_properties:
         threads = str(job_properties["threads"])
     if "resources" in job_properties:
