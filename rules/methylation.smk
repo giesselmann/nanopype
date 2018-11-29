@@ -52,8 +52,8 @@ rule nanopolish_methylation:
     params:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 500 * threads)),
-        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt)   # 60 min / 16 threads
+        mem_mb = lambda wildcards, input, threads=16, attempt=1: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 500 * threads)),
+        time_min = lambda wildcards, input, threads=16, attempt=1: int((960 / threads) * attempt)   # 60 min / 16 threads
     shell:
         """
         mkdir -p raw
