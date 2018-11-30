@@ -49,8 +49,8 @@ rule albacore:
     shadow: "minimal"
     threads: 16
     resources:
-        mem_mb = lambda wildcards, threads=16, attempt=1: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
-        time_min = lambda wildcards, threads=16, attempt=1: int((960 / threads) * attempt) # 60 min / 16 threads
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
+        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads
     params:
         flowcell = get_flowcell,
         kit = get_kit,

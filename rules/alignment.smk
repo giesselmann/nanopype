@@ -50,8 +50,8 @@ rule minimap2:
     params:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
-        mem_mb = lambda wildcards, threads=16, attempt=1: int((1.0 + (0.2 * (attempt - 1))) * (8000 + 500 * threads)),
-        time_min = lambda wildcards, threads=16, attempt=1: int((960 / threads) * attempt)   # 60 min / 16 threads
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (8000 + 500 * threads)),
+        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt)   # 60 min / 16 threads
     shell:
         """
         {config[bin][minimap2]} -L -ax map-ont {params.reference} {input} -t {threads} >> {output}
@@ -69,7 +69,7 @@ rule graphmap:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 80000),
-        time_min = lambda wildcards, threads=16, attempt=1: int((1440 / threads) * attempt),   # 90 min / 16 threads
+        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt),   # 90 min / 16 threads
     shell:
         """
         {config[bin][graphmap]} align -r {params.reference} -d {input} -t {threads} -B 100 >> {output}
@@ -87,7 +87,7 @@ rule ngmlr:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 32000),
-        time_min = lambda wildcards, threads=16, attempt=1: int((960 / threads) * attempt)   # 60 min / 16 threads
+        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt)   # 60 min / 16 threads
     shell:
         """
         cat {input} | {config[bin][ngmlr]} -r {params.reference} -x ont -t {threads} --bam-fix >> {output}
@@ -101,7 +101,7 @@ rule aligner_sam2bam:
         bam = "alignments/{runname, [^/.]*}/{batch, [0-9]+}.{aligner, [^/.]*}.{reference, [^./]*}.bam",
         bai = "alignments/{runname, [^/.]*}/{batch, [0-9]+}.{aligner, [^/.]*}.{reference, [^./]*}.bam.bai"
     shadow: "minimal"
-    threads: 0
+    threads: 1
     params:
         ID = get_ID
     resources:
