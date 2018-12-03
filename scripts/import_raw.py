@@ -75,29 +75,29 @@ class logger():
 
 
 # thread safe file queue
-class file_queue(object):
+class delay_queue(object):
     def __init__(self):
         self.__keys = {}
         self.__values = deque()
         self.__lock = threading.Lock()
-        
+
     def __len__(self):
         with self.__lock:
             return len(self.__values)
-        
-    def touch(self, obj):
+
+    def delay(self, obj):
         with self.__lock:
             if obj in self.__keys:
                 self.__values.remove(obj)
             self.__keys[obj] = time.time()
             self.__values.append(obj)
-                
+
     def delete(self, obj):
         with self.__lock:
             if obj in self.__keys:
                 self.__values.remove(obj)
                 del self.__keys[obj]
-            
+
     def get(self, t=0):
         t_now = time.time()
         with self.__lock:
@@ -111,30 +111,24 @@ class file_queue(object):
 
 # file system watchdog
 class watchdog(RegexMatchingEventHandler):
-    def __init__(self, base_dir, regexes=['.*'], on_create=None, on_update=None, on_delete):
+    def __init__(self, base_dir, regexes=['.*'], on_create=None, on_modify=None, on_delete):
         super().__init__(regexes=regexes, ignore_directories=True)
-        self.on_create = None
-        self.on_update = None
-        self.on_delete = None
+        self.on_create = on_create if callable(on_create) else None
+        self.on_modify = on_modify if callable(on_modify) else None
+        self.on_delete = on_delete if callable(on_delete) else None
         self.base_dir = base_dir
-        if callable(on_create):
-            self.on_create = on_create
-        if callable(on_update):
-            self.on_update = on_update
-        if callable(on_delete):
-            self.on_delete = on_delete
 
     def on_created(self, event):
         if self.on_create:
             self.on_create(event.src_path)
-                
+
     def on_moved(self, event):
         if self.on_create and self.base_dir in event.dest_path:
             self.on_create(event.dest_path)
 
     def on_modified(self, event):
-        if self.on_update:
-            self.on_update(event.src_path)
+        if self.on_modify:
+            self.on_modify(event.src_path)
 
     def on_deleted(self, event):
         if self.on_delete:
@@ -143,23 +137,45 @@ class watchdog(RegexMatchingEventHandler):
 
 
 
-# file packager
+# package files to batch tar archives
+class packager():
+    def __init__(self, dest_dir, batch_size):
+        pass
+
+    def validate(self, src_dir, dest_dir):
+        return src_unique, union_set, dest_unique
+
+    def append(self, src_names):
+        pass
+
+
+
+
+# main class
 class archiver():
     def __init__(self, src_dirs, regexes=['.*'], recursive=True):
         self.watchdogs = []
         self.observer = []
-        self.file_queue = file_queue()
-        for dir in iter(src_dirs):
+        self.file_queue = delay_queue()
+        self.src_dirs = src_dirs
+        self.regexes = regexes
+
+    def start(self):
+        logger.log("Start filesystem observer", logger.log_type.Info)
+        for dir in iter(self.src_dirs):
             logger.log("Create watchdog for {dir}".format(dir=dir), logger.log_type.Info)
-            self.watchdogs.append(watchdog(base_dir=dir, regexes=regexes, 
-                                                on_create=self.file_queue.create, 
-                                                on_update=self.file_queue.touch,
+            self.watchdogs.append(watchdog(base_dir=dir, regexes=self.regexes,
+                                                on_create=self.file_queue.create,
+                                                on_modify=self.file_queue.delay,
                                                 on_delete=self.file_queue.delete))
             self.observer.append(Observer())
             self.observer[-1].schedule(self.watchdogs[-1], path=dir, recursive=recursive)
             self.observer[-1].start()
-         
-         
+
+    def stop(self):
+        for obs in self.observer:
+            obs.stop()
+            obs.join()
 
 
 
