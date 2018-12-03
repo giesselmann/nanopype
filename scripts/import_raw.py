@@ -32,11 +32,15 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 import os, sys, glob, re, enum
-import datetime
+import time, datetime
 import argparse, tqdm
 import h5py, tarfile
+import threading
+from collections import deque
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import RegexMatchingEventHandler
+
+
 
 
 # logging
@@ -68,35 +72,97 @@ class logger():
                     print(print_message, file=log)
 
 
-# file system watchdog
-class watchdog(FileSystemEventHandler):
-    def __init__(self):
-        super().__init__()
 
-    def on_any_event(self, event):
-        if event.is_directory:
-            event_dir = event.src_path
-        else:
-            event_dir = os.path.dirname(event.src_path)
-        event_dir = os.path.abspath(event_dir)
+
+# thread safe file queue
+class file_queue(object):
+    def __init__(self):
+        self.__keys = {}
+        self.__values = deque()
+        self.__lock = threading.Lock()
+        
+    def __len__(self):
+        with self.__lock:
+            return len(self.__values)
+        
+    def touch(self, obj):
+        with self.__lock:
+            if obj in self.__keys:
+                self.__values.remove(obj)
+            self.__keys[obj] = time.time()
+            self.__values.append(obj)
+                
+    def delete(self, obj):
+        with self.__lock:
+            if obj in self.__keys:
+                self.__values.remove(obj)
+                del self.__keys[obj]
+            
+    def get(self, t=0):
+        t_now = time.time()
+        with self.__lock:
+            while len(self.__values) and t_now - self.__values[0][1] > t:
+                obj = self.__values.popleft()
+                del self.__keys[obj]
+                yield obj
+
+
+
+
+# file system watchdog
+class watchdog(RegexMatchingEventHandler):
+    def __init__(self, base_dir, regexes=['.*'], on_create=None, on_update=None, on_delete):
+        super().__init__(regexes=regexes, ignore_directories=True)
+        self.on_create = None
+        self.on_update = None
+        self.on_delete = None
+        self.base_dir = base_dir
+        if callable(on_create):
+            self.on_create = on_create
+        if callable(on_update):
+            self.on_update = on_update
+        if callable(on_delete):
+            self.on_delete = on_delete
 
     def on_created(self, event):
-        currentTime = time.time()
-        print(event.src_path)
-        if event.is_directory == True:
-            inProgress[event.src_path] = currentTime
-        else:
-            inProgress[os.path.dirname(event.src_path)] = currentTime
-        for dirName in list(inProgress.keys()):
-            if currentTime - inProgress[dirName] > args.t:
-                toProcess.put(dirName)
-                del inProgress[dirName]
+        if self.on_create:
+            self.on_create(event.src_path)
+                
+    def on_moved(self, event):
+        if self.on_create and self.base_dir in event.dest_path:
+            self.on_create(event.dest_path)
+
+    def on_modified(self, event):
+        if self.on_update:
+            self.on_update(event.src_path)
+
+    def on_deleted(self, event):
+        if self.on_delete:
+            self.on_delete(event.src_path)
+
+
 
 
 # file packager
 class archiver():
-    def __init__(self):
-        pass
+    def __init__(self, src_dirs, regexes=['.*'], recursive=True):
+        self.watchdogs = []
+        self.observer = []
+        self.file_queue = file_queue()
+        for dir in iter(src_dirs):
+            logger.log("Create watchdog for {dir}".format(dir=dir), logger.log_type.Info)
+            self.watchdogs.append(watchdog(base_dir=dir, regexes=regexes, 
+                                                on_create=self.file_queue.create, 
+                                                on_update=self.file_queue.touch,
+                                                on_delete=self.file_queue.delete))
+            self.observer.append(Observer())
+            self.observer[-1].schedule(self.watchdogs[-1], path=dir, recursive=recursive)
+            self.observer[-1].start()
+         
+         
+
+
+
 
 if __name__ == '__main__':
     # cmd arguments
@@ -108,9 +174,10 @@ if __name__ == '__main__':
     parser.add_argument("-l", "--log", default=None, help="Log file")
     parser.add_argument("--recursive", action="store_false", help="Recursivly scan import directory")
     parser.add_argument("--watch", action="store_true", help="Watch input for incoming files")
+    parser.add_argument("--grace_period", type=int, default=60, help="Time in seconds before treating a file as final")
     args = parser.parse_args()
     # start logging
-    logger.init(file=args.log)
+    logger.init(file=args.log, log_types=[logger.log_type.Error, logger.log_type.Info, logger.log_type.Debug] )
     # check output Directory
     dir_out = os.path.abspath(args.output)
     if os.path.isdir(dir_out):
@@ -122,10 +189,16 @@ if __name__ == '__main__':
         except FileExistsError:
             print("Could not create output directory, file {file} already exists".format(file=dir_out), logger.log_type.Error)
             exit(-1)
-
-
-
+    logger.log("Writing output to {output}".format(output=dir_out), logger.log_type.Info)
     # check input
-    input_dirs = [f for f in args.input if os.path.isdir(f)]
-    if len(input_dirs) > 0:
+    input_dirs = [os.path.abspath(f) for f in args.input if os.path.isdir(f) and os.access(f, os.R_OK)]
+    if len(input_dirs) == 0:
+        logger.log("No readable input directory specified", logger.log_type.Error)
+        exit(-1)
+    # create archiver
+    arch = archiver(input_dirs)
+    try:
+        while True:
+            pass
+    except KeyboardInterrupt:
         pass
