@@ -34,7 +34,7 @@
 # imports
 import os, sys, glob, re, enum
 import time, datetime
-import argparse, tqdm
+import argparse
 import h5py, tarfile
 import threading
 import queue
@@ -101,10 +101,10 @@ class fs_event_handler(RegexMatchingEventHandler):
     def on_deleted(self, event):
         if self.on_delete:
             self.on_delete(event.src_path)
-            
-            
-            
-            
+
+
+
+
 # thread safe file queue
 class delay_queue(object):
     def __init__(self):
@@ -115,7 +115,7 @@ class delay_queue(object):
     def __len__(self):
         with self.__lock:
             return len(self.__values)
-            
+
     def put(self, obj):
         self.delay(obj, update=False)
 
@@ -151,12 +151,12 @@ class fs_watchdog():
         self.regexes = regexes
         self.fs_event_handler = []
         self.fs_observer = []
-                                                
+
     def start(self, recursive=True):
         if len(self.fs_observer):
             self.stop()
         for src_dir in self.src_dirs:
-            self.fs_event_handler.append(fs_event_handler(src_dir, 
+            self.fs_event_handler.append(fs_event_handler(src_dir,
                                         self.regexes,
                                         on_create=self.fs_queue.put,
                                         on_modify=self.fs_queue.delay,
@@ -165,7 +165,7 @@ class fs_watchdog():
             self.fs_observer[-1].schedule(self.fs_event_handler[-1], path=src_dir, recursive=recursive)
             self.fs_observer[-1].start()
             logger.log("Start file system observer on {target}".format(target=src_dir))
-                                        
+
     def stop(self):
         logger.log("Stopping file system observer")
         for obs in self.fs_observer:
@@ -199,11 +199,11 @@ class packager():
             else:
                 existing.extend([os.path.join(src_dir, f) for f in os.listdir(src_dir) if re.match(pattern, f)])
         return {os.path.basename(f):f for f in existing}
-        
+
     def __get_tar__(self):
         tarfiles = [os.path.abspath(os.path.join(self.dst_dir, f)) for f in os.listdir(self.dst_dir) if re.match("[0-9]*.tar", f)]
         return tarfiles
-        
+
     def __get_dst__(self):
         tarfiles = self.__get_tar__()
         existing = {}
@@ -212,7 +212,7 @@ class packager():
                 tar_members = tar.getmembers()
                 existing.update({tar_member.name:os.path.join(tf, tar_member.name) for tar_member in tar_members})
         return existing
-        
+
     def __write_tar__(self, fname, batch):
         n = 0
         with tarfile.open(fname, 'w') as fp:
@@ -221,18 +221,18 @@ class packager():
                     fp.add(f, arcname=os.path.basename(f))
                     n += 1
         return n
-        
+
     def start(self):
         if self.__packager:
             self.__packager.join()
         self.__packager = Process(target=self.__run__, )
         self.__packager.start()
-        
+
     def stop(self):
         self.file_queue.put(None) # poison pill exit
         self.__packager.join()
         self.__packager = None
-        
+
     def put(self, src_file):
         self.file_queue.put(os.path.abspath(src_file))
 
@@ -269,29 +269,33 @@ class packager():
         while active:
             # get file names from queue
             try:
-                f = self.file_queue.get(block=False)
-                while f:
-                    processing_queue.append(f)
+                try:
                     f = self.file_queue.get(block=False)
-                if f is None:   # poison pill exit
-                    active = False
-            except queue.Empty as ex:
-                pass
+                    while f:
+                        processing_queue.append(f)
+                        f = self.file_queue.get(block=False)
+                    if f is None:   # poison pill exit
+                        active = False
+                except queue.Empty as ex:
+                    pass
+                # archive files in batches
+                while len(processing_queue) >= self.batch_size:
+                    batch = [processing_queue.popleft() for i in range(self.batch_size)]
+                    batch_name = os.path.join(self.dst_dir, str(batch_count) + '.tar')
+                    n = self.__write_tar__(batch_name, batch)
+                    batch_count += 1
+                    logger.log("Archived {count} reads in {archive}".format(count=n, archive=batch_name))
             except KeyboardInterrupt:
+                # leave controlled shutdown to master process
                 continue
-            # archive files in batches
-            while len(processing_queue) >= self.batch_size:
-                batch = [processing_queue.popleft() for i in range(self.batch_size)]
-                batch_name = os.path.join(self.dst_dir, str(batch_count) + '.tar')
-                n = self.__write_tar__(batch_name, batch)
-                batch_count += 1
-                logger.log("Archived {count} reads in {archive}".format(count=n, archive=batch_name))
         # archive remaining reads
-        batch =  [processing_queue.popleft() for i in range(len(processing_queue))]
-        batch_name = os.path.join(self.dst_dir, str(batch_count) + '.tar')
-        if len(batch) > 0:
-            n = self.__write_tar__(batch_name, batch)
-            logger.log("Archived {count} reads in {archive}".format(count=n, archive=batch_name))
+        while len(processing_queue) > 0:
+            batch =  [processing_queue.popleft() for i in range(min(len(processing_queue), self.batch_size))]
+            batch_name = os.path.join(self.dst_dir, str(batch_count) + '.tar')
+            if len(batch) > 0:
+                n = self.__write_tar__(batch_name, batch)
+                logger.log("Archived {count} reads in {archive}".format(count=n, archive=batch_name))
+                batch_count += 1
 
 
 
@@ -345,6 +349,3 @@ if __name__ == '__main__':
             wtchdg.stop()
     pkgr.stop()
     logger.log("Mission accomplished")
-    
-    
-
