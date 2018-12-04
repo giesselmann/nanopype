@@ -104,17 +104,18 @@ rule storage_extract:
         for archive, batch in itertools.groupby(batches, key= lambda x : x[0]):
             tarFiles = [os.path.basename(x[2]) for x in batch]
             try:
-                tar = tarfile.open(os.path.join(config["storage_data_raw"], wildcards.runname, archive + ".tar"))
-                tar_members = tar.getmembers()
-                for tar_member in tar_members:
-                    if any(s in tar_member.name for s in tarFiles):
-                        try:
-                            tar_member.name = os.path.basename(tar_member.name)
-                            tar.extract(tar_member, path=output[0])
-                        except:
-                            print("Failed to extract " + tar_member.name + 'from batch' + archive)
+                with tarfile.open(os.path.join(config["storage_data_raw"], wildcards.runname, archive + ".tar")) as tar:
+                    tar_members = tar.getmembers()
+                    for tar_member in tar_members:
+                        if any(s in tar_member.name for s in tarFiles):
+                            try:
+                                tar_member.name = os.path.basename(tar_member.name)
+                                tar.extract(tar_member, path=output[0])
+                            except:
+                                print("Failed to extract " + tar_member.name + 'from batch' + archive)
             except:
                 print("Failed to open batch " + archive)
+
 
 # extract reads from indexed runs
 rule storage_extract_multi:
