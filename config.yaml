@@ -7,6 +7,12 @@ storage_runname:
     field_flowcell: 2
     filed_kit: 3
 
+# threading
+threads_basecalling: 4
+threads_alignment: 3
+threads_methylation: 4
+threads_sv: 4
+
 # basecalling
 basecalling_albacore_barcoding: false
 basecalling_albacore_disable_filtering: true
