@@ -41,13 +41,15 @@ rule all:
         "bin/nanopolish",
         "bin/sniffles",
 		"bin/bedGraphToBigWig"
-		
+
 rule UCSCtools:
 	output:
 		"bin/bedGraphToBigWig"
 	shell:
 		"""
-		cd bin && wget ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig 
+		cd bin
+        wget ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
+        chmod 755 bedGraphToBigWig
 		"""
 
 rule bedtools:
@@ -58,7 +60,7 @@ rule bedtools:
     shell:
         """
         cd src
-        git clone https://github.com/arq5x/bedtools2
+        git clone https://github.com/arq5x/bedtools2 --branch v2.27.1 --depth=1
         cd bedtools2 && make
         cp bin/bedtools ../../bin/
         """
@@ -69,7 +71,7 @@ rule htslib:
     shell:
         """
         cd src
-        git clone https://github.com/samtools/htslib
+        git clone https://github.com/samtools/htslib --branch 1.9 --depth=1
         cd htslib && autoheader && autoconf && ./configure && make
         """
 
@@ -83,7 +85,7 @@ rule samtools:
     shell:
         """
         cd src
-        git clone https://github.com/samtools/samtools
+        git clone https://github.com/samtools/samtools --branch 1.9 --depth=1
         cd samtools && autoheader --warning=none && autoconf -Wno-syntax && ./configure && make
         cp samtools ../../bin/
         """
@@ -96,7 +98,7 @@ rule minimap2:
     shell:
         """
         cd src
-        git clone https://github.com/lh3/minimap2
+        git clone https://github.com/lh3/minimap2 --branch v2.14 --depth=1
         cd minimap2 && make
         cp minimap2 ../../bin
         """
@@ -109,7 +111,7 @@ rule graphmap:
     shell:
         """
         cd src
-        git clone https://github.com/isovic/graphmap
+        git clone https://github.com/isovic/graphmap --branch master --depth=1
         cd graphmap && make modules && make
         cp bin/Linux-x64/graphmap ../../bin/
         """
@@ -135,7 +137,7 @@ rule nanopolish:
     shell:
         """
         cd src
-        git clone --recursive https://github.com/jts/nanopolish
+        git clone --recursive https://github.com/jts/nanopolish --branch v0.10.2 --depth=1
         cd nanopolish && make
         cp nanopolish ../../bin/
         """
@@ -148,9 +150,7 @@ rule sniffles:
     shell:
         """
         cd src
-        git clone https://github.com/fritzsedlazeck/Sniffles
+        git clone https://github.com/fritzsedlazeck/Sniffles --branch v1.0.10 --depth=1
         mkdir -p Sniffles/build && cd Sniffles/build && cmake .. && make
         cp ../bin/*/sniffles ../../../bin
         """
-
-	
