@@ -45,7 +45,7 @@ rule minimap2:
         "sequences/{runname}/{batch}.albacore.fa"
     output:
         pipe("alignments/{runname, [^.]*}/{batch, [0-9]+}.minimap2.{reference}.sam")
-    threads: 16
+    threads: config['threads_alignment']
     group: "minimap2"
     params:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
@@ -65,7 +65,7 @@ rule graphmap:
         index = lambda wildcards: config['references'][wildcards.reference]['genome'] + ".gmidx"
     output:
         pipe("alignments/{runname, [^.]*}/{batch, [0-9]+}.graphmap.{reference}.sam")
-    threads: 16
+    threads: config['threads_alignment']
     group: "graphmap"
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 80000),
@@ -85,7 +85,7 @@ rule graphmap_index:
         """
         {config[bin][graphmap]} align -r {params.reference} --index-only
         """
-        
+
 # NGMLR alignment
 rule ngmlr:
     input:
@@ -93,7 +93,7 @@ rule ngmlr:
         index = lambda wildcards : config['references'][wildcards.reference]['genome'] + '.ngm'
     output:
         pipe("alignments/{runname, [^.]*}/{batch, [0-9]+}.ngmlr.{reference, [^./]*}.sam")
-    threads: 16
+    threads: config['threads_alignment']
     group: "ngmlr"
     params:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
@@ -116,7 +116,7 @@ rule ngmlr_index:
         echo '' | {config[bin][ngmlr]} -r {params.reference}
         touch {output.index}
         """
-        
+
 # sam to bam conversion and RG tag
 rule aligner_sam2bam:
     input:
@@ -148,7 +148,7 @@ rule aligner_merge_run:
         {config[bin][samtools]} merge {output.bam} {input} -p
         {config[bin][samtools]} index {output.bam}
         """
-        
+
 # create batches by splitting merged bam files
 # rule aligner_split_run:
     # input:
@@ -175,4 +175,3 @@ rule aligner_merge_runs:
         {config[bin][samtools]} merge {output.bam} {input} -p
         {config[bin][samtools]} index {output.bam}
         """
-

@@ -10,17 +10,17 @@
 #
 # ---------------------------------------------------------------------------------
 # Copyright (c) 2018,  Pay Giesselmann, Max Planck Institute for Molecular Genetics
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,14 +32,14 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 
-# sniffles sv detection 
+# sniffles sv detection
 rule sniffles:
     input:
         "{trackname}.{aligner}.{reference}.bam"
     output:
         "{trackname, [a-zA-Z0-9_-]+}.{aligner}.{reference}.sniffles.vcf"
     shadow: "minimal"
-    threads: 16
+    threads: config['threads_sv']
     params:
         min_support = lambda wildcards : config["sniffles_min_support"] if "sniffles_min_support" in config else 10,
         min_length = lambda wildcards : config["sniffles_min_length"] if "sniffles_min_length" in config else 30,

@@ -47,7 +47,7 @@ rule albacore:
     output:
         "sequences/{runname}/{batch}.albacore.{format}"
     shadow: "minimal"
-    threads: 16
+    threads: config['threads_basecalling']
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads

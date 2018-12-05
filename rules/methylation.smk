@@ -31,6 +31,7 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
+import os
 localrules: nanopolish_methylation_merge_run, nanopolish_methylation_compress, nanopolish_methylation_bedGraph, nanopolish_methylation_frequencies, methylation_bigwig
 
 # get batches
@@ -48,9 +49,9 @@ rule nanopolish_methylation:
     output:
         "methylation/{runname, [^./]*}/{batch, [0-9]+}.nanopolish.{reference, [^./]*}.tsv"
     shadow: "minimal"
-    threads: 16
+    threads: config['threads_methylation']
     params:
-        reference = lambda wildcards: config['references'][wildcards.reference]['genome']
+        reference = lambda wildcards: os.path.abspath(config['references'][wildcards.reference]['genome'])
     resources:
         mem_mb = lambda wildcards, input, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 500 * threads)),
         time_min = lambda wildcards, input, threads, attempt: int((960 / threads) * attempt)   # 60 min / 16 threads
@@ -118,8 +119,10 @@ rule methylation_bigwig:
     input:
         "{trackname}.{coverage}.{methylation_caller}.{reference}.bedGraph"
     output:
-        "{trackname, [^./]*}.{coverage, [^./]*}.{methylation_caller, [^./]*}.bw"
+        "{trackname, [^./]*}.{coverage, [^./]*}.{methylation_caller, [^./]*}.{reference, [^./]*}.bw"
+    params:
+        chr_sizes = lambda wildcards : config["references"][wildcards.reference]["chr_sizes"]
     shell:
         """
-        {config[bin][bedGraphToBigWig]} {input} {config[reference][chr_sizes]} {output}
+        {config[bin][bedGraphToBigWig]} {input} {params.chr_sizes} {output}
         """
