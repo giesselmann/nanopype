@@ -122,7 +122,7 @@ rule ngmlr:
     shell:
         """
         cd src
-        git clone https://github.com/philres/ngmlr
+        git clone https://github.com/philres/ngmlr --branch v0.2.7 --depth=1
         mkdir -p ngmlr/build && cd ngmlr/build && cmake .. && make
         cp ../bin/*/ngmlr ../../../bin
         """

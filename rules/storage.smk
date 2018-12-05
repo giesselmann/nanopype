@@ -79,6 +79,12 @@ rule storage_index_run:
         cat {input} > {output}
         """
         
+ # index multiple runs       
+rule storage_index_runs:
+    input:
+        files = lambda wildcards : ["{data_raw}/{runname}/reads.fofn".format(data_raw = config["storage_data_raw"], runname=rn) for rn in config['runnames']]
+        
+        
 # extract reads from indexed run
 rule storage_extract:
     input:

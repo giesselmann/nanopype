@@ -31,8 +31,8 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-import os
-localrules: aligner_merge_run, aligner_merge_runs
+import os, glob
+localrules: graphmap_index, aligner_merge_run, aligner_merge_runs
 #ruleorder: aligner_split_run > aligner_sam2bam
 
 # get batches
@@ -60,25 +60,37 @@ rule minimap2:
 # graphmap alignment
 rule graphmap:
     input:
-        "sequences/{runname}/{batch}.albacore.fa"
+        sequence = "sequences/{runname}/{batch}.albacore.fa",
+        reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
+        index = lambda wildcards: config['references'][wildcards.reference]['genome'] + ".gmidx"
     output:
         pipe("alignments/{runname, [^.]*}/{batch, [0-9]+}.graphmap.{reference}.sam")
     threads: 16
     group: "graphmap"
-    params:
-        reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 80000),
         time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt),   # 90 min / 16 threads
     shell:
         """
-        {config[bin][graphmap]} align -r {params.reference} -d {input} -t {threads} -B 100 >> {output}
+        {config[bin][graphmap]} align -r {input.reference} -d {input.sequence} -t {threads} -B 100 >> {output}
         """
 
+# graphmap index
+rule graphmap_index:
+    output:
+        index = "{reference}.gmidx"
+    params:
+        reference = lambda wildcards: wildcards.reference
+    shell:
+        """
+        {config[bin][graphmap]} align -r {params.reference} --index-only
+        """
+        
 # NGMLR alignment
 rule ngmlr:
     input:
-        "sequences/{runname}/{batch}.albacore.fa"
+        sequence = "sequences/{runname}/{batch}.albacore.fa",
+        index = lambda wildcards : config['references'][wildcards.reference]['genome'] + '.ngm'
     output:
         pipe("alignments/{runname, [^.]*}/{batch, [0-9]+}.ngmlr.{reference, [^./]*}.sam")
     threads: 16
@@ -93,6 +105,18 @@ rule ngmlr:
         cat {input} | {config[bin][ngmlr]} -r {params.reference} -x ont -t {threads} --bam-fix >> {output}
         """
 
+# NGMLR index
+rule ngmlr_index:
+    output:
+        index = "{reference}.ngm"
+    params:
+        reference = lambda wildcards: wildcards.reference
+    shell:
+        """
+        echo '' | {config[bin][ngmlr]} -r {params.reference}
+        touch {output.index}
+        """
+        
 # sam to bam conversion and RG tag
 rule aligner_sam2bam:
     input:
@@ -108,7 +132,7 @@ rule aligner_sam2bam:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 5000)
     shell:
         """
-        cat {input} | sed '/^@HD/ a @RG\tID:{wildcards.runname}/{wildcards.batch}' | perl -anle 'if($_ =~ /^@/){{print $_}}else{{print join("\t", @F, "RG:Z:{wildcards.runname}/{wildcards.batch}")}}' | {config[bin][samtools]} view -Sb - | {config[bin][samtools]} sort -m 4G > {output.bam}
+        cat {input} | perl -anle 'BEGIN{{$header=1}}; if($header == 1){{ if($_ =~ /^@/) {{print $_}} else {{$header=0; print "\@RG\tID:{wildcards.runname}/{wildcards.batch}"}}}} else {{print $_}}' | perl -anle 'if($_ =~ /^@/){{print $_}}else{{print join("\t", @F, "RG:Z:{wildcards.runname}/{wildcards.batch}")}}' |  {config[bin][samtools]} view -b - | {config[bin][samtools]} sort -m 4G > {output.bam}
         {config[bin][samtools]} index {output.bam}
         """
 

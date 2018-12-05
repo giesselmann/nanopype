@@ -49,7 +49,6 @@ class test_unit_binaries(unittest.TestCase):
         for key, ex in self.nanopype_env['bin'].items():
             print("Testing " + str(key))
             # from https://stackoverflow.com/questions/377017/test-if-executable-exists-in-python
-            
             fpath, fname = os.path.split(ex)
             if fpath:
                 if __is_exe__(ex):
