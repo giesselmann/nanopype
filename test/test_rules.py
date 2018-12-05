@@ -87,6 +87,10 @@ class test_unit_rules(unittest.TestCase):
 
     def test_methylation(self):
         subprocess.run(self.snk_cmd + 'test.1x.nanopolish.test.bw', check=True, shell=True)
+
+    def test_sv(self):
+        subprocess.run(self.snk_cmd + "test.ngmlr.test.sniffles.vcf", check=True, shell=True)
+
 # main function
 if __name__ == '__main__':
     unittest.main()
