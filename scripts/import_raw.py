@@ -264,7 +264,7 @@ class packager():
         logger.log("{to_archive} raw files to be archived".format(to_archive=len(to_archive)))
         if len(archived_only) > 0:
             logger.log("{archived_only} files in archive but not found in source directory".format(archived_only=len(archived_only)), logger.log_type.Warning)
-        processing_queue.extend([src_files[f] for f in to_archive])
+        processing_queue.extend(sorted([src_files[f] for f in to_archive]))
         # enter main archive loop
         while active:
             # get file names from queue
