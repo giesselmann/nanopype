@@ -76,7 +76,7 @@ rule htslib:
 
 rule samtools:
     input:
-        directory("src/htslib")
+        rules.htslib.output.src
     output:
         bin = "bin/samtools",
         src = directory("src/samtools")

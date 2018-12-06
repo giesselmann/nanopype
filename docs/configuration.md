@@ -67,14 +67,19 @@ Snakemake allows both, cloud and cluster execution of workflows. As of now only 
 
     snakemake --profile /path/nanopype/profiles/mxq [OPTIONS...] [FILE]
 
-
+When running in an environment with **multiple users** the shadow prefix should contain a user specific part to prevent corrupted data. A profile per user is compelling in this case.
+    
 ## Test
 
 To test if the installation and configuration was successful, we provide a small MinION dataset of a human cell line.
 
 ### Python
 
+    python3 test/test_rules.py
+
 ### Docker
 
-
+    docker run -it --mount type=bind,source=./,target=/app nanopype
+    cd /app
+    python3 test/test_rules.py
 
