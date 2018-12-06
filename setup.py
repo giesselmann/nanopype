@@ -35,6 +35,7 @@ class AppendPathCmd(install):
         install.finalize_options(self)
         
     def run(self):
+        install.run(self)
         if self.tools:
             with open(os.path.join(site.getsitepackages()[0], 'nanopype.pth'), 'w') as fp:
                 print('import os; os.environ["PATH"] += os.pathsep + "{dir}"'.format(dir=os.path.abspath(self.tools)), file=fp)
