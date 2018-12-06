@@ -7,7 +7,7 @@ Run nanopype with all its dependencies from within an automated built docker con
 
 You can extend or customize your docker in the following way: 
     
-    docker run -it --mount type=bind,source=/host/installer/path,target=/src nanopype
+    docker run -it --mount type=bind,source=/host/installer/path,target=/src giesselmann/nanopype
     
 In the docker shell you could install e.g. albacore from ONT after you downloaded the python wheel to the hosts */host/installer/path*:
     
