@@ -8,15 +8,15 @@ Nanopype is a snakemake based pipeline providing convinient nanopore data proces
 
 **Modularization**
 
-:	Nanopype is based on the snakemake framework providing rules to execute nanopore bioinformatic applications and chaining them into common workflows. Uniform interfaces of related tools allow easy exchange and extension of the pipeline components.
+Nanopype is based on the snakemake framework providing rules to execute nanopore bioinformatic applications and chaining them into common workflows. Uniform interfaces of related tools allow easy exchange and extension of the pipeline components.
 
 **Scalability**
 
-:	Increased throughput and decreasing costs require efficient parallel processing of nanopore long read datasets. Nanopype was developed with focus on batch processing of dataset fractions improving performance on heterogeneous cluster environments.
+Increased throughput and decreasing costs require efficient parallel processing of nanopore long read datasets. Nanopype was developed with focus on batch processing of dataset fractions improving performance on heterogeneous cluster environments.
 
 **Automation**
 
-:	Applying the output from input file(s) driven workflow design of snakemake with recurring directory structures simplifies a high degree of automation in the data processing. Nanopype furthermore provides scripts and concepts to import and organize datasets from the sequencer.
+Applying the output from input file(s) driven workflow design of snakemake with recurring directory structures simplifies a high degree of automation in the data processing. Nanopype furthermore provides scripts and concepts to import and organize datasets from the sequencer.
 
 ## Quick start
 
