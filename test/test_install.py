@@ -53,9 +53,9 @@ class test_unit_binaries(unittest.TestCase):
             fpath, fname = os.path.split(ex)
             if fpath:
                 if __is_exe__(ex):
-                    print(" ".join(["Found", key, "in", fpath]))
+                    print(" ".join(["[INFO] Found", key, "in", fpath]))
                 else:
-                    print(key + ": " + ex + " is not executable")
+                    print('[ERROR] ' + key + ": " + ex + " is not executable")
                     fail = True
                     #raise EnvironmentError(key + ": " + ex + " is not executable")
             else:
@@ -65,9 +65,9 @@ class test_unit_binaries(unittest.TestCase):
                     if os.path.isfile(exe_file) and __is_exe__(exe_file):
                         exe_file_valid = exe_file
                 if exe_file_valid:
-                    print(" ".join(["Found", key, "in", exe_file_valid]))
+                    print(" ".join(["[Info] Found", key, "in", exe_file_valid]))
                 else:
-                    print(key + ": " + ex + " is not executable or found in PATH")
+                    print('[ERROR]' + key + ": " + ex + " is not executable or found in PATH")
                     fail = True
                     #raise EnvironmentError(key + ": " + ex + " is not executable or found in PATH")
         if fail:

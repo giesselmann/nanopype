@@ -47,9 +47,8 @@ rule UCSCtools:
 		"bin/bedGraphToBigWig"
 	shell:
 		"""
-		cd bin
-        wget ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
-        chmod 755 bedGraphToBigWig
+		wget -O {output} ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
+        chmod 755 bin/bedGraphToBigWig
 		"""
 
 rule bedtools:
