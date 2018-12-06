@@ -58,7 +58,7 @@ COPY --from=build_stage /app/bin/* /bin/
 RUN mkdir -p /app
 WORKDIR /app
 COPY . /app/
-pip3 install . --upgrade --install-option="--tools=$(pwd)/bin"
+RUN pip3 install . --upgrade --install-option="--tools=$(pwd)/bin"
 
 # create working directories
 RUN mkdir -p /data/raw
