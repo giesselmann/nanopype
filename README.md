@@ -24,7 +24,7 @@ Install nanopype into an existing python3 installation from [github.com](https:/
 
     git clone https://github.com/giesselmann/nanopype
     cd nanopype
-    pip3 install -r requirements.txt
+    pip3 install . --upgrade
 
 or use automated Docker builds from [hub.docker.com](https://hub.docker.com/r/giesselmann/nanopype/).
 
