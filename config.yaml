@@ -1,6 +1,6 @@
 # data paths
-storage_data_raw : /data/raw
-storage_data_import : /data/import
+storage_data_raw : data/raw
+storage_data_import : data/import
 storage_runname:
     delimiter: '_'
     field_ID: 1
@@ -12,6 +12,7 @@ threads_basecalling: 4
 threads_alignment: 3
 threads_methylation: 4
 threads_sv: 4
+threads_demux: 4
 
 # basecalling
 basecalling_albacore_barcoding: false
@@ -21,3 +22,8 @@ basecalling_albacore_disable_filtering: true
 methylation_nanopolish_logp_threshold: 2.5
 methylation_nanopolish_aligner: graphmap
 methylation_min_coverage: 1
+
+# demux
+deepbinner_models:
+    EXP-NBD103: EXP-NBD103_read_starts
+    SQK-RBK004: SQK-RBK004_read_starts

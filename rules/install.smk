@@ -153,3 +153,16 @@ rule sniffles:
         mkdir -p Sniffles/build && cd Sniffles/build && cmake .. && make
         cp ../bin/*/sniffles ../../../bin
         """
+
+rule deepbinner:
+    output:
+        bin = "bin/deepbinner-runner.py",
+        src = directory("src/Deepbinner")
+    shell:
+        """
+        cd src
+        git clone https://github.com/rrwick/Deepbinner --branch v0.2.0 --depth=1
+        cd Deepbinner
+        pip3 install -r requirements.txt
+        cp deepbinner-runner.py ../../{output.bin}
+        """

@@ -2,7 +2,7 @@
 #
 #  CONTENTS      : Snakemake nanopore data pipeline
 #
-#  DESCRIPTION   : none
+#  DESCRIPTION   : nanopore basecalling rules
 #
 #  RESTRICTIONS  : none
 #
@@ -31,45 +31,36 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-# snakemake config
-configfile: "config.yaml"
+
+# get batches
+def get_batches_demux(wildcards):
+    return expand("demux/{wildcards.runname}/{{batch}}.{wildcards.demultiplexer}.tsv".format(wildcards=wildcards), batch=get_batches(wildcards))
 
 
-# parse pipeline environment
-import os, yaml
-with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as fp:
-    nanopype_env = yaml.load(fp)
-    config.update(nanopype_env)
+# deepbinner demux
+rule deepbinner:
+    input:
+        signals = "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
+        model = lambda wildcards : config["deepbinner_models"][get_kit(wildcards)]
+    output:
+        "demux/{runname}/{batch}.deepbinner.tsv"
+    shadow: "minimal"
+    threads: config['threads_demux']
+    resources:
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
+        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads
+    shell:
+        """
+        mkdir -p raw
+        tar -C raw/ -xf {input.signals}
+        {config[bin][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads 1 --omp_num_threads 1 --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
+        """
 
-
-# multi-run rules
-runnames = []
-if os.path.isfile('runnames.txt'):
-    localrules: albacore_basecalling_runs, graphmap_alignment_runs, nanopolish_methylation_runs
-    runnames = [line.rstrip('\n') for line in open('runnames.txt')]
-
-    # basecalling for set of runs
-    rule albacore_basecalling_runs:
-        input:
-            ['runs/{runname}.albacore.fa.gz'.format(runname=runname) for runname in runnames]
-
-    # alignment for set of runs
-    rule graphmap_alignment_runs:
-        input:
-            ['runs/{runname}.graphmap.bam'.format(runname=runname) for runname in runnames]
-
-    # create nanopolish raw methylation calling for set of runs
-    rule nanopolish_methylation_runs:
-        input:
-            ['runs/{runname}.nanopolish.tsv.gz'.format(runname=runname) for runname in runnames]
-
-config['runnames'] = runnames
-
-# include modules
-include : "rules/utils.smk"
-include : "rules/storage.smk"
-include : "rules/basecalling.smk"
-include : "rules/alignment.smk"
-include : "rules/methylation.smk"
-include : "rules/sv.smk"
-include : "rules/demux.smk"
+# merge and compression
+rule demux_merge_run:
+    input:
+        get_batches_demux
+    output:
+        "demux/{runname, [a-zA-Z0-9_-]+}.{demultiplexer}.tsv"
+    shell:
+        "cat {input} > {output}"
