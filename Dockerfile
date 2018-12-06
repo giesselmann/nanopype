@@ -27,10 +27,10 @@ RUN python3 get-pip.py
 RUN mkdir -p /app
 WORKDIR /app
 COPY . /app/
-RUN pip3 install -r requirements.txt
+RUN pip3 install . --upgrade
 
 # run setup rules
-RUN snakemake --snakefile scripts/build.smk -j 2 all
+RUN snakemake --snakefile rules/install.smk -j 2 all
 
 # PACKAGE STAGE
 FROM ubuntu:16.04
@@ -58,7 +58,7 @@ COPY --from=build_stage /app/bin/* /bin/
 RUN mkdir -p /app
 WORKDIR /app
 COPY . /app/
-RUN pip3 install -r requirements.txt
+pip3 install . --upgrade --install-option="--tools=$(pwd)/bin"
 
 # create working directories
 RUN mkdir -p /data/raw
