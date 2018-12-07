@@ -64,7 +64,7 @@ rule UCSCtools:
 	shell:
 		"""
 		wget -O {output} ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
-        chmod 755 bin/bedGraphToBigWig
+        chmod 755 {output}
 		"""
 
 rule bedtools:
