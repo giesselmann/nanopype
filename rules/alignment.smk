@@ -32,7 +32,7 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 import os, glob
-localrules: graphmap_index, aligner_merge_run, aligner_merge_runs
+localrules: graphmap_index, ngmlr_index, aligner_merge_run, aligner_merge_runs
 #ruleorder: aligner_split_run > aligner_sam2bam
 
 # get batches
