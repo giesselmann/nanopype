@@ -5,7 +5,7 @@ Run nanopype with all its dependencies from within an automated built docker con
 
     docker pull giesselmann/nanopype
 
-You can extend or customize your docker in the following way: 
+The compressed docker image size is ~280 MB. You can extend or customize your docker in the following way: 
     
     docker run -it --mount type=bind,source=/host/installer/path,target=/src giesselmann/nanopype
     
@@ -48,17 +48,19 @@ to build and install all tools into **src** and **bin** folders within the curre
     # specific tool only
     snakemake --snakefile rules/install.smk samtools
     
-You will need to append the **bin** directory to your PATH variable, modify the paths in the environment config or re-run the install script with
+You will need to append the **bin** directory to your PATH variable, modify the paths in the environment config or re-run the nanopype install with
     
+    cd nanopype
     pip3 install . --upgrade --install-option="--tools=$(pwd)/bin"
 
 to make nanopype aware of the installed tools. You may wish to test your installation by running:
     
     python3 test/test_install.py
+    
+Building all dependencies can take a significant amount of time, currently ~30 min on a single core machine.
 
 ***
 
-Currently the following tools are available:
 ### Core
 **Basecalling**
 

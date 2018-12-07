@@ -83,3 +83,4 @@ To test if the installation and configuration was successful, we provide a small
     cd /app
     python3 test/test_rules.py
 
+The test takes ~20 min on 4 cores and downloads ~54 MB reference sequence for the alignment modules. Note that test runtimes are not representative due to very small batch sizes.
