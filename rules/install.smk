@@ -43,13 +43,12 @@ rule core:
         "bin/graphmap",
         "bin/ngmlr",
         "bin/nanopolish",
-        "bin/sniffles",
-		"bin/bedGraphToBigWig"
+        "bin/bedGraphToBigWig"
         
 rule extended:
     input:
         "bin/sniffles",
-		"bin/deepbinner-runner.py"
+        "bin/deepbinner-runner.py"
         
 rule all:
     input:
@@ -59,13 +58,13 @@ rule all:
 
 # detailed build rules
 rule UCSCtools:
-	output:
-		"bin/bedGraphToBigWig"
-	shell:
-		"""
-		wget -O {output} ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
+    output:
+        "bin/bedGraphToBigWig"
+    shell:
+        """
+        wget -O {output} ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
         chmod 755 {output}
-		"""
+        """
 
 rule bedtools:
     output:

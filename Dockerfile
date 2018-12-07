@@ -6,7 +6,7 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## system packages
 RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
-    git gcc g++ \
+    git gcc g++ ca-certificates \
     binutils autoconf make cmake zlib1g-dev bzip2 libbz2-dev \
     liblzma-dev libncurses5-dev \
     python python3.5 python3.5-dev
@@ -26,12 +26,12 @@ COPY . /app/
 RUN pip3 install . --upgrade
 
 # run setup rules
-RUN snakemake --snakefile rules/install.smk -j 2 all
+RUN snakemake --snakefile rules/install.smk all
 
 # PACKAGE STAGE
 FROM ubuntu:16.04
 RUN apt-get --yes update && \
-apt-get install -y --no-install-recommends wget gcc g++ \
+apt-get install -y --no-install-recommends wget git gcc g++ \
 	zlib1g-dev bzip2 libbz2-dev \
 	liblzma-dev libncurses5-dev \
 	ca-certificates \
