@@ -31,7 +31,11 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-rule all:
+# main build rules
+rule default:
+    shell : ""
+
+rule core:
     input:
         "bin/bedtools",
         "bin/samtools",
@@ -41,7 +45,19 @@ rule all:
         "bin/nanopolish",
         "bin/sniffles",
 		"bin/bedGraphToBigWig"
+        
+rule extended:
+    input:
+        "bin/sniffles",
+		"bin/deepbinner-runner.py"
+        
+rule all:
+    input:
+        rules.core.input,
+        rules.extended.input
+        
 
+# detailed build rules
 rule UCSCtools:
 	output:
 		"bin/bedGraphToBigWig"

@@ -39,8 +39,13 @@ We provide snakemake rules to download and build all dependencies. From within t
     
     snakemake --snakefile rules/install.smk all
     
-to build and install all tools into **src** and **bin** folders within the current directory. To only build specific targets e.g. samtools you can use:
+to build and install all tools into **src** and **bin** folders within the current directory. To only build a subset or specific targets e.g. samtools you can use:
 
+    # core functionality
+    snakemake --snakefile rules/install.smk core
+    # extend functionality
+    snakemake --snakefile rules/install.smk extended
+    # specific tool only
     snakemake --snakefile rules/install.smk samtools
     
 You will need to append the **bin** directory to your PATH variable, modify the paths in the environment config or re-run the install script with
@@ -54,7 +59,7 @@ to make nanopype aware of the installed tools. You may wish to test your install
 ***
 
 Currently the following tools are available:
-
+### Core
 **Basecalling**
 
 :   * Albacore (access restricted to ONT community)
@@ -69,15 +74,22 @@ Currently the following tools are available:
 
 :   * Nanopolish *https://github.com/jts/nanopolish*
 
-**Structural variation**
-
-:   * Sniffles *https://github.com/fritzsedlazeck/Sniffles*
-
 **Miscellaneous**
 
 :   * Samtools *https://github.com/samtools/samtools*
     * Bedtools *https://github.com/arq5x/bedtools2*
     * UCSCTools *http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/*
         * bedGraphToBigWig 
+
+### Extended
+**Structural variation**
+
+:   * Sniffles *https://github.com/fritzsedlazeck/Sniffles*
+
+**Demultiplexing**
+
+:   * Deepbinner *https://github.com/rrwick/Deepbinner*
+
+
 
 
