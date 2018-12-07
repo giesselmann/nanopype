@@ -1,17 +1,27 @@
 # Installation
 
 ## Docker
-Run nanopype with all its dependencies from within an automated built docker container. This is primarily for local usage and does currently not support snakemakes cluster engine. 
+Run nanopype with all its dependencies from within an automated built docker container. This is primarily for local usage and does currently not support snakemakes cluster engine. The compressed docker image size is ~500 MB.
 
     docker pull giesselmann/nanopype
 
-The compressed docker image size is ~280 MB. You can extend or customize your docker in the following way: 
+You can extend and customize your docker in the following way: 
     
     docker run -it --mount type=bind,source=/host/installer/path,target=/src giesselmann/nanopype
     
 In the docker shell you could install e.g. albacore from ONT after you downloaded the python wheel to the hosts */host/installer/path*:
     
     pip3 install /src/ont_albacore-2.3.3-cp35-cp35m-manylinux1_x86_64.whl
+
+Press CTRL + P and CTRL + Q to detach from the running container and run
+
+    docker ps 
+
+to get the CONTAINER ID of the currently running container. Save the changes, attach to the running container and exit:
+
+    docker commit <CONTAINER ID> giesselmann/nanopype
+    docker attach <CONTAINER ID>
+
 
 ## Python
 We recommend to create a python virtual environment and install nanopype and its dependencies into it:
