@@ -32,7 +32,7 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 site_name: Nanopype Documentation
-site_description: 'Snakemake pipelines for nanopore sequencing data archiving and processing and analysis'
+site_description: 'Snakemake pipelines for nanopore sequencing data archiving, processing and analysis'
 site_author: 'Pay Giesselmann'
 site_url: 'https://nanopype.readthedocs.io'
 copyright: 'Copyright &copy; 2018 - 2018 Pay Giesselmann, Max Planck Institute for Molecular Genetics'
@@ -83,11 +83,15 @@ nav:
   - Installation: installation.md
   - Configuration: configuration.md
   - Modules:
+    - Storage: rules/storage.md
     - Basecalling: rules/basecalling.md
     - Alignment: rules/alignment.md
     - Methylation: rules/methylation.md
+    - Demultiplexing: rules/demux.md
     - SV: rules/sv.md
-    - Storage: rules/storage.md
-  - Examples: examples.md
+  - Examples:
+    - Data import: examples/import.md
+    - Nanopolish: examples/nanopolish.md
+    - Barcoding: examples/demux.md
   - Release notes: release-notes.md
   - License: license.md
