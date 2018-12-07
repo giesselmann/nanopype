@@ -33,13 +33,30 @@
 # ---------------------------------------------------------------------------------
 # snakemake config
 configfile: "config.yaml"
+import os
 
 
 # parse pipeline environment
 import os, yaml
 with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as fp:
     nanopype_env = yaml.load(fp)
-    config.update(nanopype_env)
+    # check tool access and convert to absolute paths
+    nanopype_env_glob = {}
+    nanopype_env_glob['bin'] = {}
+    for name, loc in nanopype_env['bin'].items():
+        tool_found = False
+        if os.path.isfile(nanopype_env['bin'][name]):
+            nanopype_env_glob['bin'][name] = loc
+            tool_found = True
+        else:
+            for path in os.environ["PATH"].split(os.pathsep):
+                exe_file = os.path.join(path, os.path.basename(nanopype_env['bin'][name]))
+                if os.path.isfile(exe_file):
+                    nanopype_env_glob['bin'][name] = exe_file
+                    tool_found = True
+        if not tool_found:
+            raise EnvironmentError(name + " not found in PATH")
+    config.update(nanopype_env_glob)
 
 
 # multi-run rules

@@ -40,17 +40,6 @@ def get_python(wildcards):
     import sys
     return sys.executable
     
-def get_deepbinner(wildcards):
-    import os
-    if os.path.isfile(config['bin']['deepbinner']):
-        return config['bin']['deepbinner']
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, os.path.basename(config['bin']['deepbinner']))
-            if os.path.isfile(exe_file):
-                return exe_file
-    raise EnvironmentError("Deepbinner script not found in PATH")
-    
 # deepbinner demux
 rule deepbinner:
     input:
@@ -61,8 +50,7 @@ rule deepbinner:
     shadow: "minimal"
     threads: config['threads_demux']
     params:
-        py_bin = lambda wildcards : get_python(wildcards),
-        db_bin = lambda wildcards : get_deepbinner(wildcards)
+        py_bin = lambda wildcards : get_python(wildcards)
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads
@@ -70,7 +58,7 @@ rule deepbinner:
         """
         mkdir -p raw
         tar -C raw/ -xf {input.signals}
-        {params.py_bin} {params.db_bin} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads 1 --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
+        {params.py_bin} {config[bin][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads 1 --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
         """
 
 # merge and compression
