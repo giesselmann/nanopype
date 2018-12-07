@@ -62,7 +62,8 @@ with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as
                     tool_found = True
         if not tool_found:
             raise EnvironmentError(name + " not found in PATH")
-    config.update(nanopype_env_glob)
+    nanopype_env.update(nanopype_env_glob)
+    config.update(nanopype_env)
 
 
 # multi-run rules
