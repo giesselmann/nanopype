@@ -164,5 +164,5 @@ rule deepbinner:
         git clone https://github.com/rrwick/Deepbinner --branch v0.2.0 --depth=1
         cd Deepbinner
         pip3 install -r requirements.txt
-        cp deepbinner-runner.py ../../{output.bin}
+        ln -s $(pwd)/deepbinner-runner.py ../../{output.bin}
         """
