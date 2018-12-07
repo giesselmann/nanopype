@@ -33,23 +33,30 @@
 # ---------------------------------------------------------------------------------
 # snakemake config
 configfile: "config.yaml"
-import os
+import os, sys
 
 
 # parse pipeline environment
 import os, yaml
 with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as fp:
     nanopype_env = yaml.load(fp)
-    # check tool access and convert to absolute paths
+    # check tool access and convert to absolute paths, cluster jobs might run with different PATH settings
     nanopype_env_glob = {}
     nanopype_env_glob['bin'] = {}
     for name, loc in nanopype_env['bin'].items():
         tool_found = False
+        # if already global path
         if os.path.isfile(nanopype_env['bin'][name]):
             nanopype_env_glob['bin'][name] = loc
             tool_found = True
+        # check bin of python executable
+        elif os.path.isfile(os.path.join(os.path.dirname(sys.executable), nanopype_env['bin'][name])):
+            nanopype_env_glob['bin'][name] = os.path.join(os.path.dirname(sys.executable), nanopype_env['bin'][name])
+            tool_found = True        
+        # check the remaining PATH 
         else:
             for path in os.environ["PATH"].split(os.pathsep):
+                print("Scanning " + path)
                 exe_file = os.path.join(path, os.path.basename(nanopype_env['bin'][name]))
                 if os.path.isfile(exe_file):
                     nanopype_env_glob['bin'][name] = exe_file
