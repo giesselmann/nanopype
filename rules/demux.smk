@@ -31,6 +31,7 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
+localrules: demux_merge_run
 
 # get batches
 def get_batches_demux(wildcards):
@@ -44,7 +45,7 @@ def get_python(wildcards):
 rule deepbinner:
     input:
         signals = "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
-        model = lambda wildcards : config["deepbinner_models"][get_kit(wildcards)]
+        model = lambda wildcards : config["deepbinner_models"][get_kit(wildcards)] if get_kit(wildcards) in config["deepbinner_models"] else config["deepbinner_models"]['default']
     output:
         "demux/{runname}/{batch}.deepbinner.tsv"
     shadow: "minimal"
@@ -58,7 +59,7 @@ rule deepbinner:
         """
         mkdir -p raw
         tar -C raw/ -xf {input.signals}
-        {params.py_bin} {config[bin][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads 1 --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
+        {params.py_bin} {config[bin][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads {threads} --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
         """
 
 # merge and compression

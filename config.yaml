@@ -1,6 +1,7 @@
 # data paths
-storage_data_raw : data/raw
-storage_data_import : data/import
+storage_data_raw : /project/miniondata/raw
+storage_data_import : /project/miniondata/incoming/mpimg_meissner_0
+
 storage_runname:
     delimiter: '_'
     field_ID: 1
@@ -25,5 +26,7 @@ methylation_min_coverage: 1
 
 # demux
 deepbinner_models:
+    default: SQK-RBK004_read_starts
     EXP-NBD103: EXP-NBD103_read_starts
     SQK-RBK004: SQK-RBK004_read_starts
+    
