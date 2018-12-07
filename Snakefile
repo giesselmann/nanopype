@@ -56,7 +56,6 @@ with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as
         # check the remaining PATH 
         else:
             for path in os.environ["PATH"].split(os.pathsep):
-                print("Scanning " + path)
                 exe_file = os.path.join(path, os.path.basename(nanopype_env['bin'][name]))
                 if os.path.isfile(exe_file):
                     nanopype_env_glob['bin'][name] = exe_file
