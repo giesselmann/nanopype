@@ -52,8 +52,8 @@ with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as
         # check bin of python executable
         elif os.path.isfile(os.path.join(os.path.dirname(sys.executable), nanopype_env['bin'][name])):
             nanopype_env_glob['bin'][name] = os.path.join(os.path.dirname(sys.executable), nanopype_env['bin'][name])
-            tool_found = True        
-        # check the remaining PATH 
+            tool_found = True
+        # check the remaining PATH
         else:
             for path in os.environ["PATH"].split(os.pathsep):
                 exe_file = os.path.join(path, os.path.basename(nanopype_env['bin'][name]))
@@ -61,7 +61,8 @@ with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as
                     nanopype_env_glob['bin'][name] = exe_file
                     tool_found = True
         if not tool_found:
-            raise EnvironmentError(name + " not found in PATH")
+            #raise EnvironmentError(name + " not found in PATH")
+            print(' '.join(["[WARNING]", name, 'not executable or found in PATH']), file=sys.stderr)
     nanopype_env.update(nanopype_env_glob)
     config.update(nanopype_env)
 
@@ -69,23 +70,7 @@ with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as
 # multi-run rules
 runnames = []
 if os.path.isfile('runnames.txt'):
-    localrules: albacore_basecalling_runs, graphmap_alignment_runs, nanopolish_methylation_runs
     runnames = [line.rstrip('\n') for line in open('runnames.txt')]
-
-    # basecalling for set of runs
-    rule albacore_basecalling_runs:
-        input:
-            ['runs/{runname}.albacore.fa.gz'.format(runname=runname) for runname in runnames]
-
-    # alignment for set of runs
-    rule graphmap_alignment_runs:
-        input:
-            ['runs/{runname}.graphmap.bam'.format(runname=runname) for runname in runnames]
-
-    # create nanopolish raw methylation calling for set of runs
-    rule nanopolish_methylation_runs:
-        input:
-            ['runs/{runname}.nanopolish.tsv.gz'.format(runname=runname) for runname in runnames]
 
 config['runnames'] = runnames
 
