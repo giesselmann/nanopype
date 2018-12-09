@@ -18,7 +18,7 @@ Nanopype has two configuration layers: The central **environment** configuration
 
 ## Environment
 
-The default environment configuration **env.yaml** assumes all required tools to be available through your systems PATH variable. To use nanopype with existing installations you may need to adjust their paths. Each tools is configured as key:value pair of tool name and the executable. 
+The default environment configuration **env.yaml** assumes all required tools to be available through your systems PATH variable. To use nanopype with existing installations you may need to adjust their paths. Each tools is configured as key:value pair of tool name and the executable.
 
 ```
 bin:
@@ -34,12 +34,12 @@ references:
     mm9:
         genome: /path/to/mm9/mm9.fa
         chr_sizes: /path/to/mm9/mm9.chrom.sizes
-        
+
 ```
 
 ## Workflow
 
-The default workflow configuration **config.yaml** in the installation directory serves as a template and needs to be copied to each working directory. The meaning of tool specific parameters is explained in the **Modules** section. 
+The default workflow configuration **config.yaml** in the installation directory serves as a template and needs to be copied to each working directory. The meaning of tool specific parameters is explained in the **Modules** section.
 Raw data is stored in per flow-cell run folders. Nanopype is parsing the Flow-Cell ID, its type and the used sequencing kit from the name. A possible naming pattern is:
 
 > 20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01
@@ -62,13 +62,13 @@ Snakemake allows both, cloud and cluster execution of workflows. As of now only 
     * submit.py - job submission to cluster management
     * status.py - job status request from cluster management
 	* jobscript.sh - wrapper script for rules to be executed
-	
+
 **Important:** When working with batches of raw nanopore reads, nanopype makes use of snakemakes shadow mechanism. A shadow directory is temporary per rule execution and can be placed on per node local storage to reduce network overhead. The shadow prefix e.g. */scratch/local/* is set in the profiles config.yaml. The *--profile* argument tells snakemake to use a specific profile:
 
     snakemake --profile /path/nanopype/profiles/mxq [OPTIONS...] [FILE]
 
 When running in an environment with **multiple users** the shadow prefix should contain a user specific part to ensure accessibility and to prevent corrupted data. A profile per user is compelling in this case.
-    
+
 ## Test
 
 To test if the installation and configuration was successful, we provide a small MinION dataset of a human cell line.
@@ -79,7 +79,7 @@ To test if the installation and configuration was successful, we provide a small
 
 ### Docker
 
-    docker run -it --mount type=bind,source=./,target=/app nanopype
+    docker run -it giesselmann/nanopype
     cd /app
     python3 test/test_rules.py
 
