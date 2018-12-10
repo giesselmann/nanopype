@@ -38,29 +38,40 @@ localrules: graphmap_index, ngmlr_index, aligner_merge_run, aligner_merge_runs
 # get batches
 def get_batches_aligner(wildcards):
     return expand("alignments/{wildcards.runname}/{{batch}}.{wildcards.aligner}.{wildcards.reference}.bam".format(wildcards=wildcards), batch=get_batches(wildcards))
+    
+# get sequence input for aligner
+def get_sequence_batch(wildcards):
+    base = "sequences/{wildcards.runname}/{wildcards.batch}.{basecaller}".format(wildcards=wildcards, basecaller=config['alignment_default_basecaller'])
+    if os.path.isfile(base + '.fa'):
+        return base + '.fa'
+    elif os.path.isfile(base + 'fasta'):
+        return base + '.fasta'
+    elif os.path.isfile(base + 'fq'):
+        return base + '.fq'
+    else:
+        return base + '.fastq'
 
 # minimap alignment
 rule minimap2:
     input:
-        "sequences/{runname}/{batch}.albacore.fa"
+        sequence = get_sequence_batch,
+        reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     output:
         pipe("alignments/{runname, [^.]*}/{batch, [0-9]+}.minimap2.{reference}.sam")
     threads: config['threads_alignment']
     group: "minimap2"
-    params:
-        reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (8000 + 500 * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt)   # 60 min / 16 threads
     shell:
         """
-        {config[bin][minimap2]} -L -ax map-ont {params.reference} {input} -t {threads} >> {output}
+        {config[bin][minimap2]} {config[alignment_minimap2_flags]} {input.reference} {input.sequence} -t {threads} >> {output}
         """
 
 # graphmap alignment
 rule graphmap:
     input:
-        sequence = "sequences/{runname}/{batch}.albacore.fa",
+        sequence = get_sequence_batch,
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         index = lambda wildcards: config['references'][wildcards.reference]['genome'] + ".gmidx"
     output:
@@ -72,7 +83,7 @@ rule graphmap:
         time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt),   # 90 min / 16 threads
     shell:
         """
-        {config[bin][graphmap]} align -r {input.reference} -d {input.sequence} -t {threads} -B 100 >> {output}
+        {config[bin][graphmap]} align -r {input.reference} -d {input.sequence} -t {threads} {config[alignment_graphmap_flags]} >> {output}
         """
 
 # graphmap index
@@ -89,20 +100,19 @@ rule graphmap_index:
 # NGMLR alignment
 rule ngmlr:
     input:
-        sequence = "sequences/{runname}/{batch}.albacore.fa",
+        sequence = get_sequence_batch,
+        reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         index = lambda wildcards : config['references'][wildcards.reference]['genome'] + '.ngm'
     output:
         pipe("alignments/{runname, [^.]*}/{batch, [0-9]+}.ngmlr.{reference, [^./]*}.sam")
     threads: config['threads_alignment']
     group: "ngmlr"
-    params:
-        reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 32000),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt)   # 60 min / 16 threads
     shell:
         """
-        cat {input} | {config[bin][ngmlr]} -r {params.reference} -x ont -t {threads} --bam-fix >> {output}
+        cat {input.sequence} | {config[bin][ngmlr]} -r {input.reference} -t {threads} {config[alignment_ngmlr_flags]} >> {output}
         """
 
 # NGMLR index
