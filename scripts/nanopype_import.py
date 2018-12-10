@@ -317,6 +317,8 @@ if __name__ == '__main__':
     logger.init(file=args.log, log_types=[logger.log_type.Error, logger.log_type.Info, logger.log_type.Debug] )
     # check output Directory
     dir_out = os.path.abspath(args.output)
+    if not (dir_out.endswith('reads') or dir_out.endswith('reads' + os.sep)):
+        dir_out = os.path.join(dir_out, 'reads')
     if os.path.isdir(dir_out):
         if not os.access(dir_out, os.W_OK):
             logger.log("Output directory existent but not writeable", logger.log_type.Error)
