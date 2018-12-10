@@ -1,6 +1,6 @@
 # data paths
-storage_data_raw : /project/miniondata/raw
-storage_data_import : /project/miniondata/incoming/mpimg_meissner_0
+storage_data_raw : /data/raw
+storage_data_import : /data/import
 
 storage_runname:
     delimiter: '_'
@@ -18,6 +18,12 @@ threads_demux: 4
 # basecalling
 basecalling_albacore_barcoding: false
 basecalling_albacore_disable_filtering: true
+
+# alignment
+alignment_default_basecaller: albacore
+alignment_minimap2_flags: '-ax map-ont -L'
+alignment_graphmap_flags: '-B 100'
+alignment_ngmlr_flags: '-x ont --bam-fix'
 
 # methylation detection
 methylation_nanopolish_logp_threshold: 2.5
