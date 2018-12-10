@@ -34,12 +34,18 @@ Nanopype relies on latest snakemake features, please consider updating your snak
     git clone https://bitbucket.org/snakemake/snakemake.git
     cd snakemake
     pip3 install . --upgrade
+    cd ..
 
 Finally Install nanopype from [github.com/giesselmann](https://github.com/giesselmann/nanopype/):
 
     git clone https://github.com/giesselmann/nanopype
     cd nanopype
     pip3 install . --upgrade
+    cd ..
+
+To deactivate the virtual python environment just type:
+    
+    deactivate
 
 
 ## Tools
