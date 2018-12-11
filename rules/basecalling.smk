@@ -86,10 +86,11 @@ rule flappie:
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads
     shell:
         """
+        export OPENBLAS_NUM_THREADS=1
         mkdir -p raw
         tar -C raw/ -xf {input}
         find raw/ -regextype posix-extended -regex '^.*fast5' > raw.fofn
-        split -n {threads} raw.fofn raw.fofn.part.
+        split -e -n l/{threads} raw.fofn raw.fofn.part.
         ls raw.fofn.part.* | xargs -n 1 -P {threads} -I {{}} $SHELL -c 'cat {{}} | xargs -n 1 {config[bin][flappie]} > raw/{{}}.fastq'
         find ./raw -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; > {wildcards.batch}.fq
         if [[ \'{wildcards.format}\' == *'q'* ]]; then
