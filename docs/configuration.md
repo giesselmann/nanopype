@@ -83,4 +83,6 @@ To test if the installation and configuration was successful, we provide a small
     cd /app
     python3 test/test_rules.py
 
-The test takes ~20 min on 4 cores and downloads ~54 MB reference sequence for the alignment modules. Note that test runtimes are not representative due to very small batch sizes.
+The test takes ~20 min on 4 cores and downloads ~54 MB reference sequence for the alignment module.
+Tests cover all modules of the pipeline, if some tools (e.g. albacore) are not installed, the associated tests will fail. Independent parts of the pipeline will however still work.
+Note that test runtimes are not representative due to very small batch sizes.

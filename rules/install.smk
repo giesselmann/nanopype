@@ -47,17 +47,25 @@ rule core:
         "bin/ngmlr",
         "bin/nanopolish",
         "bin/bedGraphToBigWig"
-        
+
 rule extended:
     input:
         "bin/sniffles",
         "bin/deepbinner-runner.py"
-        
+
 rule all:
     input:
         rules.core.input,
         rules.extended.input
-        
+
+# helper functions
+def find_go():
+    for path in os.environ["PATH"].split(os.pathsep):
+        exe_file = os.path.join(path, 'go')
+        if os.path.isfile(exe_file):
+            return path
+    return None
+
 
 # detailed build rules
 rule UCSCtools:
@@ -185,45 +193,60 @@ rule deepbinner:
         ln -s $(pwd)/deepbinner-runner.py ../../{output.bin}
         """
 
+rule golang:
+    output:
+        src = directory("src/go/bin")
+    shell:
+        """
+        cd src
+        wget -nc https://dl.google.com/go/go1.11.2.linux-amd64.tar.gz
+        tar -xzf go1.11.2.linux-amd64.tar.gz
+        """
+
 rule gitlfs:
+    input:
+        go = lambda wildcards : find_go() if find_go() is not None else rules.golang.output.src
     output:
         src = directory("src/git-lfs"),
         bin = "bin/git-lfs"
     shell:
         """
+        export PATH=$(pwd)/{input.go}:$PATH
         cd src
         git clone https://github.com/git-lfs/git-lfs.git --branch v2.6.0 --depth=1
         cd git-lfs
         make
         cp bin/git-lfs ../../bin
         """
-        
+
 rule OpenBLAS:
     output:
         src = directory("src/OpenBLAS")
     shell:
         """
+        install_prefix=`pwd`
         cd src
         git clone https://github.com/xianyi/OpenBLAS --branch v0.3.4 --depth=1
         cd OpenBLAS
-        make
+        make NO_LAPACK=1
+        make install PREFIX=$install_prefix
         """
-        
+
 rule hdf5:
     output:
         src = directory("src/hdf5"),
     shell:
         """
+        install_prefix=`pwd`
         cd src
         git clone https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git --branch hdf5-1_8_20 --depth=1
         cd hdf5 && mkdir build
-        install_prefix=`pwd`
         cd build
         cmake -DCMAKE_BUILD_TYPE=Release -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DHDF5_BUILD_TOOLS=OFF -DBUILD_TESTING=OFF -DHDF5_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=$install_prefix ../
         make
         make install
         """
-        
+
 rule Flappie:
     input:
         git_lfs = rules.gitlfs.output.bin,
@@ -232,16 +255,15 @@ rule Flappie:
     output:
         src = directory("src/flappie"),
         bin = "bin/flappie"
-    params:
-        hdf5_root = lambda wildcards, input : os.path.abspath(input.hdf5)
     shell:
         """
+        install_prefix=`pwd`
         {input.git_lfs} install
+        export PATH=$install_prefix:$PATH
         cd src
         git clone https://github.com/nanoporetech/flappie
         cd flappie && mkdir build && cd build
-        export PATH={input.blas}:{params.hdf5_root}:$PATH
-        cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT={input.blas} -DHDF5_ROOT={params.hdf5_root} ../
+        cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix ../
         make
         cp flappie ../../../{output.bin}
         """

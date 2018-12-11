@@ -24,27 +24,40 @@ to get the *CONTAINER_ID* of the currently running container. Save the changes, 
 
 
 ## Python
-We recommend to create a python virtual environment and install nanopype and its dependencies into it:
+
+Nanopype is basically a python package maintaining most of its dependencies by building required tools from source in a user accessible path. This way usually no root privileges are required for the installation. The Dockerfile in the nanopype repository summarizes the minimal set of system wide packages required to build and run the pipeline.
+
+### Virtual Environment
+We recommend to create a python virtual environment and install nanopype and its dependencies into it. At least python version 3.4 is required.
 
     python3 -m venv /path/to/your/environment
-    source /path/to/your/environment/bin/activate
+    cd /path/to/your/environment
+    source bin/activate
+
+The installation will create the following folder structure relative to your current directory:
+
+    src
+    bin
+    lib
+    share
 
 Nanopype relies on latest snakemake features, please consider updating your snakemake from the bitbucket repository:
 
+    cd src
     git clone https://bitbucket.org/snakemake/snakemake.git
     cd snakemake
     pip3 install . --upgrade
     cd ..
 
-Finally Install nanopype from [github.com/giesselmann](https://github.com/giesselmann/nanopype/):
+Finally install nanopype from [github.com/giesselmann](https://github.com/giesselmann/nanopype/):
 
     git clone https://github.com/giesselmann/nanopype
     cd nanopype
     pip3 install . --upgrade
     cd ..
 
-To deactivate the virtual python environment just type:
-    
+To deactivate a virtual python environment just type:
+
     deactivate
 
 
@@ -53,27 +66,27 @@ Nanopype integrates a variety of different tools merged into processing pipeline
 
 We provide snakemake rules to download and build all dependencies. From within the nanopype repository run
 
-    snakemake --snakefile rules/install.smk all
+    cd nanopype
+    snakemake --snakefile rules/install.smk --directory ../.. all
 
-to build and install all tools into **src** and **bin** folders within the current directory. To only build a subset or specific targets e.g. samtools you can use:
+to build and install all tools into **src**, **bin** and **lib** folders two layers above the current directory. To only build a subset or specific targets e.g. samtools you can use:
 
     # core functionality
-    snakemake --snakefile rules/install.smk core
-    # extend functionality
-    snakemake --snakefile rules/install.smk extended
+    snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] core
+    # extended functionality
+    snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] extended
     # specific tool only
-    snakemake --snakefile rules/install.smk samtools
+    snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] samtools
 
-You will need to append the **bin** directory to your PATH variable, modify the paths in the environment config or re-run the nanopype install with
+The --directory argument of snakemake is used as installation prefix. You will need to append the **bin** directory to your PATH variable, modify the paths in the environment config or re-run the nanopype installation with
 
-    cd nanopype
-    pip3 install . --upgrade --install-option="--tools=$(pwd)/bin"
+    pip3 install . --upgrade --install-option="--tools=$(pwd)../../bin"
 
-to make nanopype aware of the installed tools. You may wish to test your installation by running:
+to make nanopype aware of the installed tools. This will create a .pth file in your python3 installation, modifying the PATH on python start. You may wish to test your installation by running:
 
     python3 test/test_install.py
 
-Building all dependencies can take a significant amount of time, currently ~30 min on a single core machine.
+The test will check all supported tools, if you do not plan to use parts of the pipeline, you can ignore partially failing tests. Building all dependencies can take a significant amount of time, currently ~30 min on a single core machine.
 
 ***
 
@@ -81,6 +94,7 @@ Building all dependencies can take a significant amount of time, currently ~30 m
 **Basecalling**
 
 :   * Albacore (access restricted to ONT community)
+    * Flappie *https://github.com/nanoporetech/flappie*
 
 **Alignment**
 
