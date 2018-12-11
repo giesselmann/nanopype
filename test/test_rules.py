@@ -78,6 +78,7 @@ class test_unit_rules(unittest.TestCase):
     # Test basecaller functionality
     def test_basecalling(self):
         subprocess.run(self.snk_cmd + 'test.albacore.fa.gz', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'test.flappie.fq.gz', check=True, shell=True)
 
     # Test alignment
     def test_alignment(self):

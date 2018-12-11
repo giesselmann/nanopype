@@ -32,11 +32,14 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 # main build rules
+import os
+
 rule default:
     shell : ""
 
 rule core:
     input:
+        "bin/flappie",
         "bin/bedtools",
         "bin/samtools",
         "bin/minimap2",
@@ -180,4 +183,65 @@ rule deepbinner:
         cd Deepbinner
         pip3 install -r requirements.txt
         ln -s $(pwd)/deepbinner-runner.py ../../{output.bin}
+        """
+
+rule gitlfs:
+    output:
+        src = directory("src/git-lfs"),
+        bin = "bin/git-lfs"
+    shell:
+        """
+        cd src
+        git clone https://github.com/git-lfs/git-lfs.git --branch v2.6.0 --depth=1
+        cd git-lfs
+        make
+        cp bin/git-lfs ../../bin
+        """
+        
+rule OpenBLAS:
+    output:
+        src = directory("src/OpenBLAS")
+    shell:
+        """
+        cd src
+        git clone https://github.com/xianyi/OpenBLAS --branch v0.3.4 --depth=1
+        cd OpenBLAS
+        make
+        """
+        
+rule hdf5:
+    output:
+        src = directory("src/hdf5"),
+    shell:
+        """
+        cd src
+        git clone https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git --branch hdf5-1_8_20 --depth=1
+        cd hdf5 && mkdir build
+        install_prefix=`pwd`
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=Release -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DHDF5_BUILD_TOOLS=OFF -DBUILD_TESTING=OFF -DHDF5_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=$install_prefix ../
+        make
+        make install
+        """
+        
+rule Flappie:
+    input:
+        git_lfs = rules.gitlfs.output.bin,
+        blas = rules.OpenBLAS.output.src,
+        hdf5 = rules.hdf5.output.src
+    output:
+        src = directory("src/flappie"),
+        bin = "bin/flappie"
+    params:
+        hdf5_root = lambda wildcards, input : os.path.abspath(input.hdf5)
+    shell:
+        """
+        {input.git_lfs} install
+        cd src
+        git clone https://github.com/nanoporetech/flappie
+        cd flappie && mkdir build && cd build
+        export PATH={input.blas}:{params.hdf5_root}:$PATH
+        cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT={input.blas} -DHDF5_ROOT={params.hdf5_root} ../
+        make
+        cp flappie ../../../{output.bin}
         """
