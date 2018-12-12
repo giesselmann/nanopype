@@ -66,6 +66,9 @@ def find_go():
             return path
     return None
 
+# defaults
+if not 'threads_build' in config:
+    config['threads_build'] = 1
 
 # detailed build rules
 rule UCSCtools:
@@ -159,11 +162,12 @@ rule nanopolish:
         bin = "bin/nanopolish",
         src = directory("src/nanopolish")
     shadow: "minimal"
+    threads: config['threads_build']
     shell:
         """
         cd src
         git clone --recursive https://github.com/jts/nanopolish --branch v0.10.2 --depth=1
-        cd nanopolish && make
+        cd nanopolish && make -j{threads}
         cp nanopolish ../../bin/
         """
 
@@ -222,19 +226,21 @@ rule gitlfs:
 rule OpenBLAS:
     output:
         src = directory("src/OpenBLAS")
+    threads: config['threads_build']
     shell:
         """
         install_prefix=`pwd`
         cd src
         git clone https://github.com/xianyi/OpenBLAS --branch v0.3.4 --depth=1
         cd OpenBLAS
-        make NO_LAPACK=1
+        make NO_LAPACK=1 -j{threads}
         make install PREFIX=$install_prefix
         """
 
 rule hdf5:
     output:
-        src = directory("src/hdf5"),
+        src = directory("src/hdf5")
+    threads: config['threads_build']
     shell:
         """
         install_prefix=`pwd`
@@ -242,8 +248,8 @@ rule hdf5:
         git clone https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git --branch hdf5-1_8_20 --depth=1
         cd hdf5 && mkdir build
         cd build
-        cmake -DCMAKE_BUILD_TYPE=Release -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DHDF5_BUILD_TOOLS=OFF -DBUILD_TESTING=OFF -DHDF5_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=$install_prefix ../
-        make
+        cmake -DCMAKE_BUILD_TYPE=Release -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DHDF5_BUILD_TOOLS=OFF -DBUILD_TESTING=OFF -DHDF5_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=$install_prefix –GNinja ../
+        cmake --build . --config Release -- -j 8
         make install
         """
 
@@ -255,6 +261,7 @@ rule Flappie:
     output:
         src = directory("src/flappie"),
         bin = "bin/flappie"
+    threads: config['threads_build']
     shell:
         """
         install_prefix=`pwd`
@@ -263,7 +270,7 @@ rule Flappie:
         cd src
         git clone https://github.com/nanoporetech/flappie
         cd flappie && mkdir build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix ../
-        make
+        cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix –GNinja ../
+        cmake --build . --config Release -- -j {threads}
         cp flappie ../../../{output.bin}
         """
