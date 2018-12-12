@@ -49,7 +49,7 @@ RUN python3 get-pip.py
 RUN mkdir -p /bin
 RUN mkdir -p /lib
 COPY --from=build_stage /bin/* /bin/
-COPY --from=build_stage /lib/* lib/
+COPY --from=build_stage /lib/* /lib/
 
 ## set up nanopye
 # copy and configure nanopype
