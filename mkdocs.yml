@@ -90,7 +90,8 @@ nav:
     - Methylation: rules/methylation.md
     - Demultiplexing: rules/demux.md
     - SV: rules/sv.md
-  - Examples:
+  - Tutorial:
+    - Intro : examples/intro.md
     - Data import: examples/import.md
     - Nanopolish: examples/nanopolish.md
     - Barcoding: examples/demux.md

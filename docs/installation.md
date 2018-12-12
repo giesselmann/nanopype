@@ -78,7 +78,7 @@ to build and install all tools into **src**, **bin** and **lib** folders two lay
     # specific tool only
     snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] samtools
 
-The --directory argument of snakemake is used as installation prefix. You will need to append the **bin** directory to your PATH variable, modify the paths in the environment config or re-run the nanopype installation with
+The --directory argument of snakemake is used as installation prefix. By running snakemake with e.g. -j 4 multiple targets are build in parallel at the cost of interleaved output to the shell. You will need to append the **bin** directory to your PATH variable, modify the paths in the environment config or re-run the nanopype installation with
 
     pip3 install . --upgrade --install-option="--tools=$(pwd)../../bin"
 
