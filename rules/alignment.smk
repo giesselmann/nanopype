@@ -31,33 +31,26 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
+# imports
 import os, glob
+from rules.utils.get_file import get_batches, get_sequence_batch
+from rules.utils.storage import get_ID
+# local rules
 localrules: graphmap_index, ngmlr_index, aligner_merge_run, aligner_merge_runs
 #ruleorder: aligner_split_run > aligner_sam2bam
 
 # get batches
-def get_batches_aligner(wildcards):
-    return expand("alignments/{wildcards.runname}/{{batch}}.{wildcards.aligner}.{wildcards.reference}.bam".format(wildcards=wildcards), batch=get_batches(wildcards))
+def get_batches_aligner(wildcards, config):
+    return expand("alignments/{wildcards.aligner}/{wildcards.basecaller}/{wildcards.runname}/{{batch}}.{wildcards.reference}.bam".format(wildcards=wildcards), batch=get_batches(wildcards, config))
     
-# get sequence input for aligner
-def get_sequence_batch(wildcards):
-    base = "sequences/{wildcards.runname}/{wildcards.batch}.{basecaller}".format(wildcards=wildcards, basecaller=config['alignment_default_basecaller'])
-    if os.path.isfile(base + '.fa'):
-        return base + '.fa'
-    elif os.path.isfile(base + 'fasta'):
-        return base + '.fasta'
-    elif os.path.isfile(base + 'fq'):
-        return base + '.fq'
-    else:
-        return base + '.fastq'
 
 # minimap alignment
 rule minimap2:
     input:
-        sequence = get_sequence_batch,
+        sequence = lambda wildcards ,config=config : get_sequence_batch(wildcards, config),
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     output:
-        pipe("alignments/{runname, [^.]*}/{batch, [0-9]+}.minimap2.{reference}.sam")
+        pipe("alignments/minimap2/{basecaller, [^./]*}/{runname, [^./]*}/{batch, [0-9]+}.{reference}.sam")
     threads: config['threads_alignment']
     group: "minimap2"
     resources:
@@ -71,11 +64,11 @@ rule minimap2:
 # graphmap alignment
 rule graphmap:
     input:
-        sequence = get_sequence_batch,
+        sequence = lambda wildcards ,config=config : get_sequence_batch(wildcards, config),
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         index = lambda wildcards: config['references'][wildcards.reference]['genome'] + ".gmidx"
     output:
-        pipe("alignments/{runname, [^.]*}/{batch, [0-9]+}.graphmap.{reference}.sam")
+        pipe("alignments/graphmap/{basecaller, [^./]*}/{runname, [^./]*}/{batch, [0-9]+}.{reference}.sam")
     threads: config['threads_alignment']
     group: "graphmap"
     resources:
@@ -100,11 +93,11 @@ rule graphmap_index:
 # NGMLR alignment
 rule ngmlr:
     input:
-        sequence = get_sequence_batch,
+        sequence = lambda wildcards ,config=config : get_sequence_batch(wildcards, config),
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         index = lambda wildcards : config['references'][wildcards.reference]['genome'] + '.ngm'
     output:
-        pipe("alignments/{runname, [^.]*}/{batch, [0-9]+}.ngmlr.{reference, [^./]*}.sam")
+        pipe("alignments/ngmlr/{basecaller, [^./]*}/{runname, [^./]*}/{batch, [0-9]+}.{reference}.sam")
     threads: config['threads_alignment']
     group: "ngmlr"
     resources:
@@ -130,14 +123,14 @@ rule ngmlr_index:
 # sam to bam conversion and RG tag
 rule aligner_sam2bam:
     input:
-        "alignments/{runname}/{batch}.{aligner}.{reference}.sam"
+        "alignments/{aligner}/{basecaller}/{runname}/{batch}.{reference}.sam"
     output:
-        bam = "alignments/{runname, [^/.]*}/{batch, [0-9]+}.{aligner, [^/.]*}.{reference, [^./]*}.bam",
-        bai = "alignments/{runname, [^/.]*}/{batch, [0-9]+}.{aligner, [^/.]*}.{reference, [^./]*}.bam.bai"
+        bam = "alignments/{aligner, [^/.]*}/{basecaller, [^./]*}/{runname, [^./]*}/{batch, [0-9]+}.{reference, [^./]*}.bam",
+        bai = "alignments/{aligner, [^/.]*}/{basecaller, [^./]*}/{runname, [^./]*}/{batch, [0-9]+}.{reference, [^./]*}.bam.bai"
     shadow: "minimal"
     threads: 1
     params:
-        ID = get_ID
+        ID = lambda wildcards, config=config : get_ID(wildcards, config)
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 5000)
     shell:
@@ -149,10 +142,10 @@ rule aligner_sam2bam:
 # merge batch files
 rule aligner_merge_run:
     input:
-        get_batches_aligner
+        lambda wildcards, config=config: get_batches_aligner(wildcards, config)
     output:
-        bam = "alignments/{runname, [^./]*}.{aligner, [^/.]*}.{reference, [^/.]*}.bam",
-        bai = "alignments/{runname, [^./]*}.{aligner, [^/.]*}.{reference, [^/.]*}.bam.bai"
+        bam = "alignments/{aligner, [^./]*}/{basecaller, [^./]*}/{runname, [^./]*}.{reference, [^./]*}.bam",
+        bai = "alignments/{aligner, [^./]*}/{basecaller, [^./]*}/{runname, [^./]*}.{reference, [^./]*}.bam.bai"
     shell:
         """
         {config[bin][samtools]} merge {output.bam} {input} -p
@@ -176,10 +169,10 @@ rule aligner_merge_run:
 # merge run files
 rule aligner_merge_runs:
     input:
-        ['alignments/{runname}.{{aligner}}.{{reference}}.bam'.format(runname=runname) for runname in config['runnames']]
+        ['alignments/{{aligner}}/{{basecaller}}/{runname}.{{reference}}.bam'.format(runname=runname) for runname in config['runnames']]
     output:
-        bam = "{trackname, [^./]*}.{aligner, [^./]*}.{reference, [^./]*}.bam",
-        bai = "{trackname, [^./]*}.{aligner, [^./]*}.{reference, [^./]*}.bam.bai"
+        bam = "alignments/{aligner, [^./]*}/{basecaller, [^./]*}.{reference, [^./]*}.bam",
+        bai = "alignments/{aligner, [^./]*}/{basecaller, [^./]*}.{reference, [^./]*}.bam.bai"
     shell:
         """
         {config[bin][samtools]} merge {output.bam} {input} -p

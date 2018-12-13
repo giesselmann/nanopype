@@ -31,23 +31,23 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
+# imports
+from rules.utils.env import get_python
+from rules.utils.get_file import get_batches
+# local rules
 localrules: demux_merge_run
 
 # get batches
 def get_batches_demux(wildcards):
-    return expand("demux/{wildcards.runname}/{{batch}}.{wildcards.demultiplexer}.tsv".format(wildcards=wildcards), batch=get_batches(wildcards))
-
-def get_python(wildcards):
-    import sys
-    return sys.executable
+    return expand("demux/{wildcards.demultiplexer}/{wildcards.runname}/{{batch}}.tsv".format(wildcards=wildcards), batch=get_batches(wildcards, config=config))
     
 # deepbinner demux
 rule deepbinner:
     input:
         signals = "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
-        model = lambda wildcards : config["deepbinner_models"][get_kit(wildcards)] if get_kit(wildcards) in config["deepbinner_models"] else config["deepbinner_models"]['default']
+        model = lambda wildcards : config["deepbinner_models"][get_kit(wildcards)] if get_kit(wildcards, config) in config["deepbinner_models"] else config["deepbinner_models"]['default']
     output:
-        "demux/{runname}/{batch}.deepbinner.tsv"
+        "demux/deepbinner/{runname, [^./]*}/{batch}.tsv"
     shadow: "minimal"
     threads: config['threads_demux']
     params:
@@ -67,6 +67,6 @@ rule demux_merge_run:
     input:
         get_batches_demux
     output:
-        "demux/{runname, [a-zA-Z0-9_-]+}.{demultiplexer}.tsv"
+        "demux/{demultiplexer, [^./]*}/{runname, [a-zA-Z0-9_-]+}.tsv"
     shell:
         "cat {input} > {output}"

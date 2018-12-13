@@ -74,8 +74,8 @@ if os.path.isfile('runnames.txt'):
 
 config['runnames'] = runnames
 
+
 # include modules
-include : "rules/utils.smk"
 include : "rules/storage.smk"
 include : "rules/basecalling.smk"
 include : "rules/alignment.smk"

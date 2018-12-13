@@ -1,0 +1,113 @@
+---
+title: Nanopype summary output
+output: pdf_document
+---
+
+```{r, echo=FALSE, warning = FALSE}
+# \HEADER\-------------------------------------------------------------------------
+#
+#  CONTENTS      : Snakemake nanopore data pipeline
+#
+#  DESCRIPTION   : nanopore basecalling rules
+#
+#  RESTRICTIONS  : none
+#
+#  REQUIRES      : none
+#
+# ---------------------------------------------------------------------------------
+# Copyright (c) 2018,  Pay Giesselmann, Max Planck Institute for Molecular Genetics
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# Written by Sara Hetzel
+# ---------------------------------------------------------------------------------
+```
+
+```{r echo=FALSE}
+library(ggplot2)
+library(knitr)
+library(grid)
+library(gridExtra)
+```
+
+# Basecalling
+
+```{r echo=FALSE, warning = FALSE}
+args <- commandArgs(trailingOnly = T)
+if (length(args) != 1) stop("Error: Wrong number of arguments supplied.")
+
+calculateN <- function(read_lengths, percentage)
+{
+    sorted_read_lengths <- sort(read_lengths, decreasing = TRUE)
+    mean_nucleotides <- sum(sorted_read_lengths) * percentage
+    current_sum = 0
+    index = 1
+    while (current_sum < mean_nucleotides)
+    {
+        current_sum <- current_sum + sorted_read_lengths[index]
+        index <- index + 1
+    }
+
+    return(sorted_read_lengths[index - 1])
+}
+```
+
+```{r echo=FALSE, warning = FALSE}
+knitr::opts_knit$set(root.dir = dirname(args[1]) )
+basecalling_stats <- read.table(args[1], stringsAsFactors = FALSE, header = TRUE, sep='\t')
+
+## Calculate N25, N50 and N75
+dfN <- data.frame(as.character(c(nrow(basecalling_stats),
+                    round(sum(basecalling_stats$length)/1e+09,3),
+                    round(mean(basecalling_stats$length),3),
+                    median(basecalling_stats$length),
+                    min(basecalling_stats$length),
+                    max(basecalling_stats$length),
+                    calculateN(basecalling_stats$length, 0.25),
+                    calculateN(basecalling_stats$length, 0.5),
+                    calculateN(basecalling_stats$length, 0.75))))
+dfN <- cbind(c("Total number of reads", "Total number of gigabases", "Mean read length (bp)", "Median read length (bp)", "Minimum read length (bp)", "Maximum read length (bp)", "N25 (bp)", "N50 (bp)", "N75 (bp)"), dfN)
+rownames(dfN) <- NULL
+colnames(dfN) <- c("Summary", "")
+
+kable(dfN)
+
+## Make read length histogram with cumulative sum of gigabases belonging to read lengths
+p1 <- ggplot(data=basecalling_stats, aes(sort(basecalling_stats$length))) + geom_histogram(aes(color = "Count read length"), binwidth = 50, fill = "royalblue4", show.legend = FALSE) + labs(x="Read length (up to 95% quantile)", y="Number of reads") + xlim(c(0,quantile(basecalling_stats$length, 0.95))) + theme_classic()
+
+sorted_cum_sum_length <- cumsum(sort(basecalling_stats$length))
+max_hist_count <- max(ggplot_build(p1)$data[[1]]$count)
+normalizer <- max(sorted_cum_sum_length)/max_hist_count
+sorted_cum_sum_length_norm <- sorted_cum_sum_length/normalizer
+
+p1 <- p1 + geom_line(aes(y=sorted_cum_sum_length_norm, color = "Cumulative sum gigabases"), size = 1) + scale_y_continuous(sec.axis = sec_axis(~.*normalizer/1e+09, name = "Cumulative sum of gigabases")) + scale_colour_manual("Measurement", values = c("royalblue4", "black"), labels=c("Count read length","Cumulative sum gigabases")) + theme(legend.position="bottom")
+p1
+
+## If fastq files were used and quality is available, plot quality distribution
+if ("mean_q" %in% colnames(basecalling_stats))
+{
+    p2 <- ggplot(data=basecalling_stats, aes(basecalling_stats$mean_q)) + geom_histogram(binwidth = 0.1, fill = "royalblue4") + labs(x="Mean quality of read", y="Number of reads") + theme_classic()
+    plot(p2)
+
+    # smoothScatter(basecalling_stats$length, basecalling_stats$mean_q, xlim = c(0,quantile(basecalling_stats$length, 0.95)), xlab = "Read length (up to 95% quantile)", ylab = "Mean quality of read", cex.axis = 0.7)
+    #
+    # ggplot(basecalling_stats, aes(x=length, y=mean_q) ) + stat_density_2d(aes(fill = ..density..^0.25), geom = "raster", contour = FALSE) + scale_fill_distiller(palette=1, direction=1) + xlim(c(0,quantile(basecalling_stats$length, 0.95))) + theme_classic() + labs(x="Read length (up to 95% quantile)", y="Mean quality of read") + theme(legend.position="none")
+}    
+
+```

@@ -16,17 +16,19 @@ threads_sv: 4
 threads_demux: 4
 
 # basecalling
+basecalling_default: flappie
 basecalling_albacore_barcoding: false
 basecalling_albacore_disable_filtering: true
 
 # alignment
-alignment_default_basecaller: flappie
+alignment_default: minimap2
 alignment_minimap2_flags: '-ax map-ont -L'
 alignment_graphmap_flags: '-B 100'
 alignment_ngmlr_flags: '-x ont --bam-fix'
 
 # methylation detection
 methylation_nanopolish_logp_threshold: 2.5
+methylation_nanopolish_basecaller: albacore
 methylation_nanopolish_aligner: minimap2
 methylation_min_coverage: 1
 

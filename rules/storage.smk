@@ -31,14 +31,16 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
+# imports
+from rules.utils.get_file import get_batches
+# local rules
 localrules: storage_index_run, storage_extract
-
 # fast5 signal location
 LOC_RAW = "/Raw/"
 
 
 def get_batches_indexing(wildcards):
-    return expand("{data_raw}/{wildcards.runname}/reads/{{batch}}.fofn".format(data_raw = config["storage_data_raw"], wildcards=wildcards), batch=get_batches(wildcards))
+    return expand("{data_raw}/{wildcards.runname}/reads/{{batch}}.fofn".format(data_raw = config["storage_data_raw"], wildcards=wildcards), batch=get_batches(wildcards, config=config))
 
 
 # extract read ID from individual fast5 files

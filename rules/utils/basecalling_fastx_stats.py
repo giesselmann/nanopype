@@ -32,19 +32,28 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 import os, sys, argparse
-import gzip
+import gzip, json
 from collections import OrderedDict
 
 
 # parse header lines of format
 # @a7dea3e9-3704-4eef-91db-d601a5f6f176 runid=0a37ba72f079fbc7f7e52f3f0ff3720d72ae50ed read=1007 ch=202 start_time=2017-09-07T11:57:42Z
 def parse_name(name):
-    fields = name.split(' ')
-    ID = fields[0][1:]
-    attrs = OrderedDict()
-    if len(fields) > 1:  
-        attrs.update([tuple(field.split('=')) for field in fields[1:]])
-    return ID, attrs
+    if ' ' in name:
+        ID, attr_str = name.split(' ', 1)
+        ID = ID[1:]
+        attrs = OrderedDict()
+        attr_str = attr_str.strip()
+        # value=pattern
+        if not '{' in attr_str:
+            fields = attr_str.split(' ')
+            attrs.update([tuple(field.split('=')) for field in fields])
+        # json pattern
+        elif attr_str[0] == '{' and attr_str[-1] == '}':
+            attrs.update(json.loads(attr_str))
+        return ID, attrs
+    else:
+        return name[1:]
     
 
 # fastq/fasta iterator
@@ -71,31 +80,41 @@ def fastqIter(iterable):
                 except StopIteration:
                     yield name, sequence, None, None, attrs
                     raise
+                yield name, sequence, None, None, attrs
         if line is None:
             return
 
-
-if __name__ == '__main__':
-    # cmd arguments            
-    parser = argparse.ArgumentParser(description="Compute per read stats of fasta/fastq")
-    parser.add_argument("fx", help="Path to input fasta/fastq file")
-    args = parser.parse_args()
-    
-    f_open = gzip.GzipFile if os.path.splitext(args.fx)[1] == '.gz' else open
+            
+def main(fx, output=sys.stdout):
+    f_open_in = gzip.GzipFile if os.path.splitext(fx)[1] == '.gz' else open
+    f_open_out = lambda output, *args : open(output, *args) if isinstance(output, str) else sys.stdout 
     header = ['ID', 'length']
     # check format and parse first record
-    with f_open(args.fx, 'rb') as fp:
+    with f_open_in(fx, 'rb') as fp:
         name, sequence, comment, quality, attrs = next(fastqIter(fp))
         if quality:
             header += ['mean_q']
         for key, value in attrs.items():
             header += [key]
-    print('\t'.join(header))
-    # parse entire file    
-    with f_open(args.fx, 'rb') as fp:
-        for name, sequence, comment, quality, attrs in fastqIter(fp):
+    with f_open_out(output, 'w') as fp:
+        print('\t'.join(header), file=fp)
+    # parse entire file
+    with f_open_in(fx, 'rb') as fp_in, f_open_out(output, 'a') as fp_out:
+        for name, sequence, comment, quality, attrs in fastqIter(fp_in):
             mean_q = 0
+            fields = [name, str(len(sequence))]
             if quality:
                 mean_q = sum([ord(x) - 33 for x in quality]) / len(quality)
-            print('\t'.join([name, str(len(sequence)), str(mean_q)] + list(attrs.values())))
+                fields.append(str(mean_q))
+            fields += [str(value) for value in attrs.values()]
+            print('\t'.join(fields), file=fp_out)
+
+            
+if __name__ == '__main__':
+    # cmd arguments            
+    parser = argparse.ArgumentParser(description="Compute per read stats of fasta/fastq")
+    parser.add_argument("fx", help="Path to input fasta/fastq file")
+    args = parser.parse_args()
+    main(args.fx)
+
     
