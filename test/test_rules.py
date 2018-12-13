@@ -32,6 +32,7 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 import os, glob, unittest, yaml
+import argparse
 import subprocess
 import urllib.request
 
@@ -78,20 +79,26 @@ class test_unit_rules(unittest.TestCase):
         subprocess.run(self.snk_cmd + 'storage_index_runs', check=True, shell=True)
 
     # Test basecaller functionality
-    def test_basecalling(self):
+    def test_albacore(self):
         subprocess.run(self.snk_cmd + 'sequences/albacore.fastq.gz', check=True, shell=True)
+        
+    def test_flappie(self):
         subprocess.run(self.snk_cmd + 'sequences/flappie.fastq.gz', check=True, shell=True)
 
     # Test alignment
-    def test_alignment(self):
+    def test_minimap2(self):
         subprocess.run(self.snk_cmd + 'alignments/minimap2/flappie.test.bam', check=True, shell=True)
+        
+    def test_graphmap(self):
         subprocess.run(self.snk_cmd + 'alignments/graphmap/flappie.test.bam', check=True, shell=True)
+        
+    def test_ngmlr(self):
         subprocess.run(self.snk_cmd + 'alignments/ngmlr/flappie.test.bam', check=True, shell=True)
 
-    def test_methylation(self):
+    def test_nanopolish(self):
         subprocess.run(self.snk_cmd + 'methylation/nanopolish.1x.test.bw', check=True, shell=True)
 
-    def test_sv(self):
+    def test_sniffles(self):
         subprocess.run(self.snk_cmd + "sv/sniffles/ngmlr.test.vcf", check=True, shell=True)
 
 # main function
