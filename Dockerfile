@@ -32,10 +32,10 @@ RUN snakemake --snakefile rules/install.smk --directory / all
 FROM ubuntu:16.04
 RUN apt-get --yes update && \
 apt-get install -y --no-install-recommends wget git gcc g++ \
-	zlib1g-dev bzip2 libbz2-dev \
-	liblzma-dev libncurses5-dev libcunit1 \
-	ca-certificates \
-	python python3.5 python3.5-dev
+    zlib1g-dev bzip2 libbz2-dev \
+    liblzma-dev libncurses5-dev libcunit1 \
+    ca-certificates \
+    python python3.5 python3.5-dev
 
 RUN update-ca-certificates
 ## set up python 3
@@ -59,7 +59,7 @@ COPY . /app/
 RUN pip3 install . --upgrade
 # re-run python module installer
 RUN snakemake --snakefile rules/install.smk --directory / deepbinner
-RUN pip3 install . --upgrade --install-option="--tools=$(pwd)/bin"
+RUN pip3 install . --upgrade --install-option="--tools=/bin"
 
 # create working directories
 RUN mkdir -p /data/raw
