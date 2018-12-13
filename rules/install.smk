@@ -235,7 +235,7 @@ rule hdf5:
         git clone https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git --branch hdf5-1_8_20 --depth=1
         cd hdf5 && mkdir build
         cd build
-        cmake -DCMAKE_BUILD_TYPE=Release -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DHDF5_BUILD_TOOLS=OFF -DBUILD_TESTING=OFF -DHDF5_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=$install_prefix –GNinja ../
+        cmake -DCMAKE_BUILD_TYPE=Release -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DHDF5_BUILD_TOOLS=OFF -DBUILD_TESTING=OFF -DHDF5_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=$install_prefix -GNinja ../
         cmake --build . --config Release -- -j 8
         make install
         """
@@ -257,7 +257,7 @@ rule Flappie:
         cd src
         git clone https://github.com/nanoporetech/flappie
         cd flappie && mkdir build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix –GNinja ../
+        cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -GNinja ../
         cmake --build . --config Release -- -j {threads}
         cp flappie ../../../{output.bin}
         """
