@@ -37,3 +37,6 @@ deepbinner_models:
     default: SQK-RBK004_read_starts
     EXP-NBD103: EXP-NBD103_read_starts
     SQK-RBK004: SQK-RBK004_read_starts
+
+# structural variation
+sv_sniffles_flags: '-s 10 -l 30 -r 2000 --genotype'

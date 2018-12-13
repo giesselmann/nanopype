@@ -31,23 +31,22 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
+# imports
+from rules.utils.get_file import get_alignment
+
 
 # sniffles sv detection
 rule sniffles:
     input:
-        "{trackname}.{aligner}.{reference}.bam"
+        lambda wildcards, config=config : get_alignment(wildcards, config)
     output:
-        "{trackname, [a-zA-Z0-9_-]+}.{aligner}.{reference}.sniffles.vcf"
+        "sv/sniffles/{aligner}.{reference}.vcf"
     shadow: "minimal"
     threads: config['threads_sv']
-    params:
-        min_support = lambda wildcards : config["sniffles_min_support"] if "sniffles_min_support" in config else 10,
-        min_length = lambda wildcards : config["sniffles_min_length"] if "sniffles_min_length" in config else 30,
-        min_seq_size = lambda wildcards : config["sniffles_min_seq_size"] if "sniffles_min_seq_size" in config else 2000
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 1000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((3840 / threads) * attempt)   # 240 min / 16 threads
     shell:
         """
-        {config[bin][sniffles]} -m {input} -v {output} --genotype -t {threads} -s {params.min_support} -l {params.min_length} -r {params.min_seq_size}
+        {config[bin][sniffles]} -m {input} -v {output} -t {threads} {config[sv_sniffles_flags]}
         """

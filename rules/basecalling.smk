@@ -74,7 +74,7 @@ rule albacore:
         fi
         find ${{FASTQ_DIR}} -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; > {wildcards.batch}.fq
         if [[ \'{wildcards.format}\' == *'q'* ]]; then
-            cat {wildcards.batch}.fq > {output}
+            cat {wildcards.batch}.fq | gzip > {output}
         else
             cat {wildcards.batch}.fq | paste - - - - | cut -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
         fi
@@ -101,7 +101,7 @@ rule flappie:
         ls raw.fofn.part.* | xargs -n 1 -P {threads} -I {{}} $SHELL -c 'cat {{}} | xargs -n 1 {config[bin][flappie]} > raw/{{}}.fastq'
         find ./raw -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; > {wildcards.batch}.fq
         if [[ \'{wildcards.format}\' == *'q'* ]]; then
-            cat {wildcards.batch}.fq > {output}
+            cat {wildcards.batch}.fq | gzip > {output}
         else
             cat {wildcards.batch}.fq | paste - - - - | cut -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
         fi
@@ -141,7 +141,7 @@ rule fastx_stats:
     input:
         lambda wildcards : get_sequence(wildcards, config=config)
     output:
-        temp("sequences/{basecaller, [^./]*}{dot, [.]*}{runname, [^./]*}{dot2, [.]*}{format, (fasta|fastq|fa|fq)}.tsv")
+        temp("sequences/{basecaller, [^./]*}{dot, [./]*}{runname, [^./]*}{dot2, [.]*}{format, (fasta|fastq|fa|fq)}.tsv")
     params:
         py_bin = lambda wildcards : get_python(wildcards)
     run:
@@ -151,9 +151,9 @@ rule fastx_stats:
 # report from basecalling
 rule basecaller_qc:
     input:
-        "sequences/{basecaller}.tsv"
+        "sequences/{basecaller}{dot}{runname}{dot2}{format}.tsv"
     output:
-        "sequences/{basecaller}.pdf"
+        "sequences/{basecaller, [^./]*}{dot, [./]*}{runname, [^./]*}{dot2, [.]*}{format, (fasta|fastq|fa|fq)}.pdf"
     params:
         qc_script = config['bin']['basecalling_qc']
     run:

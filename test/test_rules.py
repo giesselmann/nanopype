@@ -44,12 +44,14 @@ class test_unit_rules(unittest.TestCase):
         # make data directory and extract test reads
         data_dir = os.path.join(self.test_dir, 'data', 'raw')
         os.makedirs(data_dir, exist_ok=True)
+        print("Extracting read data ...")
         subprocess.run('tar -xzf {archive} -C {data_dir}'.format(archive=os.path.join(self.test_dir, 'test_data.tar.gz'),data_dir=data_dir), check=True, shell=True, stdout=subprocess.PIPE)
         # download reference fasta
         ref_dir = os.path.join(self.test_dir, 'references')
         os.makedirs(ref_dir, exist_ok=True)
         ref_file = os.path.join(ref_dir, 'chr6.fa')
         if not os.path.isfile(ref_file):
+            print("Download reference sequence ...")
             urllib.request.urlretrieve('http://hgdownload.cse.ucsc.edu/goldenpath/hg38/chromosomes/chr6.fa.gz', ref_file + '.gz')
             subprocess.run('gzip -d {ref_file}.gz'.format(ref_file=ref_file), check=True, shell=True, stdout=subprocess.PIPE)
         size_file = os.path.join(ref_dir, 'chr6.sizes')
@@ -69,7 +71,7 @@ class test_unit_rules(unittest.TestCase):
         with open(os.path.join(self.test_dir, 'runnames.txt'), 'w') as fp:
             for runname in runnames:
                 print(runname, file=fp)
-        self.snk_cmd = 'snakemake -j 4 --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
+        self.snk_cmd = 'snakemake -j 64 --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
 
     # test indexing
     def test_storage(self):
@@ -77,20 +79,20 @@ class test_unit_rules(unittest.TestCase):
 
     # Test basecaller functionality
     def test_basecalling(self):
-        subprocess.run(self.snk_cmd + 'test.albacore.fa.gz', check=True, shell=True)
-        subprocess.run(self.snk_cmd + 'test.flappie.fq.gz', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'sequences/albacore.fastq.gz', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'sequences/flappie.fastq.gz', check=True, shell=True)
 
     # Test alignment
     def test_alignment(self):
-        subprocess.run(self.snk_cmd + 'test.minimap2.test.bam', check=True, shell=True)
-        subprocess.run(self.snk_cmd + 'test.graphmap.test.bam', check=True, shell=True)
-        subprocess.run(self.snk_cmd + 'test.ngmlr.test.bam', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'alignments/minimap2/flappie.test.bam', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'alignments/graphmap/flappie.test.bam', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'alignments/ngmlr/flappie.test.bam', check=True, shell=True)
 
     def test_methylation(self):
-        subprocess.run(self.snk_cmd + 'test.1x.nanopolish.test.bw', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'methylation/nanopolish.1x.test.bw', check=True, shell=True)
 
     def test_sv(self):
-        subprocess.run(self.snk_cmd + "test.ngmlr.test.sniffles.vcf", check=True, shell=True)
+        subprocess.run(self.snk_cmd + "sv/sniffles/ngmlr.test.vcf", check=True, shell=True)
 
 # main function
 if __name__ == '__main__':

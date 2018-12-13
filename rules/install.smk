@@ -57,7 +57,7 @@ rule all:
     input:
         rules.core.input,
         rules.extended.input
-
+        
 # helper functions
 def find_go():
     for path in os.environ["PATH"].split(os.pathsep):
@@ -84,7 +84,6 @@ rule bedtools:
     output:
         bin = "bin/bedtools",
         src = directory("src/bedtools2")
-    shadow: "minimal"
     shell:
         """
         cd src
@@ -108,8 +107,6 @@ rule samtools:
         rules.htslib.output.src
     output:
         bin = "bin/samtools",
-        src = directory("src/samtools")
-    shadow: "minimal"
     shell:
         """
         cd src
@@ -120,9 +117,7 @@ rule samtools:
 
 rule minimap2:
     output:
-        bin = "bin/minimap2",
-        src = directory("src/minimap2")
-    shadow: "minimal"
+        bin = "bin/minimap2"
     shell:
         """
         cd src
@@ -133,9 +128,7 @@ rule minimap2:
 
 rule graphmap:
     output:
-        bin = "bin/graphmap",
-        src = directory("src/graphmap")
-    shadow:"minimal"
+        bin = "bin/graphmap"
     shell:
         """
         cd src
@@ -146,9 +139,7 @@ rule graphmap:
 
 rule ngmlr:
     output:
-        bin = "bin/ngmlr",
-        src = directory("src/ngmlr")
-    shadow: "minimal"
+        bin = "bin/ngmlr"
     shell:
         """
         cd src
@@ -159,9 +150,7 @@ rule ngmlr:
 
 rule nanopolish:
     output:
-        bin = "bin/nanopolish",
-        src = directory("src/nanopolish")
-    shadow: "minimal"
+        bin = "bin/nanopolish"
     threads: config['threads_build']
     shell:
         """
@@ -173,9 +162,7 @@ rule nanopolish:
 
 rule sniffles:
     output:
-        bin = "bin/sniffles",
-        src = directory("src/Sniffles")
-    shadow: "minimal"
+        bin = "bin/sniffles"
     shell:
         """
         cd src

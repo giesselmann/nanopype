@@ -91,3 +91,19 @@ def get_alignment_batch(wildcards, config, force_basecaller=None, force_aligner=
     return bam
 
         
+# get alignment with default basecaller and aligner
+def get_alignment(wildcards, config, force_basecaller=None, force_aligner=None):
+    if force_basecaller:
+        basecaller = force_basecaller
+    elif hasattr(wildcards, 'basecaller'):
+        basecaller = wildcards.basecaller
+    else:
+        basecaller = config['basecalling_default']
+    if force_aligner:
+        aligner = force_aligner
+    elif hasattr(wildcards, 'aligner'):
+        aligner = wildcards.aligner
+    else:
+        aligner = config['alignment_default']
+    bam = "alignments/{aligner}/{basecaller}.{wildcards.reference}.bam".format(wildcards=wildcards, basecaller=basecaller, aligner=aligner)
+    return bam
