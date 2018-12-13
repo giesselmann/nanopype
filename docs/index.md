@@ -1,6 +1,6 @@
 # Welcome to the Nanopype documentation
 
-Nanopype is a snakemake based pipeline providing convinient nanopore data processing and storage solutions.
+Nanopype is a snakemake based pipeline providing convenient nanopore data processing and storage solutions.
 	
 ## Concepts
 

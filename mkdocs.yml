@@ -89,11 +89,12 @@ nav:
     - Alignment: rules/alignment.md
     - Methylation: rules/methylation.md
     - Demultiplexing: rules/demux.md
-    - SV: rules/sv.md
+    - Structural Variation: rules/sv.md
   - Tutorial:
     - Intro : examples/intro.md
     - Data import: examples/import.md
     - Nanopolish: examples/nanopolish.md
     - Barcoding: examples/demux.md
   - Release notes: release-notes.md
+  - Citation: citation.md
   - License: license.md

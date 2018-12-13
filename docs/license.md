@@ -27,7 +27,7 @@ SOFTWARE.
 
 ## Tools
 
-Software downloaded and build for the Nanopype pipeline as described in the
+External software downloaded and build for the Nanopype pipeline as described in the
 [installation](installation.md) section is left untouched by the above statement.
 Please refer to the documented sources to obtain a copy of the respective
 licenses.

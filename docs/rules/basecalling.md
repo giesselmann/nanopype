@@ -4,23 +4,50 @@ The basecller translates the raw electrical signal from the sequencer into a nuc
 
 In order to process the output of one Flow-Cell with the basecaller *albacore* run from within your processing directory:
 
-    snakemake --snakefile /path/to/nanopype/Snakefile sequences/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.albacore.fa.gz
+    snakemake --snakefile /path/to/nanopype/Snakefile sequences/albacore/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fa.gz
 
-Valid file extensions are fasta/fa, fastq/fq and their gzipped forms. Providing a *runnames.txt* with one runname per line it is possible to process multiple Flow-Cells at once and merge the output into a single file e.g.:
+Valid file extensions are fasta/fa, fastq/fq in gzipped form. Providing a *runnames.txt* with one runname per line it is possible to process multiple Flow-Cells at once and merge the output into a single file e.g.:
 
-    snakemake --snakefile /path/to/nanopype/Snakefile WA01.albacore.fa.gz
+    snakemake --snakefile /path/to/nanopype/Snakefile sequences/albacore.fa.gz
 
-Depending on the application you can choose from one of the following basecallers, listed with their associated configuration options:
+Furthermore a basic quality control of the Flow-Cell can be obtained by running:
 
-## albacore
+    snakemake --snakefile /path/to/nanopype/Snakefile sequences/albacore.fa.pdf
+
+## Folder structure
+
+The basecalling module can create the following file structure relative to the working directory:
+
+```sh
+|--/sequences/
+   |--albacore/                                                 # Albacore basecaller
+      |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
+         |--0.fastq.gz                                          # Sequence batches
+         |--1.fastq.gz
+          ...
+      |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.gz
+      |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.pdf
+   |--albacore.fastq.gz
+   |--albacore.fastq.pdf
+   |--flappie/                                                  # Flappie basecaller
+      |--...
+```
+
+## Tools
+Depending on the application you can choose from one of the following basecallers, listed with their associated configuration options. Downstream applications making use of the basecalling module can either enforce a specific basecaller or used the default configuration:
+
+:   * basecalling_default: flappie
+    * threads_basecalling: 4
+
+### Albacore
 The ONT closed source software based on a deep neural network. The installer is accessible after login to the community board.
-:   * threads_basecalling: 4
-    * basecalling_albacore_barcoding: false
+
+:   * basecalling_albacore_barcoding: false
     * basecalling_albacore_disable_filtering: true
 
-## guppy
+### Guppy
 Release announced by ONT.
 
-## flappie
+### Flappie
 The experimental neural network caller from ONT using flip-flop basecalling.
-    * threads_basecalling: 4
+

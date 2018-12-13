@@ -2,7 +2,7 @@
 
 [![Docker Automated build](https://img.shields.io/docker/automated/giesselmann/nanopype.svg)](https://hub.docker.com/r/giesselmann/nanopype/) [![Read the Docs (version)](https://img.shields.io/readthedocs/nanopype/development.svg)](https://nanopype.readthedocs.io/en/development/)
 
-Nanopype is a snakemake based pipeline providing convinient nanopore data processing and storage solutions.
+Nanopype is a snakemake based pipeline providing convenient nanopore data processing and storage solutions.
 	
 ## Concepts
 
