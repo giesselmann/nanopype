@@ -22,7 +22,7 @@ to get the *CONTAINER_ID* of the currently running container. Save the changes, 
     docker commit CONTAINER_ID giesselmann/nanopype
     docker attach CONTAINER_ID
 
-
+***
 ## Python
 
 Nanopype is basically a python package maintaining most of its dependencies by building required tools from source in a user accessible path. This way usually no root privileges are required for the installation. The Dockerfile in the nanopype repository summarizes the minimal set of system wide packages required to build and run the pipeline.
@@ -60,6 +60,7 @@ To deactivate a virtual python environment just type:
 
     deactivate
 
+***
 
 ## Tools
 Nanopype integrates a variety of different tools merged into processing pipelines for common use cases. If you don't use the docker image, you will need to install them separately and tell nanopype via the environment [configuration](configuration.md) where to find them.
@@ -82,13 +83,7 @@ The --directory argument of snakemake is used as installation prefix. By running
 
     pip3 install . --upgrade --install-option="--tools=$(pwd)../../bin"
 
-to make nanopype aware of the installed tools. This will create a .pth file in your python3 installation, modifying the PATH on python start. You may wish to test your installation by running:
-
-    python3 test/test_install.py
-
-The test will check all supported tools, if you do not plan to use parts of the pipeline, you can ignore partially failing tests. Building all dependencies can take a significant amount of time, currently ~30 min on a single core machine.
-
-***
+to make nanopype aware of the installed tools. This will create a .pth file in your python3 installation, modifying the PATH on python start. 
 
 ### Core
 **Basecalling**
@@ -121,6 +116,17 @@ The test will check all supported tools, if you do not plan to use parts of the 
 **Demultiplexing**
 
 :   * Deepbinner *https://github.com/rrwick/Deepbinner*
+
+
+### Tests
+
+You may wish to test your installation by running:
+
+    python3 test/test_install.py
+
+The test will check all supported tools, if you do not plan to use parts of the pipeline, you can ignore partially failing tests. Building all dependencies can take a significant amount of time, currently ~30 min on a single core machine.
+
+***
 
 ## Troubleshooting
 

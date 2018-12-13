@@ -5,15 +5,15 @@ Nanopype has two configuration layers: The central **environment** configuration
 ## File Structure
 
 **Binaries**
-:	Executables of nanopype and and its integrated tools can be installed system wide or build from source by the user. In case of cluster execution of workflows they must be accessible from each node.
+:   Executables of nanopype and and its integrated tools can be installed system wide or build from source by the user. In case of cluster execution of workflows they must be accessible from each node.
 
 **Raw data**
-:	Raw nanopore read data is organized in directories per flow-cell. The name is used to parse important experimental information such as flow-cell type and sequencing kit.
-	A suggested pattern is *20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01* with fixed first four fields and an arbitrary number of user defined tags at the end.
-	Nanopype will search a *reads/* subfolder for tar archives containing packed fast5 files with signal values from the sequencer. A *reads.fofn* can be created to index the run and enable efficient extraction of reads of interest.
+:   Raw nanopore read data is organized in directories per flow-cell. The name is used to parse important experimental information such as flow-cell type and sequencing kit.
+    A suggested pattern is *20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01* with fixed first four fields and an arbitrary number of user defined tags at the end.
+    Nanopype will search a *reads/* subfolder for tar archives containing packed fast5 files with signal values from the sequencer. A *reads.fofn* can be created to index the run and enable efficient extraction of reads of interest.
 
 **Processing**
-:	One or multiple sequencing runs are processed batch-wise and merged into tracks. A working directory requires a local workflow configuration. Modules create subdirectories with batch results for e.g. sequences, alignments, methylation calls.
+:   One or multiple sequencing runs are processed batch-wise and merged into tracks. A working directory requires a local workflow configuration. Modules create subdirectories with batch results for e.g. sequences, alignments, methylation calls.
 
 
 ## Environment
@@ -58,10 +58,10 @@ storage_runname:
 
 Snakemake allows both, cloud and cluster execution of workflows. As of now only cluster execution is implemented in nanopype. For supported cluster engines please refer to the [snakemake](https://snakemake.readthedocs.io/en/stable/executable.html#cluster-execution) documentation. An example on how to enable a not yet supported cluster system is given in *profiles/mxq/* of the git repository. Briefly four components are required:
 
-:	* config.yaml - cluster specific command line arguments
+:   * config.yaml - cluster specific command line arguments
     * submit.py - job submission to cluster management
     * status.py - job status request from cluster management
-	* jobscript.sh - wrapper script for rules to be executed
+    * jobscript.sh - wrapper script for rules to be executed
 
 **Important:** When working with batches of raw nanopore reads, nanopype makes use of snakemakes shadow mechanism. A shadow directory is temporary per rule execution and can be placed on per node local storage to reduce network overhead. The shadow prefix e.g. */scratch/local/* is set in the profiles config.yaml. The *--profile* argument tells snakemake to use a specific profile:
 
@@ -69,19 +69,41 @@ Snakemake allows both, cloud and cluster execution of workflows. As of now only 
 
 When running in an environment with **multiple users** the shadow prefix should contain a user specific part to ensure accessibility and to prevent corrupted data. A profile per user is compelling in this case.
 
-## Test
+## Tests
 
-To test if the installation and configuration was successful, we provide a small MinION dataset of a human cell line.
+To test if the installation and configuration was successful, we provide a small MinION dataset of a human cell line. The available test cases are:
 
+**Storage**
+:   * test_storage
+
+**Basecalling**
+:   * test_albacore
+    * test_flappie
+    
+**Alignment**
+:   * test_minimap2
+    * test_graphmap
+    * test_ngmlr
+    
+**Methylation**
+:   * test_nanopolish
+
+**Structural Variation**
+:   * test_sniffles
+
+From the nanopype repository run either all or only a subset of the available tests:
 ### Python
 
     python3 test/test_rules.py
+    python3 test/test_rules.py test_unit_rules.test_storage
 
 ### Docker
 
     docker run -it giesselmann/nanopype
     cd /app
     python3 test/test_rules.py
+    python3 test/test_rules.py test_unit_rules.test_flappie
+
 
 The test takes ~20 min on 4 cores and downloads ~54 MB reference sequence for the alignment module.
 Tests cover all modules of the pipeline, if some tools (e.g. albacore) are not installed, the associated tests will fail. Independent parts of the pipeline will however still work.
