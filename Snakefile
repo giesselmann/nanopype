@@ -36,6 +36,14 @@ configfile: "config.yaml"
 import os, sys
 
 
+# append username to shadow prefix if not present
+if hasattr(workflow, "shadow_prefix") and workflow.shadow_prefix:
+    shadow_prefix = workflow.shadow_prefix
+    if not os.environ['USER'] in shadow_prefix:
+        shadow_prefix = os.path.join(shadow_prefix, os.environ['USER'])
+    workflow.shadow_prefix = shadow_prefix
+
+
 # parse pipeline environment
 import os, yaml
 with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as fp:
@@ -71,7 +79,6 @@ with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as
 runnames = []
 if os.path.isfile('runnames.txt'):
     runnames = [line.rstrip('\n') for line in open('runnames.txt')]
-
 config['runnames'] = runnames
 
 
