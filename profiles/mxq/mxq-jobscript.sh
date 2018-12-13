@@ -33,4 +33,9 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 # properties = {properties}
-{exec_job}
+H=${{HOSTNAME/.molgen.mpg.de/}}
+J=${{MXQ_JOBID:-${{PID}}}}
+DATE=`date +%Y%m%d`
+
+mkdir -p log
+({exec_job}) &> log/${{DATE}}_${{H}}_${{J}}.log

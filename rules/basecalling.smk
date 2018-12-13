@@ -31,31 +31,38 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-localrules: basecaller_merge_run, basecaller_compress_run, basecaller_merge_runs, basecaller_compress_runs
-#ruleorder: basecaller_merge2 > basecaller_merge
-
+# imports
+import os, sys
+from rules.utils.get_file import get_batches, get_sequence
+from rules.utils.storage import get_flowcell, get_kit
+# local rules
+localrules: basecaller_merge_run, basecaller_merge_runs
+ruleorder: basecaller_compress > albacore > flappie
+# local config
+config['bin']['basecalling_qc'] = os.path.abspath(os.path.join(workflow.basedir, 'rules/utils/basecalling_qc.Rmd'))
 
 # get batches
 def get_batches_basecaller(wildcards):
-    return expand("sequences/{wildcards.runname}/{{batch}}.{wildcards.basecaller}.{wildcards.format}".format(wildcards=wildcards), batch=get_batches(wildcards))
+    batches = expand("sequences/{wildcards.basecaller}/{wildcards.runname}/{{batch}}.{wildcards.format}.gz".format(wildcards=wildcards), batch=get_batches(wildcards, config=config))
+    return batches
 
 
 # albacore basecalling
 rule albacore:
     input:
-        "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["data_raw"])
+        "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
     output:
-        "sequences/{runname}/{batch}.albacore.{format}"
+        "sequences/albacore/{runname, [a-zA-Z0-9_-]+}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shadow: "minimal"
-    threads: 16
+    threads: config['threads_basecalling']
     resources:
-        mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 32000),
-        time_min = 90
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
+        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads
     params:
-        flowcell = get_flowcell,
-        kit = get_kit,
-        barcoding = lambda wildcards : '--barcoding' if config['albacore_barcoding'] else '',
-        filtering = lambda wildcards : '--disable_filtering' if config['albacore_disable_filtering'] else ''
+        flowcell = lambda wildcards, config=config : get_flowcell(wildcards, config),
+        kit = lambda wildcards, config=config : get_kit(wildcards, config),
+        barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
+        filtering = lambda wildcards : '--disable_filtering' if config['basecalling_albacore_disable_filtering'] else ''
     shell:
         """
         mkdir -p raw
@@ -67,9 +74,36 @@ rule albacore:
         fi
         find ${{FASTQ_DIR}} -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; > {wildcards.batch}.fq
         if [[ \'{wildcards.format}\' == *'q'* ]]; then
-            cat {wildcards.batch}.fq > {output}
+            cat {wildcards.batch}.fq | gzip > {output}
         else
-            cat {wildcards.batch}.fq | paste - - - - | cut -f1,2 | tr '@' '>' | tr '\t' '\n' > {output}
+            cat {wildcards.batch}.fq | paste - - - - | cut -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
+        fi
+        """
+        
+# flappie basecalling
+rule flappie:
+    input:
+        "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"])
+    output:
+        "sequences/flappie/{runname, [a-zA-Z0-9_-]+}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
+    shadow: "minimal"
+    threads: config['threads_basecalling']
+    resources:
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (6000 + 1000 * threads)),
+        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 60 min / 16 threads
+    shell:
+        """
+        export OPENBLAS_NUM_THREADS=1
+        mkdir -p raw
+        tar -C raw/ -xf {input}
+        find raw/ -regextype posix-extended -regex '^.*fast5' > raw.fofn
+        split -e -n l/{threads} raw.fofn raw.fofn.part.
+        ls raw.fofn.part.* | xargs -n 1 -P {threads} -I {{}} $SHELL -c 'cat {{}} | xargs -n 1 {config[bin][flappie]} > raw/{{}}.fastq'
+        find ./raw -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; > {wildcards.batch}.fq
+        if [[ \'{wildcards.format}\' == *'q'* ]]; then
+            cat {wildcards.batch}.fq | gzip > {output}
+        else
+            cat {wildcards.batch}.fq | paste - - - - | cut -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
         fi
         """
 
@@ -78,35 +112,54 @@ rule basecaller_merge_run:
     input:
         get_batches_basecaller
     output:
-        "sequences/{runname, [a-zA-Z0-9_-]+}.{basecaller}.{format, (fasta|fastq|fa|fq)}"
+        "sequences/{basecaller, [^./]*}/{runname, [a-zA-Z0-9_-]+}.{format, (fasta|fastq|fa|fq)}.gz"
     shell:
         "cat {input} > {output}"
-
-rule basecaller_compress_run:
-    input:
-        "sequences/{runname}.{basecaller}.{format}"
-    output:
-        "sequences/{runname, [a-zA-Z0-9_-]+}.{basecaller}.{format, (fasta|fastq|fa|fq)}.gz"
-    shell:
-        "gzip {input}"
 
 # merge run files
 rule basecaller_merge_runs:
     input:
-        ['sequences/{runname}.{{basecaller}}.{{format}}'.format(runname=runname) for runname in config['runnames']]
+        ['sequences/{{basecaller}}/{runname}.{{format}}.gz'.format(runname=runname) for runname in config['runnames']]
     output:
-        "{trackname, [a-zA-Z0-9_-]+}.{basecaller}.{format, (fasta|fastq|fa|fq)}"
-    params:
-        min_coverage = 1
+        "sequences/{basecaller, [^./]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shell:
         """
         cat {input} > {output}
         """
-
-rule basecaller_compress_runs:
+        
+# compression
+rule basecaller_compress:
     input:
-        "{trackname}.{basecaller}.{format}"
+        "{file}.{format}"
     output:
-        "{trackname, [a-zA-Z0-9_-]+}.{basecaller}.{format, (fasta|fastq|fa|fq)}.gz"
+        "{file}.{format, (fasta|fastq|fa|fq)}.gz"
     shell:
         "gzip {input}"
+
+# basecalling QC
+rule fastx_stats:
+    input:
+        lambda wildcards : get_sequence(wildcards, config=config)
+    output:
+        temp("sequences/{basecaller, [^./]*}{dot, [./]*}{runname, [^./]*}{dot2, [.]*}{format, (fasta|fastq|fa|fq)}.tsv")
+    params:
+        py_bin = lambda wildcards : get_python(wildcards)
+    run:
+        import rules.utils.basecalling_fastx_stats
+        rules.utils.basecalling_fastx_stats.main(input[0], output=output[0])
+       
+# report from basecalling
+rule basecaller_qc:
+    input:
+        "sequences/{basecaller}{dot}{runname}{dot2}{format}.tsv"
+    output:
+        "sequences/{basecaller, [^./]*}{dot, [./]*}{runname, [^./]*}{dot2, [.]*}{format, (fasta|fastq|fa|fq)}.pdf"
+    params:
+        qc_script = config['bin']['basecalling_qc']
+    run:
+        import os, subprocess
+        input_nrm = os.path.abspath(str(input))
+        output_nrm = os.path.abspath(str(output))
+        subprocess.run("Rscript -e 'rmarkdown::render(\"{qc_script}\", output_file = \"{output}\")' {input}".format(qc_script=params.qc_script, output=output_nrm, input=input_nrm), check=True, shell=True)
+
+        

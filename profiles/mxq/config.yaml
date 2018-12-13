@@ -1,11 +1,11 @@
 # per node local storage
-shadow-prefix: "/scratch/local2/{USER}"
+shadow-prefix: "/scratch/local2/"
 # jobscripts
 cluster: "mxq-submit.py"
 cluster-status: "mxq-status.py"
 jobscript: "mxq-jobscript.sh"
 # params
-latency-wait: 60
+latency-wait: 300
 jobs: 10000
 restart-times: 3
 immediate-submit: false

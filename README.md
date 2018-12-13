@@ -1,36 +1,38 @@
 # nanopype 
-[![Docker Automated build](https://img.shields.io/docker/automated/giesselmann/nanopype.svg)](https://hub.docker.com/r/giesselmann/nanopype/)  [![Read the Docs](https://img.shields.io/readthedocs/nanopype.svg)](https://nanopype.readthedocs.io/)
 
+[![Docker Automated build](https://img.shields.io/docker/automated/giesselmann/nanopype.svg)](https://hub.docker.com/r/giesselmann/nanopype/) [![Read the Docs (version)](https://img.shields.io/readthedocs/nanopype/development.svg)](https://nanopype.readthedocs.io/en/development/)
 
-Snakemake pipelines for nanopore sequencing data archiving and processing and analysis
+Nanopype is a snakemake based pipeline providing convenient nanopore data processing and storage solutions.
+	
+## Concepts
 
-## Installation
-### Python
+**Modularization**
+
+Nanopype is based on the snakemake framework providing rules to execute nanopore bioinformatic applications and chaining them into common workflows. Uniform interfaces of related tools allow easy exchange and extension of the pipeline components.
+
+**Scalability**
+
+Increased throughput and decreasing costs require efficient parallel processing of nanopore long read datasets. Nanopype was developed with focus on batch processing of dataset fractions improving performance on heterogeneous cluster environments.
+
+**Automation**
+
+Applying the output from input file(s) driven workflow design of snakemake with recurring directory structures simplifies a high degree of automation in the data processing. Nanopype furthermore provides scripts and concepts to import and organize datasets from the sequencer.
+
+## Quick start
+
+Install nanopype into an existing python3 installation from [github.com](https://github.com/giesselmann/nanopype/) 
 
     git clone https://github.com/giesselmann/nanopype
     cd nanopype
-	pip3 install -r requirements.txt
+    pip3 install . --upgrade
 
-### Docker
-	git clone https://github.com/giesselmann/nanopype
-	cd nanopype
-	docker build -t nanopype .
+or use automated Docker builds from [hub.docker.com](https://hub.docker.com/r/giesselmann/nanopype/).
 
-## Configuration
+    docker pull giesselmann/nanopype
+    docker run -it giesselmann/nanopype
 
-### Environment
-Before using nanopype you have to once set up your environment and tell nanopype via the *env.yaml* where to find everything. The environment configuration covers
+Snakemake is controlled by requesting output files from existing inputs. To obtain for instance a complete basecalling and alignment you just have to run
 
- - Tools (basecalling, alignment, etc.)
- - Reference genomes
- - ...
-
-### Workflow
-Each workflow is configured via a *config.yaml* which needs to be copied to each working directory. The workflow configuration covers
-
- - Data directories
- - Tool parameters
- - ...
-
-## Usage
-
+    snakemake [OPTIONS...] alignments/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.minimap2.hg19.bam
+    
+to trigger basecalling and minimap2 alignment against the hg19 reference genome. Snakemake will create a graph containing all intermediate results and execute required rules in respective order.
