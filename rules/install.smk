@@ -82,69 +82,98 @@ rule UCSCtools:
 
 rule bedtools:
     output:
-        bin = "bin/bedtools",
-        src = directory("src/bedtools2")
+        bin = "bin/bedtools"
+    threads: config['threads_build']
     shell:
         """
-        cd src
-        git clone https://github.com/arq5x/bedtools2 --branch v2.27.1 --depth=1
-        cd bedtools2 && make
+        mkdir -p src && cd src
+        if [ ! -d bedtools2 ]; then
+            git clone https://github.com/arq5x/bedtools2 --branch v2.27.1 --depth=1 && cd bedtools2
+        else
+            cd bedtools2 && git fetch && git checkout v2.27.1
+        fi
+        make clean && make
         cp bin/bedtools ../../bin/
         """
 
 rule htslib:
     output:
         src = directory("src/htslib")
+    threads: config['threads_build']
     shell:
         """
-        cd src
-        git clone https://github.com/samtools/htslib --branch 1.9 --depth=1
-        cd htslib && autoheader && autoconf && ./configure && make
+        mkdir -p src && cd src
+        if [ ! -d htslib ]; then
+            git clone https://github.com/samtools/htslib --branch 1.9 --depth=1 && cd htslib
+        else
+            cd htslib && git fetch && git checkout 1.9
+        fi
+        autoheader && autoconf && ./configure && make -j{threads}
         """
 
 rule samtools:
     input:
         rules.htslib.output.src
     output:
-        bin = "bin/samtools",
+        bin = "bin/samtools"
+    threads: config['threads_build']
     shell:
         """
-        cd src
-        git clone https://github.com/samtools/samtools --branch 1.9 --depth=1
-        cd samtools && autoheader --warning=none && autoconf -Wno-syntax && ./configure && make
+        mkdir -p src && cd src
+        if [ ! -d samtools ]; then        
+            git clone https://github.com/samtools/samtools --branch 1.9 --depth=1 && cd samtools
+        else
+            cd samtools && git fetch && git checkout -b 1.9
+        fi
+        autoheader --warning=none && autoconf -Wno-syntax && ./configure && make -j{threads}
         cp samtools ../../bin/
         """
 
 rule minimap2:
     output:
         bin = "bin/minimap2"
+    threads: config['threads_build']
     shell:
         """
-        cd src
-        git clone https://github.com/lh3/minimap2 --branch v2.14 --depth=1
-        cd minimap2 && make
+        mkdir -p src && cd src
+        if [ ! -d minimap2 ]; then
+            git clone https://github.com/lh3/minimap2 --branch v2.14 --depth=1 && cd minimap2
+        else
+            cd minimap2 && git fetch && git checkout v2.14
+        fi
+        make clean && make -j{threads}
         cp minimap2 ../../bin
         """
 
 rule graphmap:
     output:
         bin = "bin/graphmap"
+    threads: config['threads_build']
     shell:
         """
-        cd src
-        git clone https://github.com/isovic/graphmap --branch master --depth=1
-        cd graphmap && make modules && make
+        mkdir -p src && cd src
+        if [ ! -d graphmap ]; then
+            git clone https://github.com/isovic/graphmap --branch master --depth=1 && cd graphmap
+        else
+            cd graphmap && git fetch && git checkout master
+        fi
+        make modules -j{threads} && make -j{threads}
         cp bin/Linux-x64/graphmap ../../bin/
         """
 
 rule ngmlr:
     output:
         bin = "bin/ngmlr"
+    threads: config['threads_build']
     shell:
         """
-        cd src
-        git clone https://github.com/philres/ngmlr --branch v0.2.7 --depth=1
-        mkdir -p ngmlr/build && cd ngmlr/build && cmake .. && make
+        mkdir -p src && cd src
+        if [ ! -d ngmlr ]; then
+            git clone https://github.com/philres/ngmlr --branch v0.2.7 --depth=1 && cd ngmlr
+        else
+            cd ngmlr && git fetch && git checkout v0.2.7
+        fi
+        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -G Ninja .. && cmake --build . --config Release -- -j {threads}
         cp ../bin/*/ngmlr ../../../bin
         """
 
@@ -154,33 +183,45 @@ rule nanopolish:
     threads: config['threads_build']
     shell:
         """
-        cd src
-        git clone --recursive https://github.com/jts/nanopolish --branch v0.10.2 --depth=1
-        cd nanopolish && make -j{threads}
+        mkdir -p src && cd src
+        if [ ! -d nanopolish ]; then
+            git clone --recursive https://github.com/jts/nanopolish --branch v0.10.2 --depth=1 && cd nanopolish
+        else
+            cd nanopolish && git fetch && git checkout v0.10.2
+        fi
+        make clean
+        make -j{threads}
         cp nanopolish ../../bin/
         """
 
 rule sniffles:
     output:
         bin = "bin/sniffles"
+    threads: config['threads_build']
     shell:
         """
-        cd src
-        git clone https://github.com/fritzsedlazeck/Sniffles --branch v1.0.10 --depth=1
-        mkdir -p Sniffles/build && cd Sniffles/build && cmake .. && make
+        mkdir -p src && cd src
+        if [ ! -d Sniffles ]; then
+            git clone https://github.com/fritzsedlazeck/Sniffles --branch v1.0.10 --depth=1 && cd Sniffles
+        else
+            cd Sniffles && git checkout v1.0.10
+        fi
+        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -GNinja .. && cmake --build . --config Release -- -j {threads}
         cp ../bin/*/sniffles ../../../bin
         """
 
 rule deepbinner:
     output:
-        bin = "bin/deepbinner-runner.py",
-        src = directory("src/Deepbinner")
+        bin = "bin/deepbinner-runner.py"
     shell:
         """
-        cd src
-        git clone https://github.com/rrwick/Deepbinner --branch v0.2.0 --depth=1
-        cd Deepbinner
-        pip3 install -r requirements.txt
+        mkdir -p src && cd src
+        if [ ! -d Deepbinner ]; then
+            git clone https://github.com/rrwick/Deepbinner --branch v0.2.0 --depth=1 && cd Deepbinner
+        else
+            cd Deepbinner && git fetch && git checkout v0.2.0
+        fi
+        pip3 install -r requirements.txt --upgrade
         ln -s $(pwd)/deepbinner-runner.py ../../{output.bin}
         """
 
@@ -189,7 +230,7 @@ rule golang:
         src = directory("src/go/bin")
     shell:
         """
-        cd src
+        mkdir -p src && cd src
         wget -nc https://dl.google.com/go/go1.11.2.linux-amd64.tar.gz
         tar -xzf go1.11.2.linux-amd64.tar.gz
         """
@@ -198,14 +239,16 @@ rule gitlfs:
     input:
         go = lambda wildcards : find_go() if find_go() is not None else rules.golang.output.src
     output:
-        src = directory("src/git-lfs"),
         bin = "bin/git-lfs"
     shell:
         """
         export PATH=$(pwd)/{input.go}:$PATH
-        cd src
-        git clone https://github.com/git-lfs/git-lfs.git --branch v2.6.0 --depth=1
-        cd git-lfs
+        mkdir -p src && cd src
+        if [ ! -d git-lfs ]; then
+            git clone https://github.com/git-lfs/git-lfs.git --branch v2.6.0 --depth=1 && cd git-lfs
+        else
+            cd git-lfs && git fetch && git checkout v2.6.0
+        fi
         make
         cp bin/git-lfs ../../bin
         """
@@ -217,10 +260,13 @@ rule OpenBLAS:
     shell:
         """
         install_prefix=`pwd`
-        cd src
-        git clone https://github.com/xianyi/OpenBLAS --branch v0.3.4 --depth=1
-        cd OpenBLAS
-        make NO_LAPACK=1 -j{threads}
+        mkdir -p src && cd src
+        if [ ! -d OpenBLAS ]; then
+            git clone https://github.com/xianyi/OpenBLAS --branch v0.3.4 --depth=1 && cd OpenBLAS
+        else
+            cd OpenBLAS && git fetch && git checkout v0.3.4
+        fi
+        make clean && make NO_LAPACK=1 -j{threads}
         make install PREFIX=$install_prefix
         """
 
@@ -231,13 +277,15 @@ rule hdf5:
     shell:
         """
         install_prefix=`pwd`
-        cd src
-        git clone https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git --branch hdf5-1_8_20 --depth=1
-        cd hdf5 && mkdir build
-        cd build
-        cmake -DCMAKE_BUILD_TYPE=Release -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DHDF5_BUILD_TOOLS=OFF -DBUILD_TESTING=OFF -DHDF5_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=$install_prefix -GNinja ../
-        cmake --build . --config Release -- -j 8
-        make install
+        mkdir -p src && cd src
+        if [ ! -d hdf5 ]; then
+            git clone https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git --branch hdf5-1_8_20 --depth=1 && cd hdf5
+        else
+            cd hdf5 && git fetch && git checkout hdf5-1_8_20
+        fi
+        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DHDF5_BUILD_TOOLS=OFF -DBUILD_TESTING=OFF -DHDF5_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=$install_prefix -GNinja ../
+        cmake --build . --config Release -- -j {threads}
+        cmake --build . --config Release --target install
         """
 
 rule Flappie:
@@ -246,7 +294,6 @@ rule Flappie:
         blas = rules.OpenBLAS.output.src,
         hdf5 = rules.hdf5.output.src
     output:
-        src = directory("src/flappie"),
         bin = "bin/flappie"
     threads: config['threads_build']
     shell:
@@ -254,10 +301,13 @@ rule Flappie:
         install_prefix=`pwd`
         {input.git_lfs} install
         export PATH=$install_prefix:$PATH
-        cd src
-        git clone https://github.com/nanoporetech/flappie
-        cd flappie && mkdir build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -GNinja ../
+        mkdir -p src && cd src
+        if [ ! -d flappie ]; then
+            git clone https://github.com/nanoporetech/flappie && cd flappie
+        else
+            cd flappie && git fetch && git checkout v1.0.0
+        fi
+        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -GNinja ../
         cmake --build . --config Release -- -j {threads}
         cp flappie ../../../{output.bin}
         """

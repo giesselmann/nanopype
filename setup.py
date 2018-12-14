@@ -43,7 +43,7 @@ class AppendPathCmd(install):
         
 setup(
     name='nanopype',
-    version='0.0.1',
+    version='0.1.0',
     author='Pay Giesselmann',
     author_email='giesselmann@molgen.mpg.de',
     description='Nanopore data processing workflows',
