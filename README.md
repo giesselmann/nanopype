@@ -1,9 +1,9 @@
 # nanopype 
 
-[![Docker Automated build](https://img.shields.io/docker/automated/giesselmann/nanopype.svg)](https://hub.docker.com/r/giesselmann/nanopype/) [![Read the Docs (version)](https://img.shields.io/readthedocs/nanopype/development.svg)](https://nanopype.readthedocs.io/en/development/)
+[![Docker Automated build](https://img.shields.io/docker/automated/giesselmann/nanopype.svg)](https://hub.docker.com/r/giesselmann/nanopype/) [![Read the Docs (version)](https://img.shields.io/readthedocs/nanopype/latest.svg)](https://nanopype.readthedocs.io/en/latest/)
 
 Nanopype is a snakemake based pipeline providing convenient nanopore data processing and storage solutions.
-	
+
 ## Concepts
 
 **Modularization**

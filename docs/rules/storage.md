@@ -13,7 +13,7 @@ The storage module of nanopype covers the import, indexing and extraction of raw
 ```
 ## Import
 
-To pack reads e.g. from the MinKNOW output folder we provide an import script nanopype_import.py in the scripts folder of the repository. The basic usage is:
+To pack reads e.g. from the MinKNOW output folder we provide an import script *nanopype_import.py* in the scripts folder of the repository. The basic usage is:
 
     python3 scripts/nanopype_import.py /data/raw/runname/ /path/to/import
 

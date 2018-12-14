@@ -42,6 +42,13 @@ repo_url: 'https://github.com/giesselmann/nanopype/'
 
 docs_dir: docs
 
+plugins:
+    - pdf-export:
+        verbose: false
+        combined: false
+        media_type: print
+        enabled_if_env: ENABLE_PDF_EXPORT
+
 theme:
   name: 'material'
   include_search_page: false

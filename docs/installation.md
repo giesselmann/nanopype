@@ -1,6 +1,9 @@
 # Installation
 
-## Docker
+## Docker 
+
+[![Docker Automated build](https://img.shields.io/docker/automated/giesselmann/nanopype.svg)](https://hub.docker.com/r/giesselmann/nanopype/)
+
 Run nanopype with all its dependencies from within an automated built docker container. This is primarily for local usage and does currently not support snakemakes cluster engine. The compressed docker image size is ~500 MB.
 
     docker pull giesselmann/nanopype
@@ -37,28 +40,31 @@ We recommend to create a python virtual environment and install nanopype and its
 The installation will create the following folder structure relative to a given prefix directory:
 
 ```sh
-    prefix/
-    |--src
-    |--bin
-    |--lib
-    |--share
+|--prefix/
+   |--src
+   |--bin
+   |--lib
+   |--share
 ```
 
 Nanopype relies on latest snakemake features, please consider updating your snakemake from the bitbucket repository:
 
-    mkdir -p src && cd src
-    git clone https://bitbucket.org/snakemake/snakemake.git
-    cd snakemake
-    pip3 install . --upgrade
-    cd ..
+```
+mkdir -p src && cd src
+git clone https://bitbucket.org/snakemake/snakemake.git
+cd snakemake
+pip3 install . --upgrade
+cd ..
+```
 
 Finally install nanopype from [github.com/giesselmann](https://github.com/giesselmann/nanopype/):
 
-    git clone https://github.com/giesselmann/nanopype
-    cd nanopype
-    pip3 install . --upgrade
-    cd ..
-
+```
+git clone https://github.com/giesselmann/nanopype
+cd nanopype
+pip3 install . --upgrade
+cd ..
+```
 To deactivate a virtual python environment just type:
 
     deactivate
@@ -82,9 +88,9 @@ to build and install all tools into **src**, **bin** and **lib** folders two lay
     # specific tool only
     snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] samtools
 
-The --directory argument of snakemake is used as installation prefix. By running snakemake with e.g. -j 4 multiple targets are build in parallel at the cost of interleaved output to the shell. To further accelerate the build you may try the following to build 8 tools (-j8) with 8 threads each (threads_build) using the CMake generator Ninja:
+The --directory argument of snakemake is used as installation prefix. By running snakemake with e.g. -j 4 multiple targets are build in parallel at the cost of interleaved output to the shell. To further accelerate the build you may try the following to build 8 tools (-j 8) with 8 threads each (threads_build=8) using the CMake generator Ninja:
 
-    snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] -j 8 --config threads_build=8 --config build_generator=Ninja all
+    snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] all -j 8 --config threads_build=8 build_generator=Ninja
 
 You will need to append the **bin** directory to your PATH variable, modify the paths in the environment config or re-run the nanopype installation with
 
