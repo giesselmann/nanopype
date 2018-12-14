@@ -237,65 +237,76 @@ class packager():
         self.file_queue.put(os.path.abspath(src_file))
 
     def __run__(self):
-        # get existing src/dest files
-        logger.log("Inspect existing files and archives")
-        dst_files = self.__get_dst__()
-        src_files = self.__get_src__()
-        batch_count = max([0] + [int(os.path.basename(s)[:-4]) + 1 for s in self.__get_tar__()])
-        # update on meanwhile queued files from watchdog
-        active = True
         try:
-            f = self.file_queue.get(block=False)
-            while f:
-                src_files[os.path.basename(f)] = f
-                f = self.file_queue.get(block=False)
-            if not f:   # poison pill exit on input queue
-                active = False
-        except queue.Empty as ex:
-            pass
-        # put not yet archived to processing queue
-        processing_queue = deque()
-        src_keys = set(src_files.keys())
-        dst_keys = set(dst_files.keys())
-        to_archive = src_keys.difference(dst_keys)
-        archived = dst_keys.intersection(src_keys)
-        archived_only = set(dst_files.keys()).difference(set(src_files.keys()))
-        logger.log("{archived} raw files already archived".format(archived=len(archived)))
-        logger.log("{to_archive} raw files to be archived".format(to_archive=len(to_archive)))
-        if len(archived_only) > 0:
-            logger.log("{archived_only} files in archive but not found in source directory".format(archived_only=len(archived_only)), logger.log_type.Warning)
-        processing_queue.extend(sorted([src_files[f] for f in to_archive]))
-        # enter main archive loop
-        while active:
-            # get file names from queue
+            # get existing src/dest files
+            logger.log("Inspect existing files and archives")
+            dst_files = self.__get_dst__()
+            src_files = self.__get_src__()
+            batch_count = max([0] + [int(os.path.basename(s)[:-4]) + 1 for s in self.__get_tar__()])
+            # update on meanwhile queued files from watchdog
+            active = True
             try:
-                try:
+                f = self.file_queue.get(block=False)
+                while f:
+                    src_files[os.path.basename(f)] = f
                     f = self.file_queue.get(block=False)
-                    while f:
-                        processing_queue.append(f)
-                        f = self.file_queue.get(block=False)
-                    if f is None:   # poison pill exit
-                        active = False
-                except queue.Empty as ex:
-                    pass
-                # archive files in batches
-                while len(processing_queue) >= self.batch_size:
-                    batch = [processing_queue.popleft() for i in range(self.batch_size)]
-                    batch_name = os.path.join(self.dst_dir, str(batch_count) + '.tar')
-                    n = self.__write_tar__(batch_name, batch)
-                    batch_count += 1
-                    logger.log("Archived {count} reads in {archive}".format(count=n, archive=batch_name))
+                if not f:   # poison pill exit on input queue
+                    active = False
+            except queue.Empty as ex:
+                pass
             except KeyboardInterrupt:
-                # leave controlled shutdown to master process
-                continue
-        # archive remaining reads
-        while len(processing_queue) > 0:
-            batch =  [processing_queue.popleft() for i in range(min(len(processing_queue), self.batch_size))]
-            batch_name = os.path.join(self.dst_dir, str(batch_count) + '.tar')
-            if len(batch) > 0:
-                n = self.__write_tar__(batch_name, batch)
-                logger.log("Archived {count} reads in {archive}".format(count=n, archive=batch_name))
-                batch_count += 1
+                logger.log("Stop inspection on user request")
+                return
+            # put not yet archived to processing queue
+            processing_queue = deque()
+            src_keys = set(src_files.keys())
+            dst_keys = set(dst_files.keys())
+            to_archive = src_keys.difference(dst_keys)
+            archived = dst_keys.intersection(src_keys)
+            archived_only = set(dst_files.keys()).difference(set(src_files.keys()))
+            logger.log("{archived} raw files already archived".format(archived=len(archived)))
+            logger.log("{to_archive} raw files to be archived".format(to_archive=len(to_archive)))
+            if len(archived_only) > 0:
+                logger.log("{archived_only} files in archive but not found in source directory".format(archived_only=len(archived_only)), logger.log_type.Warning)
+            processing_queue.extend(sorted([src_files[f] for f in to_archive]))
+            # enter main archive loop
+            while active:
+                # get file names from queue
+                try:
+                    try:
+                        f = self.file_queue.get(block=False)
+                        while f:
+                            processing_queue.append(f)
+                            f = self.file_queue.get(block=False)
+                        if f is None:   # poison pill exit
+                            active = False
+                    except queue.Empty as ex:
+                        pass
+                    # archive files in batches
+                    while len(processing_queue) >= self.batch_size:
+                        batch = [processing_queue.popleft() for i in range(self.batch_size)]
+                        batch_name = os.path.join(self.dst_dir, str(batch_count) + '.tar')
+                        try:
+                            n = self.__write_tar__(batch_name, batch)
+                        except KeyboardInterrupt:
+                            logger.log("Archiving of {archive} interrupted. The file is likely damaged".format(archive=batch_name))
+                            raise
+                        batch_count += 1
+                        logger.log("Archived {count} reads in {archive}".format(count=n, archive=batch_name))
+                except KeyboardInterrupt:
+                    # leave controlled shutdown to master process
+                    break
+            # archive remaining reads
+            while len(processing_queue) > 0:
+                batch =  [processing_queue.popleft() for i in range(min(len(processing_queue), self.batch_size))]
+                batch_name = os.path.join(self.dst_dir, str(batch_count) + '.tar')
+                if len(batch) > 0:
+                    n = self.__write_tar__(batch_name, batch)
+                    logger.log("Archived {count} reads in {archive}".format(count=n, archive=batch_name))
+                    batch_count += 1
+        except KeyboardInterrupt:
+            logger.log("Archive worker shutdown on user request")
+            return
 
 
 
@@ -347,7 +358,10 @@ if __name__ == '__main__':
                 for f in wtchdg.files(t=args.grace_period):
                     pkgr.put(f)
         except KeyboardInterrupt:
-            logger.log("Abort by user, finishing pending jobs")
+            logger.log("Abort by user, trying to shutdown properly")
             wtchdg.stop()
-    pkgr.stop()
+    try:
+        pkgr.stop()
+    except KeyboardInterrupt:
+        pkgr.stop() # packager has received interrupt and will shutdown
     logger.log("Mission accomplished")
