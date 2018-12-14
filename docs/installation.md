@@ -34,16 +34,19 @@ We recommend to create a python virtual environment and install nanopype and its
     cd /path/to/your/environment
     source bin/activate
 
-The installation will create the following folder structure relative to your current directory:
+The installation will create the following folder structure relative to a given prefix directory:
 
-    src
-    bin
-    lib
-    share
+```sh
+    prefix/
+    |--src
+    |--bin
+    |--lib
+    |--share
+```
 
 Nanopype relies on latest snakemake features, please consider updating your snakemake from the bitbucket repository:
 
-    cd src
+    mkdir -p src && cd src
     git clone https://bitbucket.org/snakemake/snakemake.git
     cd snakemake
     pip3 install . --upgrade
@@ -79,7 +82,11 @@ to build and install all tools into **src**, **bin** and **lib** folders two lay
     # specific tool only
     snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] samtools
 
-The --directory argument of snakemake is used as installation prefix. By running snakemake with e.g. -j 4 multiple targets are build in parallel at the cost of interleaved output to the shell. You will need to append the **bin** directory to your PATH variable, modify the paths in the environment config or re-run the nanopype installation with
+The --directory argument of snakemake is used as installation prefix. By running snakemake with e.g. -j 4 multiple targets are build in parallel at the cost of interleaved output to the shell. To further accelerate the build you may try the following to build 8 tools (-j8) with 8 threads each (threads_build) using the CMake generator Ninja:
+
+    snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] -j 8 --config threads_build=8 --config build_generator=Ninja all
+
+You will need to append the **bin** directory to your PATH variable, modify the paths in the environment config or re-run the nanopype installation with
 
     pip3 install . --upgrade --install-option="--tools=$(pwd)../../bin"
 
@@ -124,7 +131,7 @@ You may wish to test your installation by running:
 
     python3 test/test_install.py
 
-The test will check all supported tools, if you do not plan to use parts of the pipeline, you can ignore partially failing tests. Building all dependencies can take a significant amount of time, currently ~30 min on a single core machine.
+The test will check all supported tools, if you do not plan to use parts of the pipeline, you can ignore partially failing tests. Building all dependencies can take a significant amount of time, currently ~60 min on a single core machine.
 
 ***
 

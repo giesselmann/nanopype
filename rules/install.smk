@@ -69,6 +69,9 @@ def find_go():
 # defaults
 if not 'threads_build' in config:
     config['threads_build'] = 1
+    
+if not 'build_generator' in config:
+    config['build_generator'] = '"Unix Makefiles"'
 
 # detailed build rules
 rule UCSCtools:
@@ -173,7 +176,7 @@ rule ngmlr:
         else
             cd ngmlr && git fetch && git checkout v0.2.7
         fi
-        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -G Ninja .. && cmake --build . --config Release -- -j {threads}
+        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -G {config[build_generator]} .. && cmake --build . --config Release -- -j {threads}
         cp ../bin/*/ngmlr ../../../bin
         """
 
@@ -206,7 +209,7 @@ rule sniffles:
         else
             cd Sniffles && git checkout v1.0.10
         fi
-        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -GNinja .. && cmake --build . --config Release -- -j {threads}
+        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -G{config[build_generator]} .. && cmake --build . --config Release -- -j {threads}
         cp ../bin/*/sniffles ../../../bin
         """
 
@@ -283,7 +286,7 @@ rule hdf5:
         else
             cd hdf5 && git fetch && git checkout hdf5-1_8_20
         fi
-        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DHDF5_BUILD_TOOLS=OFF -DBUILD_TESTING=OFF -DHDF5_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=$install_prefix -GNinja ../
+        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DHDF5_BUILD_TOOLS=OFF -DBUILD_TESTING=OFF -DHDF5_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=$install_prefix -G{config[build_generator]} ../
         cmake --build . --config Release -- -j {threads}
         cmake --build . --config Release --target install
         """
@@ -307,7 +310,7 @@ rule Flappie:
         else
             cd flappie && git fetch && git checkout v1.0.0
         fi
-        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -GNinja ../
+        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} ../
         cmake --build . --config Release -- -j {threads}
         cp flappie ../../../{output.bin}
         """
