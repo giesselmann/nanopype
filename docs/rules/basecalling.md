@@ -46,8 +46,9 @@ The ONT closed source software based on a deep neural network. The installer is 
     * basecalling_albacore_disable_filtering: true
 
 ### Guppy
-Release announced by ONT.
+Pre-Release within ONT-community.
+
+:   * basecalling_guppy_qscore_filter: 0
 
 ### Flappie
 The experimental neural network caller from ONT using flip-flop basecalling.
-

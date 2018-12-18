@@ -79,7 +79,40 @@ rule albacore:
             cat {wildcards.batch}.fq | paste - - - - | cut -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
         fi
         """
-        
+
+# guppy basecalling
+rule guppy:
+    input:
+        "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
+    output:
+        "sequences/guppy/{runname, [a-zA-Z0-9_-]+}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
+    shadow: "minimal"
+    threads: config['threads_basecalling']
+    resources:
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
+        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads
+    params:
+        flowcell = lambda wildcards, config=config : get_flowcell(wildcards, config),
+        kit = lambda wildcards, config=config : get_kit(wildcards, config),
+        #barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
+        filtering = lambda wildcards : '--qscore_filtering --min_qscore {score}'.format(score = config['basecalling_guppy_qscore_filter']) if config['basecalling_guppy_qscore_filter'] > 0 else ''
+    shell:
+        """
+        mkdir -p raw
+        tar -C raw/ -xf {input}
+        {config[bin][guppy]} -i raw/ --recursive -t {threads} -s workspace/ --flowcell {params.flowcell} --kit {params.kit} {params.filtering}
+        FASTQ_DIR='workspace/pass'
+        if [ \'{params.filtering}\' = '' ]; then
+            FASTQ_DIR='workspace'
+        fi
+        find ${{FASTQ_DIR}} -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; > {wildcards.batch}.fq
+        if [[ \'{wildcards.format}\' == *'q'* ]]; then
+            cat {wildcards.batch}.fq | gzip > {output}
+        else
+            cat {wildcards.batch}.fq | paste - - - - | cut -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
+        fi
+        """
+
 # flappie basecalling
 rule flappie:
     input:
@@ -126,7 +159,7 @@ rule basecaller_merge_runs:
         """
         cat {input} > {output}
         """
-        
+
 # compression
 rule basecaller_compress:
     input:
@@ -147,7 +180,7 @@ rule fastx_stats:
     run:
         import rules.utils.basecalling_fastx_stats
         rules.utils.basecalling_fastx_stats.main(input[0], output=output[0])
-       
+
 # report from basecalling
 rule basecaller_qc:
     input:
@@ -161,5 +194,3 @@ rule basecaller_qc:
         input_nrm = os.path.abspath(str(input))
         output_nrm = os.path.abspath(str(output))
         subprocess.run("Rscript -e 'rmarkdown::render(\"{qc_script}\", output_file = \"{output}\")' {input}".format(qc_script=params.qc_script, output=output_nrm, input=input_nrm), check=True, shell=True)
-
-        

@@ -1,8 +1,6 @@
 # Installation
 
-## Docker 
-
-[![Docker Automated build](https://img.shields.io/docker/automated/giesselmann/nanopype.svg)](https://hub.docker.com/r/giesselmann/nanopype/)
+## Docker
 
 Run nanopype with all its dependencies from within an automated built docker container. This is primarily for local usage and does currently not support snakemakes cluster engine. The compressed docker image size is ~500 MB.
 
@@ -14,7 +12,7 @@ You can extend and customize your docker in the following way:
 
 In the docker shell you could install e.g. albacore from ONT after you downloaded the python wheel to the hosts */host/installer/path*:
 
-    pip3 install /src/ont_albacore-2.3.3-cp35-cp35m-manylinux1_x86_64.whl
+    pip3 install ont_albacore-2.3.3-cp35-cp35m-manylinux1_x86_64.whl
 
 Press CTRL + P and CTRL + Q to detach from the running container and run
 
@@ -96,12 +94,13 @@ You will need to append the **bin** directory to your PATH variable, modify the 
 
     pip3 install . --upgrade --install-option="--tools=$(pwd)../../bin"
 
-to make nanopype aware of the installed tools. This will create a .pth file in your python3 installation, modifying the PATH on python start. 
+to make nanopype aware of the installed tools. This will create a .pth file in your python3 installation, modifying the PATH on python start.
 
 ### Core
 **Basecalling**
 
-:   * Albacore (access restricted to ONT community)
+:   * Albacore (access restricted to ONT community, manual install required)
+    * Guppy (access restricted to ONT community, manual install required)
     * Flappie *https://github.com/nanoporetech/flappie*
 
 **Alignment**
@@ -130,6 +129,19 @@ to make nanopype aware of the installed tools. This will create a .pth file in y
 
 :   * Deepbinner *https://github.com/rrwick/Deepbinner*
 
+### Manual Installations
+
+The applications not available for automated installation require manual interaction. Please also refer to the above Docker instructions on how to save changes to your container.
+
+Guppy:
+```
+tar -xzf ont-guppy-cpu_2.1.3_linux64.tar.gz -C [INSTALL_PREFIX] --strip 1
+```
+
+Albacore:
+```
+pip3 install ont_albacore-2.3.3-cp35-cp35m-manylinux1_x86_64.whl
+```
 
 ### Tests
 

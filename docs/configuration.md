@@ -77,14 +77,15 @@ To test if the installation and configuration was successful, we provide a small
 :   * test_storage
 
 **Basecalling**
-:   * test_albacore
+:   * test_guppy
+    * test_albacore
     * test_flappie
-    
+
 **Alignment**
 :   * test_minimap2
     * test_graphmap
     * test_ngmlr
-    
+
 **Methylation**
 :   * test_nanopolish
 

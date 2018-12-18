@@ -16,9 +16,10 @@ threads_sv: 4
 threads_demux: 4
 
 # basecalling
-basecalling_default: flappie
+basecalling_default: guppy
 basecalling_albacore_barcoding: false
 basecalling_albacore_disable_filtering: true
+basecalling_guppy_qscore_filter: 0
 
 # alignment
 alignment_default: minimap2
@@ -28,7 +29,7 @@ alignment_ngmlr_flags: '-x ont --bam-fix'
 
 # methylation detection
 methylation_nanopolish_logp_threshold: 2.5
-methylation_nanopolish_basecaller: albacore
+methylation_nanopolish_basecaller: guppy
 methylation_nanopolish_aligner: minimap2
 methylation_min_coverage: 1
 
