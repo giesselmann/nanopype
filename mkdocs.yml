@@ -100,8 +100,9 @@ nav:
   - Tutorial:
     - Intro : examples/intro.md
     - Data import: examples/import.md
-    - Nanopolish: examples/nanopolish.md
-    - Barcoding: examples/demux.md
+    - Alignment : examples/align.md
+#    - Nanopolish: examples/nanopolish.md
+#    - Barcoding: examples/demux.md
   - Release notes: release-notes.md
   - Citation: citation.md
   - License: license.md
