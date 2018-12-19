@@ -54,6 +54,8 @@ Nanopolish specific configuration parameters are:
     * methylation_nanopolish_basecaller: albacore
     * methylation_nanopolish_aligner: minimap2
     * methylation_min_coverage: 1
+    
+Nanopolish only works with basecalling from albacore or guppy.
 
 ### Flappie
 
