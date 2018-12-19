@@ -335,7 +335,7 @@ if __name__ == '__main__':
             logger.log("Output directory existent but not writeable", logger.log_type.Error)
     else:
         try:
-            os.mkdir(dir_out, mode=0o744)
+            os.makedirs(dir_out, mode=0o744, exist_ok=True)
         except FileExistsError:
             print("Could not create output directory, file {file} already exists".format(file=dir_out), logger.log_type.Error)
             exit(-1)
