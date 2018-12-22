@@ -19,7 +19,10 @@ threads_demux: 4
 basecalling_default: guppy
 basecalling_albacore_barcoding: false
 basecalling_albacore_disable_filtering: true
+basecalling_albacore_flags: ''
 basecalling_guppy_qscore_filter: 0
+basecalling_guppy_flags: ''
+basecalling_flappie_flags: ''
 
 # alignment
 alignment_default: minimap2

@@ -67,7 +67,7 @@ rule albacore:
         """
         mkdir -p raw
         tar -C raw/ -xf {input}
-        {config[bin][albacore]} -i raw/ --recursive -t {threads} -s raw/ --flowcell {params.flowcell} --kit {params.kit} --output_format fastq {params.filtering} {params.barcoding}
+        {config[bin][albacore]} -i raw/ --recursive -t {threads} -s raw/ --flowcell {params.flowcell} --kit {params.kit} --output_format fastq {params.filtering} {params.barcoding} {config[basecalling_albacore_flags]}
         FASTQ_DIR='raw/workspace/'
         if [ \'{params.filtering}\' = '' ]; then
             FASTQ_DIR='raw/workspace/pass'
@@ -100,7 +100,7 @@ rule guppy:
         """
         mkdir -p raw
         tar -C raw/ -xf {input}
-        {config[bin][guppy]} -i raw/ --recursive -t {threads} -s workspace/ --flowcell {params.flowcell} --kit {params.kit} {params.filtering}
+        {config[bin][guppy]} -i raw/ --recursive -t {threads} -s workspace/ --flowcell {params.flowcell} --kit {params.kit} {params.filtering} {config[basecalling_guppy_flags]}
         FASTQ_DIR='workspace/pass'
         if [ \'{params.filtering}\' = '' ]; then
             FASTQ_DIR='workspace'
@@ -131,7 +131,7 @@ rule flappie:
         tar -C raw/ -xf {input}
         find raw/ -regextype posix-extended -regex '^.*fast5' > raw.fofn
         split -e -n l/{threads} raw.fofn raw.fofn.part.
-        ls raw.fofn.part.* | xargs -n 1 -P {threads} -I {{}} $SHELL -c 'cat {{}} | xargs -n 1 {config[bin][flappie]} > raw/{{}}.fastq'
+        ls raw.fofn.part.* | xargs -n 1 -P {threads} -I {{}} $SHELL -c 'cat {{}} | xargs -n 1 {config[bin][flappie]} {config[basecalling_flappie_flags]} > raw/{{}}.fastq'
         find ./raw -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; > {wildcards.batch}.fq
         if [[ \'{wildcards.format}\' == *'q'* ]]; then
             cat {wildcards.batch}.fq | gzip > {output}
