@@ -57,7 +57,7 @@ rule all:
     input:
         rules.core.input,
         rules.extended.input
-        
+
 # helper functions
 def find_go():
     for path in os.environ["PATH"].split(os.pathsep):
@@ -69,7 +69,7 @@ def find_go():
 # defaults
 if not 'threads_build' in config:
     config['threads_build'] = 1
-    
+
 if not 'build_generator' in config:
     config['build_generator'] = '"Unix Makefiles"'
 
@@ -123,7 +123,7 @@ rule samtools:
     shell:
         """
         mkdir -p src && cd src
-        if [ ! -d samtools ]; then        
+        if [ ! -d samtools ]; then
             git clone https://github.com/samtools/samtools --branch 1.9 --depth=1 && cd samtools
         else
             cd samtools && git fetch && git checkout -b 1.9
@@ -308,7 +308,7 @@ rule Flappie:
         if [ ! -d flappie ]; then
             git clone https://github.com/nanoporetech/flappie && cd flappie
         else
-            cd flappie && git fetch && git checkout v1.0.0
+            cd flappie && git fetch && git checkout master
         fi
         mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} ../
         cmake --build . --config Release -- -j {threads}
