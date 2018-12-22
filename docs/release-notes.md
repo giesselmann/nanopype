@@ -13,3 +13,5 @@ Initial release with tool versions:
     * NGMLR                     v0.2.7
     * Sniffles                  v1.0.10
     * Deepbinner                v0.2.0
+
+Manual installations of *albacore* and *guppy* can't be versioned. The pipeline was tested with albacore 2.3.3 and guppy 2.1.3.

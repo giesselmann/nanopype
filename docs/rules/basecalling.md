@@ -14,6 +14,8 @@ Furthermore a basic quality control of the Flow-Cell can be obtained by running:
 
     snakemake --snakefile /path/to/nanopype/Snakefile sequences/albacore.fa.pdf
 
+The content of the QC depends on the basecaller and format. The sequence quality for instance is only stored in fastq format.
+
 ## Folder structure
 
 The basecalling module can create the following file structure relative to the working directory:
@@ -44,11 +46,15 @@ The ONT closed source software based on a deep neural network. The installer is 
 
 :   * basecalling_albacore_barcoding: false
     * basecalling_albacore_disable_filtering: true
+    * basecalling_albacore_flags: ''
 
 ### Guppy
 Pre-Release within ONT-community.
 
 :   * basecalling_guppy_qscore_filter: 0
+    * basecalling_guppy_flags: ''
 
 ### Flappie
 The experimental neural network caller from ONT using flip-flop basecalling.
+
+:   * basecalling_flappie_flags: ''

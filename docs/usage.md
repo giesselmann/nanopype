@@ -10,10 +10,10 @@ or from the installation path with specifying the working directory:
 
 Nanopype expects a **config.yaml** in the root of the processing directory. A template with default values is found in the nanopype repository. You can either edit the parameters within the file or override them from the command line:
 
-    snakemake --config threads_basecalling=16 [OPTIONS...] [FILE]
+    snakemake [OPTIONS...] [FILE] --config threads_basecalling=16
 
 For all available options please refer to the [snakemake](https://snakemake.readthedocs.io/en/stable) documentation. Particularly interesting are:
 
 * -n / --dryrun : Print required steps but do not execute, useful to check before e.g. cluster submissions
-* -j / --cores / --jobs : In local mode: Number of provided cores; In cluster mode: number of jobs submitted at the same time
+* -j / --cores / --jobs : In local mode: number of provided cores; In cluster mode: number of jobs submitted at the same time
 * -k / --keep-going : Continue execution of independent jobs, in case of errors

@@ -23,7 +23,7 @@ cp ~/src/nanopype/test/test_data.tar.gz ./
 
 ***
 
-Within the docker Nanopype is installed into ```/app``` folder, subsequent commands need to be adjusted accordingly.
+Within the docker, Nanopype is installed into the ```/app``` folder, subsequent commands need to be adjusted accordingly.
 
 ```
 mkdir -p data/raw
@@ -31,7 +31,7 @@ tar -zxf test_data.tar.gz -C data/raw
 ls -l data/raw
 ```
 
-The last step is to copy the config template to our working directory and adjust the raw data path
+The last step is to copy the config template to our working directory and adjust the raw data path:
 
 ```
 cp ~/src/nanopype/config.yaml ./

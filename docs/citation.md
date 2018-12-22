@@ -1,10 +1,14 @@
 # Citation
 
-Nanopype integrates a growing number of nanopore sequencing related tools. If you use nanopype in your project please cite our pipeline. Furthermore please verify the set of tools your analysis made use of and also cite the according publications. 
+Nanopype integrates a growing number of nanopore sequencing related tools. If you use nanopype in your project please cite our pipeline. Furthermore please verify the set of tools your analysis made use of and also cite the according publications.
 
 ## Nanopype
 
 ####**Nanopype pipeline**
+
+## Snakemake
+
+>J. Köster and S. Rahmann; Snakemake - A scalable bioinformatics workflow engine, Bioinformatics (2012).
 
 ## Core functions
 ####**Bedtools**
@@ -17,7 +21,7 @@ Nanopype integrates a growing number of nanopore sequencing related tools. If yo
 >W. J. Kent, A. S. Zweig, G. Barber, A. S. Hinrichs, D. Karolchik; BigWig and BigBed: enabling browsing of large distributed datasets, Bioinformatics, doi:10.1093/bioinformatics/btq351 (2010).
 
 ####**Minimap2**
->Li, H. Minimap2: pairwise alignment for nucleotide sequences. Bioinformatics. doi:10.1093/bioinformatics/bty191 (2018).
+>H. Li; Minimap2: pairwise alignment for nucleotide sequences. Bioinformatics. doi:10.1093/bioinformatics/bty191 (2018).
 
 ####**GraphMap**
 >Sovic, I. et al. Fast and sensitive mapping of nanopore sequencing reads with GraphMap. Nat. Commun. 7:11307 doi: 10.1038/ncomms11307 (2016).
@@ -31,7 +35,7 @@ Nanopype integrates a growing number of nanopore sequencing related tools. If yo
 ## Extended functions
 
 ####**Deepbinner**
->Wick, R. R., Judd, L. M. & Holt, K. E. Deepbinner: Demultiplexing barcoded Oxford Nanopore reads with deep convolutional neural networks. PLOS Computational Biology 14, e1006583 (2018).
+>Wick, R. R., Judd, L. M. & Holt, K. E; Deepbinner: Demultiplexing barcoded Oxford Nanopore reads with deep convolutional neural networks, PLOS Computational Biology 14, e1006583 (2018).
 
 ####**Sniffles**
->Sedlazeck, F. J. et al. Accurate detection of complex structural variations using single-molecule sequencing. Nature Methods 15, 461-468 (2018).
+>Sedlazeck, F. J. et al. Accurate detection of complex structural variations using single-molecule sequencing, Nature Methods 15, 461-468 (2018).
