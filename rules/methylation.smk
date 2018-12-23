@@ -36,6 +36,8 @@ import os
 from rules.utils.get_file import get_batches, get_sequence_batch, get_alignment_batch
 # local rules
 localrules: nanopolish_methylation_merge_run, nanopolish_methylation_compress, nanopolish_methylation_bedGraph, nanopolish_methylation_frequencies, methylation_bigwig
+# local config
+config['bin']['methylation_flappie'] = os.path.abspath(os.path.join(workflow.basedir, 'rules/utils/methylation_flappie.py'))
 
 # get batches
 def get_batches_methylation(wildcards, methylation_caller):
@@ -83,9 +85,9 @@ rule nanopolish_methylation_merge_run:
                     # skip header
                     next(fp_in)
                     # iterate input
-                    for name, chr, sites in recordIterator.records(iter(fp_in)):
+                    for name, chr, strand, sites in recordIterator.records(iter(fp_in)):
                         for begin, end, ratio, log_methylated, log_unmethylated in sites:
-                            print('\t'.join([chr, str(begin), str(end), name, str(ratio), str(log_methylated), str(log_unmethylated)]), file=fp_out)
+                            print('\t'.join([chr, str(begin), str(end), name, str(ratio), strand, str(log_methylated), str(log_unmethylated)]), file=fp_out)
 
 rule nanopolish_methylation_compress:
     input:

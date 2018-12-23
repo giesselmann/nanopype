@@ -23,7 +23,7 @@ from setuptools.command.egg_info import egg_info
 
 class AppendPathCmd(install):
     user_options = install.user_options + [
-        ('tools=', None, None), 
+        ('tools=', None, None),
     ]
     def initialize_options(self):
         install.initialize_options(self)
@@ -33,14 +33,14 @@ class AppendPathCmd(install):
     def finalize_options(self):
         print("value of tools is", self.tools)
         install.finalize_options(self)
-        
+
     def run(self):
         install.run(self)
         if self.tools:
             with open(os.path.join(site.getsitepackages()[0], 'nanopype.pth'), 'w') as fp:
                 print('import os; os.environ["PATH"] += os.pathsep + "{dir}"'.format(dir=os.path.abspath(self.tools)), file=fp)
 
-        
+
 setup(
     name='nanopype',
     version='0.1.0',
@@ -51,7 +51,7 @@ setup(
     url='https://github.com/giesselmann/nanopype',
     license='LICENSE',
     python_requires='>=3.4',
-    install_requires=['snakemake>=5.3.0', 'h5py>=2.7.1', 'watchdog'],
+    install_requires=['snakemake>=5.3.0', 'numpy', 'h5py>=2.7.1', 'watchdog'],
     include_package_data=True,
     scripts=['scripts/nanopype_import.py',],
     zip_safe=False,
