@@ -89,8 +89,8 @@ rule guppy:
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
-        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 4000 * threads)),
+        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 60 min / 16 threads
     params:
         flowcell = lambda wildcards, config=config : get_flowcell(wildcards, config),
         kit = lambda wildcards, config=config : get_kit(wildcards, config),
