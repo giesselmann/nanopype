@@ -33,11 +33,13 @@
 # ---------------------------------------------------------------------------------
 # imports
 import os
+from rules.utils.env import get_python
 from rules.utils.get_file import get_batches, get_sequence_batch, get_alignment_batch
 # local rules
-localrules: nanopolish_methylation_merge_run, nanopolish_methylation_compress, nanopolish_methylation_bedGraph, nanopolish_methylation_frequencies, methylation_bigwig
+localrules: nanopolish_methylation_merge_run, methylation_compress, nanopolish_methylation_bedGraph, nanopolish_methylation_frequencies, methylation_bigwig
 # local config
 config['bin']['methylation_flappie'] = os.path.abspath(os.path.join(workflow.basedir, 'rules/utils/methylation_flappie.py'))
+config['bin']['methylation_1D2'] = os.path.abspath(os.path.join(workflow.basedir, 'rules/utils/methylation_1D2.py'))
 
 # get batches
 def get_batches_methylation(wildcards, methylation_caller):
@@ -75,7 +77,7 @@ rule nanopolish_methylation_merge_run:
     input:
         lambda wildcards: get_batches_methylation(wildcards, 'nanopolish')
     output:
-        "methylation/nanopolish/{runname, [^./]*}.{reference, [^./]*}.tsv"
+        temp("methylation/nanopolish/{runname, [^./]*}.{reference, [^./]*}.tsv")
     run:
         from rules.utils.methylation_nanopolish import tsvParser
         recordIterator = tsvParser()
@@ -89,13 +91,13 @@ rule nanopolish_methylation_merge_run:
                         for begin, end, ratio, log_methylated, log_unmethylated in sites:
                             print('\t'.join([chr, str(begin), str(end), name, str(ratio), strand, str(log_methylated), str(log_unmethylated)]), file=fp_out)
 
-rule nanopolish_methylation_compress:
+rule methylation_compress:
     input:
         "methylation/{methylation_caller}/{runname}.{reference}.tsv"
     output:
         "methylation/{methylation_caller, [^./]*}/{runname, [^./]*}.{reference, [^./]*}.tsv.gz"
     shell:
-        "gzip {input}"
+        "cat {input} | sort -k1,1 -k4,4 | gzip > {output}"
 
 # nanopolish methylation probability to frequencies
 rule nanopolish_methylation_frequencies:
@@ -132,4 +134,18 @@ rule methylation_bigwig:
     shell:
         """
         {config[bin][bedGraphToBigWig]} {input} {params.chr_sizes} {output}
+        """
+
+# 1D2 matched methylation table
+rule methylation_1D2:
+    input:
+        values = "methylation/{methylation_caller}/{runname}.{reference}.tsv.gz",
+        pairs = "alignments/{aligner}/{basecaller}/{{runname}}.{{reference}}.1D2.tsv".format(aligner=config["methylation_nanopolish_aligner"], basecaller=config['methylation_nanopolish_basecaller'])
+    output:
+        "methylation/{methylation_caller, [^./]*}/{runname, [^./]*}.{reference, [^./]*}.1D2.tsv.gz"
+    params:
+        py_bin = lambda wildcards : get_python(wildcards)
+    shell:
+        """
+        {params.py_bin} {config[bin][methylation_1D2]} {input.pairs} {input.values} | gzip > {output}
         """

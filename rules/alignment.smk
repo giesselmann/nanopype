@@ -33,11 +33,14 @@
 # ---------------------------------------------------------------------------------
 # imports
 import os, glob
+from rules.utils.env import get_python
 from rules.utils.get_file import get_batches, get_sequence_batch
 from rules.utils.storage import get_ID
 # local rules
-localrules: graphmap_index, ngmlr_index, aligner_merge_run, aligner_merge_runs
+localrules: graphmap_index, ngmlr_index, aligner_merge_run, aligner_merge_runs, aligner_1D2
 #ruleorder: aligner_split_run > aligner_sam2bam
+# local config
+config['bin']['alignment_1D2'] = os.path.abspath(os.path.join(workflow.basedir, 'rules/utils/alignment_1D2.py'))
 
 # get batches
 def get_batches_aligner(wildcards, config):
@@ -177,4 +180,19 @@ rule aligner_merge_runs:
         """
         {config[bin][samtools]} merge {output.bam} {input} -p
         {config[bin][samtools]} index {output.bam}
+        """
+
+# match 1D2 read pairs
+rule aligner_1D2:
+    input:
+        "alignments/{aligner}/{basecaller}/{runname}.{reference}.bam"
+    output:
+        "alignments/{aligner, [^./]*}/{basecaller, [^./]*}/{runname, [^./]*}.{reference, [^./]*}.1D2.tsv"
+    params:
+        py_bin = lambda wildcards : get_python(wildcards),
+        buffer = 100,
+        tolerance = 200
+    shell:
+        """
+        {config[bin][samtools]} view -F 2308 {input} | {params.py_bin} {config[bin][alignment_1D2]} --buffer {params.buffer} --tolerance {params.tolerance} > {output}
         """
