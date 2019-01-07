@@ -48,7 +48,7 @@ def get_batches_methylation(wildcards, methylation_caller):
 rule nanopolish_methylation:
     input:
         signals = "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
-        sequences = lambda wildcards ,config=config : get_sequence_batch(wildcards, config, force_basecaller='albacore'),
+        sequences = lambda wildcards ,config=config : get_sequence_batch(wildcards, config, force_basecaller=config['methylation_nanopolish_basecaller']),
         bam = lambda wildcards, config=config : get_alignment_batch(wildcards, config, force_basecaller=config['methylation_nanopolish_basecaller'], force_aligner=config["methylation_nanopolish_aligner"]),
         bai = lambda wildcards, config=config : get_alignment_batch(wildcards, config, force_basecaller=config['methylation_nanopolish_basecaller'], force_aligner=config["methylation_nanopolish_aligner"]) + '.bai'
     output:
