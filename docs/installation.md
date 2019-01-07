@@ -94,7 +94,7 @@ The --directory argument of snakemake is used as installation prefix. By running
 
 You will need to append the **bin** directory to your PATH variable, modify the paths in the environment config or re-run the nanopype installation with
 
-    pip3 install . --upgrade --install-option="--tools=$(pwd)../../bin"
+    pip3 install . --upgrade --install-option="--tools=$(pwd)/../../bin"
 
 to make nanopype aware of the installed tools. This will create a .pth file in your python3 installation, modifying the PATH on python start.
 

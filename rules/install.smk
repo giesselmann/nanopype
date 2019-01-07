@@ -303,7 +303,7 @@ rule Flappie:
         """
         install_prefix=`pwd`
         {input.git_lfs} install
-        export PATH=$install_prefix:$PATH
+        export PATH=$install_prefix/bin:$PATH
         mkdir -p src && cd src
         if [ ! -d flappie ]; then
             git clone https://github.com/nanoporetech/flappie && cd flappie
