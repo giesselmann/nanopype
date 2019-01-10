@@ -97,7 +97,7 @@ rule methylation_compress:
     output:
         "methylation/{methylation_caller, [^./]*}/{runname, [^./]*}.{reference, [^./]*}.tsv.gz"
     shell:
-        "cat {input} | sort -k1,1 -k4,4 | gzip > {output}"
+        "cat {input} | sort -k1,1 -k4,4 -k2,2n | gzip > {output}"
 
 # nanopolish methylation probability to frequencies
 rule nanopolish_methylation_frequencies:

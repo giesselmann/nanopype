@@ -67,7 +67,7 @@ if __name__ == '__main__':
     # cmd arguments
     parser = argparse.ArgumentParser(description="1D2 read matched single read methylation")
     parser.add_argument("pairs", help="1D2 read matches")
-    parser.add_argument("values", help="Mapping tolerance to consider reads starting at same position")
+    parser.add_argument("values", help="Single read methylation table")
     args = parser.parse_args()
     # load read pair table
     read_pairs = {}
@@ -76,7 +76,7 @@ if __name__ == '__main__':
             chr, begin, end, n0, n1 = line.strip().split('\t')
             if chr not in read_pairs:
                 read_pairs[chr] = []
-            read_pairs[chr].append((n0, n1))
+            read_pairs[chr].append((begin, end, n0, n1))
 
     # load methylation values chromosome wise
     current_chr = ''
@@ -92,14 +92,14 @@ if __name__ == '__main__':
                 current_pairs = read_pairs[current_chr]
                 # print("pairs:", str(len(current_pairs)), file=sys.stderr)
                 # print("values:", str(len(current_values)), file=sys.stderr)
-                for n0, n1 in current_pairs:
+                for pair_begin, pair_end, n0, n1 in current_pairs:
                     # print(n0, n1, file=sys.stderr)
                     # assert n0 in current_values
                     # assert n1 in current_values
                     if n0 not in current_values or n1 not in current_values:
                         continue
-                    v0 = {(chr, begin, end):(value, strand) for chr, begin, end, value, strand in current_values[n0]}
-                    v1 = {(chr, begin, end):(value, strand) for chr, begin, end, value, strand in current_values[n1]}
+                    v0 = {(chr, begin, end):(value, strand) for chr, begin, end, value, strand in current_values[n0] if begin >= pair_begin and end <= pair_end}
+                    v1 = {(chr, begin, end):(value, strand) for chr, begin, end, value, strand in current_values[n1] if begin >= pair_begin and end <= pair_end}
                     # only print matching positions
                     v01 = sorted(list(set(v0.keys()) & set(v1.keys())), key = lambda x: x[1])
                     for v in v01:

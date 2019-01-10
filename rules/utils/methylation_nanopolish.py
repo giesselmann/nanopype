@@ -47,7 +47,7 @@ class tsvParser():
         begin = int(begin)
         end = int(end)
         if n_cpgs == 1:
-            sites = [(begin, end, ratio, log_methylated, log_unmethylated)]
+            sites = [(begin, end + 2, ratio, log_methylated, log_unmethylated)]
         else:
             offsets = [m.start() for m in re.finditer('CG', sequence)]
             offsets[:] = [x - offsets[0] for x in offsets]
@@ -60,22 +60,22 @@ class tsvParser():
         while True:
             if self.currentLine:
                 sites = []
-                name, chr, stand, currentSites = self.__parse_line__(self.currentLine)
+                name, chr, strand, currentSites = self.__parse_line__(self.currentLine)
                 sites.extend(currentSites)
                 try:
                     self.currentLine = next(it).strip()
                 except StopIteration:
                     yield name, chr, strand, sites
                     return
-                currentName, currentChr, strand, currentSites = self.__parse_line__(self.currentLine)
-                while name == currentName:
+                currentName, currentChr, currentStrand, currentSites = self.__parse_line__(self.currentLine)
+                while name == currentName and strand == currentStrand and chr == currentChr:
                     sites.extend(currentSites)
                     try:
                         self.currentLine = next(it).strip()
                     except StopIteration:
                         yield name, chr, strand, sites
                         return
-                    currentName, currentChr, strand, currentSites = self.__parse_line__(self.currentLine)
+                    currentName, currentChr, currentStrand, currentSites = self.__parse_line__(self.currentLine)
                 yield name, chr, strand, sites
             else:
                 return
