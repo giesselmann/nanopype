@@ -269,7 +269,7 @@ rule OpenBLAS:
         else
             cd OpenBLAS && git fetch && git checkout v0.3.4
         fi
-        make clean && make NO_LAPACK=1 -j{threads}
+        make clean && make NO_LAPACK=1 NOFORTRAN=1 -j{threads}
         make install PREFIX=$install_prefix
         """
 
