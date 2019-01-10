@@ -190,9 +190,9 @@ rule aligner_1D2:
         "alignments/{aligner, [^./]*}/{basecaller, [^./]*}/{runname, [^./]*}.{reference, [^./]*}.1D2.tsv"
     params:
         py_bin = lambda wildcards : get_python(wildcards),
-        buffer = 100,
+        buffer = 200,
         tolerance = 200
     shell:
         """
-        {config[bin][samtools]} view -F 2308 {input} | {params.py_bin} {config[bin][alignment_1D2]} --buffer {params.buffer} --tolerance {params.tolerance} > {output}
+        {config[bin][samtools]} view -F 4 {input} | {params.py_bin} {config[bin][alignment_1D2]} --buffer {params.buffer} --tolerance {params.tolerance} > {output}
         """
