@@ -319,7 +319,7 @@ if __name__ == '__main__':
     parser.add_argument("input", nargs="+", help="Import directories")
     parser.add_argument("-f", "--filter", nargs="+", default=[".*\.fast5"], help="File filter regex")
     parser.add_argument("-b", "--batch_size", type=int, default=4000, help="Number of files to put into one archive")
-    parser.add_argument("--recursive", action="store_false", help="Recursivly scan import directory")
+    parser.add_argument("--recursive", action="store_true", help="Recursivly scan import directory")
     parser.add_argument("--watch", action="store_true", help="Watch input for incoming files")
     parser.add_argument("-l", "--log", default=None, help="Log file")
     parser.add_argument("--grace_period", type=int, default=60, help="Time in seconds before treating a file as final")
