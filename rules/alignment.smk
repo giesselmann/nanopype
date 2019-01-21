@@ -105,7 +105,7 @@ rule ngmlr:
     group: "ngmlr"
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 32000),
-        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt)   # 60 min / 16 threads
+        time_min = lambda wildcards, threads, attempt: int((5760 / threads) * attempt)   # 360 min / 16 threads
     shell:
         """
         cat {input.sequence} | {config[bin][ngmlr]} -r {input.reference} -t {threads} {config[alignment_ngmlr_flags]} >> {output}
