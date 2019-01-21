@@ -91,7 +91,7 @@ kable(dfN)
 ## Make read length histogram with cumulative sum of gigabases belonging to read lengths
 p1 <- ggplot(data=basecalling_stats, aes(sort(basecalling_stats$length))) + geom_histogram(aes(color = "Count read length"), binwidth = 50, fill = "royalblue4", show.legend = FALSE) + labs(x="Read length (up to 95% quantile)", y="Number of reads") + xlim(c(0,quantile(basecalling_stats$length, 0.95))) + theme_classic()
 
-sorted_cum_sum_length <- cumsum(sort(basecalling_stats$length))
+sorted_cum_sum_length <- cumsum(as.numeric(sort(basecalling_stats$length)))
 max_hist_count <- max(ggplot_build(p1)$data[[1]]$count)
 normalizer <- max(sorted_cum_sum_length)/max_hist_count
 sorted_cum_sum_length_norm <- sorted_cum_sum_length/normalizer
