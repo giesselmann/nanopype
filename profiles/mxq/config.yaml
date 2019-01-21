@@ -5,7 +5,7 @@ cluster: "mxq-submit.py"
 cluster-status: "mxq-status.py"
 jobscript: "mxq-jobscript.sh"
 # params
-latency-wait: 60
+latency-wait: 600
 jobs: 2048
 restart-times: 3
 immediate-submit: false
