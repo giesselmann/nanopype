@@ -37,7 +37,7 @@ from rules.utils.get_file import get_batches, get_sequence
 from rules.utils.storage import get_flowcell, get_kit
 # local rules
 localrules: basecaller_merge_run, basecaller_merge_runs
-ruleorder: basecaller_compress > albacore > flappie
+ruleorder: basecaller_compress > guppy > albacore > flappie
 # local config
 config['bin']['basecalling_qc'] = os.path.abspath(os.path.join(workflow.basedir, 'rules/utils/basecalling_qc.Rmd'))
 
