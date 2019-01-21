@@ -4,7 +4,7 @@
 
 Development release:
 
-    * Nanopolish                v0.11.0
+:   * Nanopolish                v0.11.0
     * htslib                    v1.9
     * OpenBLAS                  v0.3.4
 
