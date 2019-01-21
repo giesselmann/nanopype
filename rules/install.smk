@@ -93,7 +93,7 @@ rule bedtools:
         if [ ! -d bedtools2 ]; then
             git clone https://github.com/arq5x/bedtools2 --branch v2.27.1 --depth=1 && cd bedtools2
         else
-            cd bedtools2 && git fetch && git checkout v2.27.1
+            cd bedtools2 && git fetch --all --tags --prune && git checkout tags/v2.27.1
         fi
         make clean && make
         cp bin/bedtools ../../bin/
@@ -109,7 +109,7 @@ rule htslib:
         if [ ! -d htslib ]; then
             git clone https://github.com/samtools/htslib --branch 1.9 --depth=1 && cd htslib
         else
-            cd htslib && git fetch && git checkout 1.9
+            cd htslib && git fetch --all --tags --prune && git checkout tags/1.9
         fi
         autoheader && autoconf && ./configure && make -j{threads}
         """
@@ -126,7 +126,7 @@ rule samtools:
         if [ ! -d samtools ]; then
             git clone https://github.com/samtools/samtools --branch 1.9 --depth=1 && cd samtools
         else
-            cd samtools && git fetch && git checkout -b 1.9
+            cd samtools && git fetch --all --tags --prune && git checkout tags/1.9
         fi
         autoheader --warning=none && autoconf -Wno-syntax && ./configure && make -j{threads}
         cp samtools ../../bin/
@@ -142,7 +142,7 @@ rule minimap2:
         if [ ! -d minimap2 ]; then
             git clone https://github.com/lh3/minimap2 --branch v2.14 --depth=1 && cd minimap2
         else
-            cd minimap2 && git fetch && git checkout v2.14
+            cd minimap2 && git fetch --all --tags --prune && git checkout tags/v2.14
         fi
         make clean && make -j{threads}
         cp minimap2 ../../bin
@@ -158,7 +158,7 @@ rule graphmap:
         if [ ! -d graphmap ]; then
             git clone https://github.com/isovic/graphmap --branch master --depth=1 && cd graphmap
         else
-            cd graphmap && git fetch && git checkout master
+            cd graphmap && git fetch --all --tags --prune && git checkout master
         fi
         make modules -j{threads} && make -j{threads}
         cp bin/Linux-x64/graphmap ../../bin/
@@ -174,7 +174,7 @@ rule ngmlr:
         if [ ! -d ngmlr ]; then
             git clone https://github.com/philres/ngmlr --branch v0.2.7 --depth=1 && cd ngmlr
         else
-            cd ngmlr && git fetch && git checkout v0.2.7
+            cd ngmlr && git fetch --all --tags --prune && git checkout tags/v0.2.7
         fi
         mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -G {config[build_generator]} .. && cmake --build . --config Release -- -j {threads}
         cp ../bin/*/ngmlr ../../../bin
@@ -188,9 +188,9 @@ rule nanopolish:
         """
         mkdir -p src && cd src
         if [ ! -d nanopolish ]; then
-            git clone --recursive https://github.com/jts/nanopolish --branch v0.10.2 --depth=1 && cd nanopolish
+            git clone --recursive https://github.com/jts/nanopolish --branch v0.11.0 --depth=1 && cd nanopolish
         else
-            cd nanopolish && git fetch && git checkout v0.10.2
+            cd nanopolish && git fetch --all --tags --prune && git checkout tags/v0.11.0
         fi
         make clean
         make -j{threads}
@@ -207,7 +207,7 @@ rule sniffles:
         if [ ! -d Sniffles ]; then
             git clone https://github.com/fritzsedlazeck/Sniffles --branch v1.0.10 --depth=1 && cd Sniffles
         else
-            cd Sniffles && git checkout v1.0.10
+            cd Sniffles && git fetch --all --tags --prune && git checkout tags/v1.0.10
         fi
         mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -G{config[build_generator]} .. && cmake --build . --config Release -- -j {threads}
         cp ../bin/*/sniffles ../../../bin
@@ -222,7 +222,7 @@ rule deepbinner:
         if [ ! -d Deepbinner ]; then
             git clone https://github.com/rrwick/Deepbinner --branch v0.2.0 --depth=1 && cd Deepbinner
         else
-            cd Deepbinner && git fetch && git checkout v0.2.0
+            cd Deepbinner && git fetch --all --tags --prune && git checkout tags/v0.2.0
         fi
         pip3 install -r requirements.txt --upgrade
         ln -s $(pwd)/deepbinner-runner.py ../../{output.bin}
@@ -250,7 +250,7 @@ rule gitlfs:
         if [ ! -d git-lfs ]; then
             git clone https://github.com/git-lfs/git-lfs.git --branch v2.6.0 --depth=1 && cd git-lfs
         else
-            cd git-lfs && git fetch && git checkout v2.6.0
+            cd git-lfs && git fetch --all --tags --prune && git checkout tags/v2.6.0
         fi
         make
         cp bin/git-lfs ../../bin
@@ -267,7 +267,7 @@ rule OpenBLAS:
         if [ ! -d OpenBLAS ]; then
             git clone https://github.com/xianyi/OpenBLAS --branch v0.3.4 --depth=1 && cd OpenBLAS
         else
-            cd OpenBLAS && git fetch && git checkout v0.3.4
+            cd OpenBLAS && git fetch --all --tags --prune && git checkout tags/v0.3.4
         fi
         make clean && make NO_LAPACK=1 NOFORTRAN=1 -j{threads}
         make install PREFIX=$install_prefix
@@ -284,7 +284,7 @@ rule hdf5:
         if [ ! -d hdf5 ]; then
             git clone https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git --branch hdf5-1_8_20 --depth=1 && cd hdf5
         else
-            cd hdf5 && git fetch && git checkout hdf5-1_8_20
+            cd hdf5 && git fetch --all --tags --prune && git checkout tags/hdf5-1_8_20
         fi
         mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DHDF5_BUILD_TOOLS=OFF -DBUILD_TESTING=OFF -DHDF5_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=$install_prefix -G{config[build_generator]} ../
         cmake --build . --config Release -- -j {threads}
@@ -306,9 +306,9 @@ rule Flappie:
         export PATH=$install_prefix/bin:$PATH
         mkdir -p src && cd src
         if [ ! -d flappie ]; then
-            git clone https://github.com/nanoporetech/flappie && cd flappie
+            git clone https://github.com/nanoporetech/flappie --branch master && cd flappie
         else
-            cd flappie && git fetch && git checkout master
+            cd flappie && git fetch --all --tags --prune && git checkout master
         fi
         mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} ../
         cmake --build . --config Release -- -j {threads}
