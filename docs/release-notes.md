@@ -1,5 +1,13 @@
 # Release notes
 
+#### v0.2.0
+
+Development release:
+
+    * Nanopolish                v0.11.0
+    * htslib                    v1.9
+    * OpenBLAS                  v0.3.4
+
 #### v0.1.0
 
 Initial release with tool versions (for development or untagged repositories, the master branch with the tested version in brackets is used):
