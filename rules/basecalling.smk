@@ -76,7 +76,7 @@ rule albacore:
         if [[ \'{wildcards.format}\' == *'q'* ]]; then
             cat {wildcards.batch}.fq | gzip > {output}
         else
-            cat {wildcards.batch}.fq | paste - - - - | cut -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
+            cat {wildcards.batch}.fq | tr '\t' ' ' | paste - - - - | cut -d '\t' -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
         fi
         """
 
@@ -109,7 +109,7 @@ rule guppy:
         if [[ \'{wildcards.format}\' == *'q'* ]]; then
             cat {wildcards.batch}.fq | gzip > {output}
         else
-            cat {wildcards.batch}.fq | paste - - - - | cut -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
+            cat {wildcards.batch}.fq | tr '\t' ' ' | paste - - - - | cut -d '\t' -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
         fi
         """
 
@@ -136,7 +136,7 @@ rule flappie:
         if [[ \'{wildcards.format}\' == *'q'* ]]; then
             cat {wildcards.batch}.fq | gzip > {output}
         else
-            cat {wildcards.batch}.fq | paste - - - - | cut -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
+            cat {wildcards.batch}.fq | tr '\t' ' ' | paste - - - - | cut -d '\t' -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
         fi
         """
 
