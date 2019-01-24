@@ -40,6 +40,7 @@ localrules: basecaller_merge_run, basecaller_merge_runs
 ruleorder: basecaller_compress > guppy > albacore > flappie
 # local config
 config['bin']['basecalling_qc'] = os.path.abspath(os.path.join(workflow.basedir, 'rules/utils/basecalling_qc.Rmd'))
+config['bin']['methylation_flappie'] = os.path.abspath(os.path.join(workflow.basedir, 'rules/utils/methylation_flappie.py'))
 
 # get batches
 def get_batches_basecaller(wildcards):
@@ -90,7 +91,7 @@ rule guppy:
     threads: config['threads_basecalling']
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 4000 * threads)),
-        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 60 min / 16 threads
+        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 90 min / 16 threads
     params:
         flowcell = lambda wildcards, config=config : get_flowcell(wildcards, config),
         kit = lambda wildcards, config=config : get_kit(wildcards, config),
@@ -118,26 +119,30 @@ rule flappie:
     input:
         "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"])
     output:
-        "sequences/flappie/{runname, [a-zA-Z0-9_-]+}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
+        sequence = "sequences/flappie/{runname, [a-zA-Z0-9_-]+}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz",
+        methyl_marks = "sequences/flappie/{runname, [a-zA-Z0-9_-]+}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.tsv.gz"
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (6000 + 1000 * threads)),
-        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 60 min / 16 threads
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 4000 * threads)),
+        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 90 min / 16 threads
+    params:
+        py_bin = lambda wildcards : get_python(wildcards)
     shell:
         """
         export OPENBLAS_NUM_THREADS=1
         mkdir -p raw
         tar -C raw/ -xf {input}
-        find raw/ -regextype posix-extended -regex '^.*fast5' > raw.fofn
-        split -e -n l/{threads} raw.fofn raw.fofn.part.
-        ls raw.fofn.part.* | xargs -n 1 -P {threads} -I {{}} $SHELL -c 'cat {{}} | xargs -n 1 {config[bin][flappie]} {config[basecalling_flappie_flags]} > raw/{{}}.fastq'
+        find raw/ -regextype posix-extended -regex '^.*fast5' -type f -exec du -h {{}} + | sort -r -h | cut -f2 > raw.fofn
+        split -e -n r/{threads} raw.fofn raw.fofn.part.
+        ls raw.fofn.part.* | xargs -n 1 -P {threads} -I {{}} $SHELL -c 'cat {{}} | shuf | xargs -n 1 {config[bin][flappie]} --model {config[basecalling_flappie_model]} {config[basecalling_flappie_flags]} > raw/{{}}.fastq'
         find ./raw -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; > {wildcards.batch}.fq
         if [[ \'{wildcards.format}\' == *'q'* ]]; then
-            cat {wildcards.batch}.fq | gzip > {output}
+            cat {wildcards.batch}.fq | {params.py_bin} {config[bin][methylation_flappie]} split {output.methyl_marks} | gzip > {output.sequence}
         else
-            cat {wildcards.batch}.fq | tr '\t' ' ' | paste - - - - | cut -d '\t' -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
+            cat {wildcards.batch}.fq | {params.py_bin} {config[bin][methylation_flappie]} split {output.methyl_marks} | tr '\t' ' ' | paste - - - - | cut -d '\t' -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output.sequence}
         fi
+        gzip {output.methyl_marks}
         """
 
 # merge and compression
