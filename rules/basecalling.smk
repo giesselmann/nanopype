@@ -125,7 +125,7 @@ rule flappie:
     threads: config['threads_basecalling']
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 4000 * threads)),
-        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 90 min / 16 threads
+        time_min = lambda wildcards, threads, attempt: int((5760 / threads) * attempt) # 360 min / 16 threads
     params:
         py_bin = lambda wildcards : get_python(wildcards)
     shell:
