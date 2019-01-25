@@ -51,6 +51,7 @@ class logger():
     logs = [sys.stdout]
     class log_type(enum.Enum):
         Error = "[ERROR]"
+        Warning = "[WARNING]"
         Info = "[INFO]"
         Debug = "[DEBUG]"
     log_types = []
@@ -181,10 +182,11 @@ class fs_watchdog():
 
 # package files to batch tar archives
 class packager():
-    def __init__(self, src_dirs, dst_dir, recursive=True, regexes=['.*'], batch_size=4000):
+    def __init__(self, src_dirs, dst_dir, recursive=True, ignore_existing=False, regexes=['.*'], batch_size=4000):
         self.src_dirs = src_dirs
         self.dst_dir = dst_dir
         self.recursive = recursive
+        self.ignore_existing = ignore_existing
         self.regexes = regexes
         self.batch_size = batch_size
         self.file_queue = Queue()
@@ -263,11 +265,14 @@ class packager():
             dst_keys = set(dst_files.keys())
             to_archive = src_keys.difference(dst_keys)
             archived = dst_keys.intersection(src_keys)
-            archived_only = set(dst_files.keys()).difference(set(src_files.keys()))
+            archived_only = dst_keys.difference(src_keys)
             logger.log("{archived} raw files already archived".format(archived=len(archived)))
             logger.log("{to_archive} raw files to be archived".format(to_archive=len(to_archive)))
             if len(archived_only) > 0:
                 logger.log("{archived_only} files in archive but not found in source directory".format(archived_only=len(archived_only)), logger.log_type.Warning)
+                if not self.ignore_existing:
+                    logger.log("Exiting with files in archive not found in source directory. Re-run with --ignore_existing to archive anyway")
+                    return
             processing_queue.extend(sorted([src_files[f] for f in to_archive]))
             # enter main archive loop
             while active:
@@ -323,6 +328,7 @@ if __name__ == '__main__':
     parser.add_argument("--watch", action="store_true", help="Watch input for incoming files")
     parser.add_argument("-l", "--log", default=None, help="Log file")
     parser.add_argument("--grace_period", type=int, default=60, help="Time in seconds before treating a file as final")
+    parser.add_argument("--ignore_existing", action="store_true", help="Proceed with files found in archive but not in import location")
     args = parser.parse_args()
     # start logging
     logger.init(file=args.log, log_types=[logger.log_type.Error, logger.log_type.Info, logger.log_type.Debug] )
@@ -346,7 +352,7 @@ if __name__ == '__main__':
         logger.log("No readable input directory specified", logger.log_type.Error)
         exit(-1)
     # create packager
-    pkgr = packager(input_dirs, dir_out, recursive=args.recursive, regexes=args.filter, batch_size=args.batch_size)
+    pkgr = packager(input_dirs, dir_out, recursive=args.recursive, ignore_existing=args.ignore_existing, regexes=args.filter, batch_size=args.batch_size)
     pkgr.start()
     # create fs watchdogs
     if args.watch:
