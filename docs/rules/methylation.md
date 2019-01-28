@@ -8,9 +8,7 @@ or
 
     snakemake --snakefile /path/to/nanopype/Snakefile methylation/nanopolish.5x.hg38.bw
 
-If not already present, this will trigger basecalling and alignment of the raw data. Similar to the basecalling and alignment modules a *runnames.txt* in the working directory is required. Furthermore only CpGs with at least 5x coverage are reported. The *5x* in the commands file name is an arbitrary tag, the minimum coverage is set in the config.yaml:
-
-:   * methylation_min_coverage: 1
+If not already present, this will trigger basecalling and alignment of the raw data. Similar to the basecalling and alignment modules a *runnames.txt* in the working directory is required. Furthermore only CpGs with at least 5x coverage are reported. The coverage wildcard can be any positive integer in combination with arbitrary text (e.g. *5*, *5x* or *min5x* will result in the same output).
 
 ## Folder structure
 
@@ -28,11 +26,11 @@ If not already present, this will trigger basecalling and alignment of the raw d
       |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
          |--0.hg38.tsv                                            # Single read batches
          |--1.hg38.tsv
+      |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
    |--flappie.1x.hg38.bedGraph
    |--flappie.1x.hg38.bw
 ```
 
-*Note:* The output from Flappie is under development and not available in the current release.
 
 ## Tools
 
@@ -55,18 +53,21 @@ Nanopolish specific configuration parameters are:
 :   * methylation_nanopolish_logp_threshold: 2.5
     * methylation_nanopolish_basecaller: guppy
     * methylation_nanopolish_aligner: minimap2
-    * methylation_min_coverage: 1
-
-Nanopolish only works with basecalling from albacore or guppy.
 
 ### Flappie
 
 Flappie is a new ONT neural network basecaller with a default output alphabet of *ACGT*. Using a different model, a methylation status prediction in CpG contexts is possible. A methylated Cytosine is then encoded as *Z*.
 
 The Flappie sequence output is aligned against a reference genome. A CG in the reference with matching CG in the read is reported as unmethylated, a CG in the reference with matching ZG is reported as methylated.
-The output is again a bed-like file with the methylation level in the 4th column:
+The single read output is again a bed-like file with the methylation level in the 4th column and the mean q-val over the CG in the 6th column:
 
-    chr6	31129299	31129301	f56afc41-fc2c-4157-941d-b8416eb11d2c	0	+
+    chr6	31129299	31129301	f56afc41-fc2c-4157-941d-b8416eb11d2c	0	+	5.0
+
+Flappie specific configuration parameters are:
+
+:   * basecalling_flappie_model: 'r941_5mC'
+    * methylation_flappie_qval_threshold: 2
+    * methylation_flappie_aligner: minimap2
 
 ## References
 

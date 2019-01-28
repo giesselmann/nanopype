@@ -1,5 +1,16 @@
 # Release notes
 
+#### v0.2.1
+
+Development release:
+
+:   * Parse experimental Flappie methylation calls to bedGraph/bigWig
+    * Detect bigWig coverage from wildcards without requiring config entry
+
+Known issues:
+
+:   * Installing guppy after flappie is overwriting a symlink to *libhdf5.so* causing the flappie basecaller to load a hdf5 library it was not linked to. This will be fixed in a future release by separating the libraries properly.
+
 #### v0.2.0
 
 Development release:
@@ -11,6 +22,7 @@ Development release:
 #### v0.1.0
 
 Initial release with tool versions (for development or untagged repositories, the master branch with the tested version in brackets is used):
+
 :   * Bedtools                  v2.27.1
     * Samtools                  v1.9
     * UCSCTools

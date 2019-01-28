@@ -37,7 +37,6 @@ methylation_nanopolish_basecaller: guppy
 methylation_nanopolish_aligner: minimap2
 methylation_flappie_qval_threshold: 2
 methylation_flappie_aligner: minimap2
-methylation_min_coverage: 1
 
 # demux
 deepbinner_models:

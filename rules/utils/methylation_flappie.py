@@ -47,6 +47,7 @@ def fastxIter(iterable):
         line = line.decode('utf-8').strip()
         next_decode = lambda *args: next(*args).decode('utf-8').strip()
     else:
+        line = line.strip()
         next_decode = lambda *args: next(*args).strip()
     while True:
         if line is not None and len(line) > 0:
@@ -57,7 +58,7 @@ def fastxIter(iterable):
                 quality = next_decode(it)
                 yield name, sequence, comment, quality
                 line = next_decode(it)
-            if line[0] == '>':      # fasta
+            elif line[0] == '>':      # fasta
                 name = line
                 sequence = next_decode(it)
                 try:
@@ -68,14 +69,19 @@ def fastxIter(iterable):
                 while line is not None and len(line) > 0 and line[0] != '>' and line[0] != '@':
                     sequence += line
                     try:
-                        line = next_decode(it).strip()
+                        line = next_decode(it)
                     except StopIteration:
                         yield name, sequence.upper()
                         return
                 yield name, sequence.upper()
-        if line is None:
+            else:
+                print("error parsing header line {}".format(line), file=sys.stderr)
+                sys.exit(-1)
+        elif line is None:
             raise StopIteration()
-
+        else:
+            print("error parsing line {}".format(line), file=sys.stderr)
+            sys.exit(-1)
 
 
 
@@ -194,8 +200,9 @@ Available flappie commands are:
             # parse cigar
             dec_cigar = self.__decodeCigar__(cigar)
             ref_len = self.__opsLength__(dec_cigar, recOps='MDN=X')
-            read_clip_begin = sum([x[0] for x in dec_cigar[:2] if x[1] in 'SH'])
-            read_clip_end = sum([x[0] for x in dec_cigar[-2:] if x[1] in 'SH'])
+            read_clip_ops = 2 if len(dec_cigar) > 3 else 1
+            read_clip_begin = sum([x[0] for x in dec_cigar[:read_clip_ops] if x[1] in 'SH'])
+            read_clip_end = sum([x[0] for x in dec_cigar[-read_clip_ops:] if x[1] in 'SH'])
             # matching ref and read slices
             ref_slice = self.ref[rname][pos - 1 : pos - 1 + ref_len]
             if flag & 0x16:
@@ -226,8 +233,9 @@ Available flappie commands are:
                 ref_match_temp_end = ref_pos[max(ref_match.start(), ref_match.end())-1]
                 ref_match_seq = ref_seq[ref_match.start():ref_match.end()]
                 read_match_seq = read_slice[ref_match.start():ref_match.end()]
-                read_match_qual = qual_slice[ref_match.start():ref_match.end()]                
+                read_match_qual = qual_slice[ref_match.start():ref_match.end()]
                 if len(ref_match_seq) != ref_match_temp_end - ref_match_temp_begin + 1:
+                    # insertion over CpG
                     continue
                 read_match_qual = sum([ord(x) - 33 for x in read_match_qual]) / len(read_match_qual)
                 read_mod_match = self.mod_regex.fullmatch(read_match_seq)
@@ -255,6 +263,7 @@ Available flappie commands are:
                     print('\t'.join([ID, str(match_obj.start()), str(match_obj.end()), sequence[match_obj.start():match_obj.end()], args.ref_seq, quality[match_obj.start():match_obj.end()]]), file=fp)
                     return args.ref_seq
                 sequence_clean = re.sub(mod_regex, replace_mod, sequence)
+                assert len(sequence) == len(sequence_clean)
                 print("\n".join([name, sequence_clean, comment, quality]))
 
     # map flappie reported modification sites against reference genome
