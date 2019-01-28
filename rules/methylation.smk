@@ -32,11 +32,13 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 # imports
-import os
+import os, re
 from rules.utils.env import get_python
 from rules.utils.get_file import get_batches, get_sequence_batch, get_alignment_batch
 # local rules
-localrules: nanopolish_methylation_merge_run, methylation_compress, nanopolish_methylation_bedGraph, nanopolish_methylation_frequencies, methylation_bigwig
+localrules: methylation_nanopolish_merge_run, methylation_nanopolish_frequencies
+localrules: methylation_flappie_merge_run, methylation_flappie_frequencies
+localrules: methylation_bedGraph, methylation_bigwig, methylation_compress
 # local config
 config['bin']['methylation_flappie'] = os.path.abspath(os.path.join(workflow.basedir, 'rules/utils/methylation_flappie.py'))
 config['bin']['methylation_1D2'] = os.path.abspath(os.path.join(workflow.basedir, 'rules/utils/methylation_1D2.py'))
@@ -45,9 +47,17 @@ config['bin']['methylation_1D2'] = os.path.abspath(os.path.join(workflow.basedir
 def get_batches_methylation(wildcards, methylation_caller):
     return expand("methylation/{methylation_caller}/{wildcards.runname}/{{batch}}.{wildcards.reference}.tsv".format(wildcards=wildcards, methylation_caller=methylation_caller), batch=get_batches(wildcards, config=config))
 
-
+# parse min coverage from wildcards
+def get_min_coverage(wildcards):
+    x = [int(s) for s in re.findall(r'\d+', wildcards.coverage) if s.isdigit()]
+    if len(x) == 1:
+        return x
+    else:
+        print('Could not parse coverage from wildcard {wildcard}, using default 1x.'.format(wildcard=wildcards.coverage))
+        return 1
+    
 # nanopolish methylation detection
-rule nanopolish_methylation:
+rule methylation_nanopolish:
     input:
         signals = "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
         sequences = lambda wildcards ,config=config : get_sequence_batch(wildcards, config, force_basecaller=config['methylation_nanopolish_basecaller']),
@@ -73,7 +83,7 @@ rule nanopolish_methylation:
         """
 
 # merge batch tsv files and split connected CpGs
-rule nanopolish_methylation_merge_run:
+rule methylation_nanopolish_merge_run:
     input:
         lambda wildcards: get_batches_methylation(wildcards, 'nanopolish')
     output:
@@ -91,6 +101,39 @@ rule nanopolish_methylation_merge_run:
                         for begin, end, ratio, log_methylated, log_unmethylated in sites:
                             print('\t'.join([chr, str(begin), str(end), name, str(ratio), strand, str(log_methylated), str(log_unmethylated)]), file=fp_out)
 
+# Flappie basecaller methylation alignment
+rule methylation_flappie:
+    input:
+        seq = lambda wildcards, config=config : get_sequence_batch(wildcards, config, force_basecaller='flappie'),
+        bam = lambda wildcards, config=config : get_alignment_batch(wildcards, config, force_basecaller='flappie', force_aligner=config["methylation_flappie_aligner"]),
+        tsv = lambda wildcards ,config=config : re.sub('.gz$', '.tsv.gz', get_sequence_batch(wildcards, config, force_basecaller='flappie'))
+    output:
+        "methylation/flappie/{runname, [^./]*}/{batch, [0-9]+}.{reference, [^./]*}.tsv"
+    shadow: "minimal"
+    threads: 1
+    params:
+        reference = lambda wildcards: os.path.abspath(config['references'][wildcards.reference]['genome']),
+        py_bin = lambda wildcards : get_python(wildcards)
+    resources:
+        mem_mb = lambda wildcards, input, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 500 * threads)),
+        time_min = lambda wildcards, input, threads, attempt: int((240 / threads) * attempt)   # 15 min / 16 threads
+    shell:
+        """
+        {config[bin][samtools]} view -F 4 {input.bam} | {params.py_bin} {config[bin][methylation_flappie]} align {params.reference} {input.seq} {input.tsv} > {output}
+        """
+
+# merge batch tsv files
+rule methylation_flappie_merge_run:
+    input:
+        lambda wildcards: get_batches_methylation(wildcards, 'flappie')
+    output:
+        temp("methylation/flappie/{runname, [^./]*}.{reference, [^./]*}.tsv")
+    shell:
+        """
+        cat {input} > {output}
+        """
+
+# compress methylation caller tsv output
 rule methylation_compress:
     input:
         "methylation/{methylation_caller}/{runname}.{reference}.tsv"
@@ -100,7 +143,7 @@ rule methylation_compress:
         "cat {input} | sort -k1,1 -k4,4 -k2,2n | gzip > {output}"
 
 # nanopolish methylation probability to frequencies
-rule nanopolish_methylation_frequencies:
+rule methylation_nanopolish_frequencies:
     input:
         ['methylation/nanopolish/{runname}.{{reference}}.tsv.gz'.format(runname=runname) for runname in config['runnames']]
     output:
@@ -111,16 +154,31 @@ rule nanopolish_methylation_frequencies:
         """
         zcat {input} | cut -f1-3,5 | perl -anle 'if(abs($F[3]) > {params.log_p_threshold}){{if($F[3]>{params.log_p_threshold}){{print join("\t", @F[0..2], "1")}}else{{print join("\t", @F[0..2], "0")}}}}' | sort -k1,1 -k2,2n | {config[bin][bedtools]} groupby -g 1,2,3 -c 4 -o mean,count > {output}
         """
-
-# nanopolish frequencies to bedGraph
-rule nanopolish_methylation_bedGraph:
+        
+# flappie methylation with sequences quality to frequencies
+rule methylation_flappie_frequencies:
     input:
-        "methylation/nanopolish.{reference}.frequencies.tsv"
+        ['methylation/flappie/{runname}.{{reference}}.tsv.gz'.format(runname=runname) for runname in config['runnames']]
     output:
-        "methylation/nanopolish.{coverage, [^./]*}.{reference, [^./]*}.bedGraph"
+        "methylation/flappie.{reference, [^./]*}.frequencies.tsv"
+    params:
+        qval_threshold = config['methylation_flappie_qval_threshold']
     shell:
         """
-        cat {input} | perl -anle 'print $_ if $F[4] >= {config[methylation_min_coverage]}' | cut -f1-4 > {output}
+        zcat {input} | perl -anle 'print $_ if $F[6] > {params.qval_threshold}' | cut -f1-3,5 | sort -k1,1 -k2,2n | {config[bin][bedtools]} groupby -g 1,2,3 -c 4 -o mean,count > {output}
+        """
+
+# frequencies to bedGraph
+rule methylation_bedGraph:
+    input:
+        "methylation/{methylation_caller}.{reference}.frequencies.tsv"
+    output:
+        "methylation/{methylation_caller, [^./]*}.{coverage, [^./]*}.{reference, [^./]*}.bedGraph"
+    params:
+        methylation_min_coverage = lambda wildcards : get_min_coverage(wildcards)
+    shell:
+        """
+        cat {input} | perl -anle 'print $_ if $F[4] >= {params.methylation_min_coverage}' | cut -f1-4 > {output}
         """
 
 # bedGraph to bigWig
