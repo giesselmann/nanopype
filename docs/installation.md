@@ -8,6 +8,10 @@ Run nanopype with all its dependencies from within an automated built docker con
 
     docker pull giesselmann/nanopype
 
+Or for a specific version
+
+    docker pull giesselmann/nanopype:v0.2.1
+
 You can extend and customize your docker in the following way:
 
     docker run -it --mount type=bind,source=/host/installer/path,target=/src giesselmann/nanopype
