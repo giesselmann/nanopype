@@ -116,7 +116,7 @@ rule methylation_flappie:
         py_bin = lambda wildcards : get_python(wildcards)
     resources:
         mem_mb = lambda wildcards, input, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 500 * threads)),
-        time_min = lambda wildcards, input, threads, attempt: int((240 / threads) * attempt)   # 15 min / 16 threads
+        time_min = lambda wildcards, input, threads, attempt: int((15 / threads) * attempt)   # 15 min / 1 thread
     shell:
         """
         {config[bin][samtools]} view -F 4 {input.bam} | {params.py_bin} {config[bin][methylation_flappie]} align {params.reference} {input.seq} {input.tsv} > {output}
