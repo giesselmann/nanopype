@@ -72,7 +72,7 @@ class test_unit_rules(unittest.TestCase):
         with open(os.path.join(self.test_dir, 'runnames.txt'), 'w') as fp:
             for runname in runnames:
                 print(runname, file=fp)
-        self.snk_cmd = 'snakemake -j 4 --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
+        self.snk_cmd = 'snakemake -j 8 --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
 
     # test indexing
     def test_storage(self):
@@ -80,29 +80,29 @@ class test_unit_rules(unittest.TestCase):
 
     # Test basecaller functionality
     def test_albacore(self):
-        subprocess.run(self.snk_cmd + 'sequences/albacore.fastq.gz', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'sequences/albacore/test.fastq.gz', check=True, shell=True)
 
     def test_guppy(self):
-        subprocess.run(self.snk_cmd + 'sequences/guppy.fastq.gz', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'sequences/guppy/test.fastq.gz', check=True, shell=True)
 
     def test_flappie(self):
-        subprocess.run(self.snk_cmd + 'sequences/flappie.fastq.gz', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'sequences/flappie/test.fastq.gz', check=True, shell=True)
 
     # Test alignment
     def test_minimap2(self):
-        subprocess.run(self.snk_cmd + 'alignments/minimap2/flappie.test.bam', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'alignments/minimap2/flappie/test.test.bam', check=True, shell=True)
 
     def test_graphmap(self):
-        subprocess.run(self.snk_cmd + 'alignments/graphmap/flappie.test.bam', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'alignments/graphmap/flappie/test.test.bam', check=True, shell=True)
 
     def test_ngmlr(self):
-        subprocess.run(self.snk_cmd + 'alignments/ngmlr/flappie.test.bam', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'alignments/ngmlr/flappie/test.test.bam', check=True, shell=True)
 
     def test_nanopolish(self):
-        subprocess.run(self.snk_cmd + 'methylation/nanopolish.1x.test.bw', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'methylation/nanopolish/ngmlr/guppy/test.1x.test.bw', check=True, shell=True)
 
     def test_sniffles(self):
-        subprocess.run(self.snk_cmd + "sv/sniffles/ngmlr.test.vcf", check=True, shell=True)
+        subprocess.run(self.snk_cmd + "sv/sniffles/ngmlr/guppy/test.test.vcf", check=True, shell=True)
 
 # main function
 if __name__ == '__main__':

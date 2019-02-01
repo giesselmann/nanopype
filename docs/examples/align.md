@@ -21,14 +21,14 @@ The *environment.yaml* in the original repository already contains an entry for 
 The easiest way to obtain an alignment is to directly request the output file with:
 
 ```
-snakemake --snakefile ~/src/nanopype/Snakefile -j 4 alignments/minimap2/guppy/20170725_FAH14126_FLO-MIN107_SQK-LSK308_human_Hues64.test.bam
+snakemake --snakefile ~/src/nanopype/Snakefile -j 4 alignments/minimap2/guppy/runs/20170725_FAH14126_FLO-MIN107_SQK-LSK308_human_Hues64.test.bam
 ```
 
 This will trigger base calling using guppy and an alignment against our test genome with minimap2. In order to process multiple runs in parallel and merge the results into a single output file, a runnames.txt in the working directory is used:
 
 ```
 for d in data/raw/*; do echo $(basename $d); done > runnames.txt
-snakemake --snakefile ~/src/nanopype/Snakefile -j 4 alignments/minimap2/guppy.test.bam
+snakemake --snakefile ~/src/nanopype/Snakefile -j 4 alignments/minimap2/guppy/tutorial.test.bam
 ```
 
 Snakemake will automatically detect the already present output from flow cell *FAH14126* and start processing the remaining datasets from the runnames file.
@@ -39,8 +39,8 @@ Snakemake will automatically detect the already present output from flow cell *F
 Often you may already have base called data and want to run only the alignment. Nanopype will detect existing sequence data in fasta and fastq format and use them as input. For this example we will first run the base calling with a different tool and manually start the alignment afterwards:
 
 ```
-snakemake --snakefile ~/src/nanopype/Snakefile -j 4 sequences/albacore.fa.gz
-snakemake --snakefile ~/src/nanopype/Snakefile -j 4 alignments/minimap2/albacore.test.bam
+snakemake --snakefile ~/src/nanopype/Snakefile -j 4 sequences/albacore/tutorial.fa.gz
+snakemake --snakefile ~/src/nanopype/Snakefile -j 4 alignments/minimap2/albacore/tutorial.test.bam
 ```
 
 Note that the second command only contains jobs running minimap2.

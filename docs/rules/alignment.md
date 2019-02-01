@@ -2,9 +2,9 @@
 
 The alignment step maps basecalled reads against a reference genome. If not already done alignment rules will trigger basecalling of the raw nanopore reads.
 
-To align the reads of one Flow-Cell against reference genome hg38 with *flappie* basecalling and aligner *minimap2* run from within your processing directory:
+To align the reads of one flow cell against reference genome hg38 with *flappie* basecalling and aligner *minimap2* run from within your processing directory:
 
-    snakemake --snakefile /path/to/nanopype/Snakefile alignments/minimap2/flappie/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam
+    snakemake --snakefile /path/to/nanopype/Snakefile alignments/minimap2/flappie/runs/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam
     
 This requires an entry *hg38* in your **env.yaml** in the nanopype installation directory:
 
@@ -13,9 +13,9 @@ This requires an entry *hg38* in your **env.yaml** in the nanopype installation 
             genome: /path/to/references/hg38/hg38.fa
             chr_sizes: /path/to/references/hg38/hg38.chrom.sizes
             
-Providing a *runnames.txt* with one runname per line it is possible to process multiple Flow-Cells at once and merge the output into a single track e.g.:
+Providing a *runnames.txt* with one runname per line it is possible to process multiple flow cells at once and merge the output into a single track e.g.:
 
-    snakemake --snakefile /path/to/nanopype/Snakefile alignments/minimap2/flappie.hg38.bam
+    snakemake --snakefile /path/to/nanopype/Snakefile alignments/minimap2/flappie/WA01.hg38.bam
 
 Some aligners require an indexed reference genome, nanopype will automatically build one uppon first use. An alignment job is always connected with a sam2bam conversion and sorting in an additonal thread. The above commands with 3 configured alignment threads will therefore fail if snakemake is invoked with less than 4 threads (at least *-j 4* is required). The default input sequence format for alignment rules is *fastq*, yet if possible, the alignment module will use already basecalled batches in the sequences/[basecaller]/[runname]/ folder of the working directory.
 
@@ -24,23 +24,24 @@ Some aligners require an indexed reference genome, nanopype will automatically b
 The alignment module can create the following file structure relative to the working directory:
 
 ```sh
-|--/alignments/
+|--alignments/
    |--minimap2/                                                 # Minimap2 alignment
       |--albacore/                                              # Using albacore basecalling
-         |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
-            |--0.hg38.bam
-            |--1.hg38.bam
-            ...
-         |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam
-      |--albacore.hg38.bam
+         |--runs
+            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
+               |--0.hg38.bam
+               |--1.hg38.bam
+               ...
+            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam
+         |--WA01.hg38.bam
    |--graphmap/                                                 # GraphMap alignment
       |--flappie/                                               # Using flappie basecalling
-         |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
-            |--0.hg19.bam
-            ...
-         |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg19.bam
-      |--flappie.hg19.bam
-
+         |--runs
+            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
+               |--0.hg19.bam
+               ...
+            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg19.bam
+         |--WA01.hg19.bam
 ```
 
 ## Tools

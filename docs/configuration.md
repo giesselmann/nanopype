@@ -8,7 +8,7 @@ Nanopype has two configuration layers: The central **environment** configuration
 :   Executables of nanopype and and its integrated tools can be installed system wide or build from source by the user. In case of cluster execution of workflows they must be accessible from each node.
 
 **Raw data**
-:   Raw nanopore read data is organized in directories per flow-cell. The name is used to parse important experimental information such as flow-cell type and sequencing kit.
+:   Raw nanopore read data is organized in directories per flow cell. The name is used to parse important experimental information such as flow cell type and sequencing kit.
     A suggested pattern is *20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01* with fixed first four fields and an arbitrary number of user defined tags at the end.
     Nanopype will search a *reads/* subfolder for tar archives containing packed fast5 files with signal values from the sequencer. A *reads.fofn* can be created to index the run and enable efficient extraction of reads of interest.
 
@@ -40,7 +40,7 @@ references:
 ## Workflow
 
 The default workflow configuration **config.yaml** in the installation directory serves as a template and needs to be copied to each working directory. The meaning of tool specific parameters is explained in the **Modules** section.
-Raw data is stored in per flow-cell run folders. Nanopype is parsing the Flow-Cell ID, its type and the used sequencing kit from the name. A possible naming pattern is:
+Raw data is stored in per flow cell run folders. Nanopype is parsing the flow cell ID, its type and the used sequencing kit from the name. A possible naming pattern is:
 
 > 20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01
 

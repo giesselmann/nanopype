@@ -48,7 +48,7 @@ def get_sequence_batch(wildcards, config, force_basecaller=None):
         basecaller = wildcards.basecaller
     else:
         basecaller = config['basecalling_default']
-    base = "sequences/{basecaller}/{wildcards.runname}/{wildcards.batch}".format(wildcards=wildcards, basecaller=basecaller)
+    base = "sequences/{basecaller}/runs/{wildcards.runname}/{wildcards.batch}".format(wildcards=wildcards, basecaller=basecaller)
     extensions = ['.fa', '.fasta', '.fq', '.fastq']
     for ext in extensions:
         if os.path.isfile(base + ext + '.gz') or os.path.isfile(base + ext):
@@ -64,9 +64,9 @@ def get_sequence(wildcards, config, force_basecaller=None):
     else:
         basecaller = config['basecalling_default']
     if hasattr(wildcards, 'runname') and wildcards.runname:
-        base = "sequences/{basecaller}/{wildcards.runname}".format(wildcards=wildcards, basecaller=basecaller)
+        base = "sequences/{basecaller}/runs/{wildcards.runname}".format(wildcards=wildcards, basecaller=basecaller)
     else:
-        base = "sequences/{basecaller}".format(wildcards=wildcards, basecaller=basecaller)
+        base = "sequences/{basecaller}/{wildcards.tag}".format(wildcards=wildcards, basecaller=basecaller)
     extensions = ['.fa', '.fasta', '.fq', '.fastq']
     for ext in extensions:
         if os.path.isfile(base + ext + '.gz'):
@@ -87,10 +87,9 @@ def get_alignment_batch(wildcards, config, force_basecaller=None, force_aligner=
         aligner = wildcards.aligner
     else:
         aligner = config['alignment_default']
-    bam = "alignments/{aligner}/{basecaller}/{wildcards.runname}/{wildcards.batch}.{wildcards.reference}.bam".format(wildcards=wildcards, basecaller=basecaller, aligner=aligner)
+    bam = "alignments/{aligner}/{basecaller}/runs/{wildcards.runname}/{wildcards.batch}.{wildcards.reference}.bam".format(wildcards=wildcards, basecaller=basecaller, aligner=aligner)
     return bam
 
-        
 # get alignment with default basecaller and aligner
 def get_alignment(wildcards, config, force_basecaller=None, force_aligner=None):
     if force_basecaller:
@@ -105,5 +104,5 @@ def get_alignment(wildcards, config, force_basecaller=None, force_aligner=None):
         aligner = wildcards.aligner
     else:
         aligner = config['alignment_default']
-    bam = "alignments/{aligner}/{basecaller}.{wildcards.reference}.bam".format(wildcards=wildcards, basecaller=basecaller, aligner=aligner)
+    bam = "alignments/{aligner}/{basecaller}/{wildcards.tag}.{wildcards.reference}.bam".format(wildcards=wildcards, basecaller=basecaller, aligner=aligner)
     return bam

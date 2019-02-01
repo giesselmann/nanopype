@@ -44,7 +44,7 @@ config['bin']['methylation_flappie'] = os.path.abspath(os.path.join(workflow.bas
 
 # get batches
 def get_batches_basecaller(wildcards):
-    batches = expand("sequences/{wildcards.basecaller}/{wildcards.runname}/{{batch}}.{wildcards.format}.gz".format(wildcards=wildcards), batch=get_batches(wildcards, config=config))
+    batches = expand("sequences/{wildcards.basecaller}/runs/{wildcards.runname}/{{batch}}.{wildcards.format}.gz".format(wildcards=wildcards), batch=get_batches(wildcards, config=config))
     return batches
 
 
@@ -53,7 +53,7 @@ rule albacore:
     input:
         "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
     output:
-        "sequences/albacore/{runname, [a-zA-Z0-9_-]+}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
+        "sequences/albacore/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
@@ -86,7 +86,7 @@ rule guppy:
     input:
         "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
     output:
-        "sequences/guppy/{runname, [a-zA-Z0-9_-]+}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
+        "sequences/guppy/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
@@ -119,8 +119,8 @@ rule flappie:
     input:
         "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"])
     output:
-        sequence = "sequences/flappie/{runname, [a-zA-Z0-9_-]+}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz",
-        methyl_marks = "sequences/flappie/{runname, [a-zA-Z0-9_-]+}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.tsv.gz"
+        sequence = "sequences/flappie/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz",
+        methyl_marks = "sequences/flappie/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.tsv.gz"
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
@@ -150,16 +150,16 @@ rule basecaller_merge_run:
     input:
         get_batches_basecaller
     output:
-        "sequences/{basecaller, [^./]*}/{runname, [a-zA-Z0-9_-]+}.{format, (fasta|fastq|fa|fq)}.gz"
+        "sequences/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shell:
         "cat {input} > {output}"
 
 # merge run files
 rule basecaller_merge_runs:
     input:
-        ['sequences/{{basecaller}}/{runname}.{{format}}.gz'.format(runname=runname) for runname in config['runnames']]
+        ['sequences/{{basecaller}}/runs/{runname}.{{format}}.gz'.format(runname=runname) for runname in config['runnames']]
     output:
-        "sequences/{basecaller, [^./]*}.{format, (fasta|fastq|fa|fq)}.gz"
+        "sequences/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shell:
         """
         cat {input} > {output}
@@ -177,9 +177,9 @@ rule basecaller_compress:
 # basecalling QC
 rule fastx_stats:
     input:
-        lambda wildcards : get_sequence(wildcards, config=config)
+        "{file}.{format}"
     output:
-        temp("sequences/{basecaller, [^./]*}{dot, [./]*}{runname, [^./]*}{dot2, [.]*}{format, (fasta|fastq|fa|fq)}.tsv")
+        temp("{file}.{format, (fasta|fastq|fa|fq)}.qc.tsv")
     params:
         py_bin = lambda wildcards : get_python(wildcards)
     run:
@@ -189,9 +189,9 @@ rule fastx_stats:
 # report from basecalling
 rule basecaller_qc:
     input:
-        "sequences/{basecaller}{dot}{runname}{dot2}{format}.tsv"
+        "{file}.{format}.qc.tsv"
     output:
-        "sequences/{basecaller, [^./]*}{dot, [./]*}{runname, [^./]*}{dot2, [.]*}{format, (fasta|fastq|fa|fq)}.pdf"
+        "{file}.{format, (fasta|fastq|fa|fq)}.pdf"
     params:
         qc_script = config['bin']['basecalling_qc']
     run:

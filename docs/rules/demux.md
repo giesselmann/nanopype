@@ -1,6 +1,6 @@
 # Demultiplexing
 
-With barcoded libraries nanopore sequencing allows to pool multiple samples on a single Flow-Cell. Demultiplexing describes the classification of barcodes per read and the assignment of read groups. The output of the demultiplexing module is a tsv file of read ID and detected barcode. In order to process a barcoded Flow-Cell with e.g. Deepbinner run:
+With barcoded libraries nanopore sequencing allows to pool multiple samples on a single flow cell. Demultiplexing describes the classification of barcodes per read and the assignment of read groups. The output of the demultiplexing module is a tsv file of read ID and detected barcode. In order to process a barcoded flow cell with e.g. Deepbinner run:
 
     snakemake --snakefile /path/to/nanopype/Snakefile demux/deepbinner/20180101_FAH12345_FLO-MIN106_SQK-RBK004_WA01.tsv
 
@@ -11,7 +11,7 @@ Note the different sequencing kit *SQK-RBK004* used in this example.
 The demultiplexing module can create the following file structure relative to the working directory:
 
 ```sh
-|--/demux/
+|--demux/
    |--albacore/                                            # Albacore basecaller
       |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
          |--0.tsv                                          # Demultiplexed batches

@@ -93,7 +93,7 @@ rule storage_extract:
         index = "{data_raw}/{{runname}}/reads.fofn".format(data_raw = config["storage_data_raw"]),
         names = "subset/{tag}.txt"
     output:
-        directory("subset/{tag, [^./]*}/{runname, [^./]*}")
+        directory("subset/{tag, [^.\/]*}/{runname, [^.\/]*}")
     run:
         import os, itertools, tarfile
         # read target names

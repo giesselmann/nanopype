@@ -40,7 +40,7 @@ rule sniffles:
     input:
         lambda wildcards, config=config : get_alignment(wildcards, config)
     output:
-        "sv/sniffles/{aligner}.{reference}.vcf"
+        "sv/sniffles/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.vcf"
     shadow: "minimal"
     threads: config['threads_sv']
     resources:
