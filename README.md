@@ -18,6 +18,10 @@ Increased throughput and decreasing costs require efficient parallel processing 
 
 Applying the output from input file(s) driven workflow design of snakemake with recurring directory structures simplifies a high degree of automation in the data processing. Nanopype furthermore provides scripts and concepts to import and organize datasets from the sequencer.
 
+## Documentation
+
+Detailed documentation and tutorials are available at [readthedocs](https://nanopype.readthedocs.io/en/latest/).
+
 ## Quick start
 
 Install nanopype into an existing python3 installation from [github.com](https://github.com/giesselmann/nanopype/) 
@@ -31,8 +35,8 @@ or use automated Docker builds from [hub.docker.com](https://hub.docker.com/r/gi
     docker pull giesselmann/nanopype
     docker run -it giesselmann/nanopype
 
-Snakemake is controlled by requesting output files from existing inputs. To obtain for instance a complete basecalling and alignment you just have to run
+Snakemake is controlled by requesting output files from existing inputs. To obtain for instance a complete basecalling and alignment of multiple flow cells you just have to run
 
-    snakemake [OPTIONS...] alignments/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.minimap2.hg19.bam
+    snakemake [OPTIONS...] alignments/minimap2/guppy/WA01.hg19.bam
     
 to trigger basecalling and minimap2 alignment against the hg19 reference genome. Snakemake will create a graph containing all intermediate results and execute required rules in respective order.

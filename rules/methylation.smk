@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # ---------------------------------------------------------------------------------
-# Copyright (c) 2018,  Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2019, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ config['bin']['methylation_1D2'] = os.path.abspath(os.path.join(workflow.basedir
 
 # get batches
 def get_batches_methylation(wildcards, methylation_caller):
-    return expand("methylation/{methylation_caller}/{wildcards.runname}/{{batch}}.{wildcards.reference}.tsv".format(wildcards=wildcards, methylation_caller=methylation_caller), batch=get_batches(wildcards, config=config))
+    return expand("methylation/{methylation_caller}/{wildcards.aligner}/{wildcards.basecaller}/runs/{wildcards.runname}/{{batch}}.{wildcards.reference}.tsv".format(wildcards=wildcards, methylation_caller=methylation_caller), batch=get_batches(wildcards, config=config))
 
 # parse min coverage from wildcards
 def get_min_coverage(wildcards):
@@ -60,11 +60,11 @@ def get_min_coverage(wildcards):
 rule methylation_nanopolish:
     input:
         signals = "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
-        sequences = lambda wildcards ,config=config : get_sequence_batch(wildcards, config, force_basecaller=config['methylation_nanopolish_basecaller']),
-        bam = lambda wildcards, config=config : get_alignment_batch(wildcards, config, force_basecaller=config['methylation_nanopolish_basecaller'], force_aligner=config["methylation_nanopolish_aligner"]),
-        bai = lambda wildcards, config=config : get_alignment_batch(wildcards, config, force_basecaller=config['methylation_nanopolish_basecaller'], force_aligner=config["methylation_nanopolish_aligner"]) + '.bai'
+        sequences = lambda wildcards ,config=config : get_sequence_batch(wildcards, config),
+        bam = lambda wildcards, config=config : get_alignment_batch(wildcards, config),
+        bai = lambda wildcards, config=config : get_alignment_batch(wildcards, config) + '.bai'
     output:
-        "methylation/nanopolish/{runname, [^./]*}/{batch, [0-9]+}.{reference, [^./]*}.tsv"
+        "methylation/nanopolish/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference, [^.\/]*}.tsv"
     shadow: "minimal"
     threads: config['threads_methylation']
     params:
@@ -87,7 +87,7 @@ rule methylation_nanopolish_merge_run:
     input:
         lambda wildcards: get_batches_methylation(wildcards, 'nanopolish')
     output:
-        temp("methylation/nanopolish/{runname, [^./]*}.{reference, [^./]*}.tsv")
+        temp("methylation/nanopolish/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.tsv")
     run:
         from rules.utils.methylation_nanopolish import tsvParser
         recordIterator = tsvParser()
@@ -104,11 +104,11 @@ rule methylation_nanopolish_merge_run:
 # Flappie basecaller methylation alignment
 rule methylation_flappie:
     input:
-        seq = lambda wildcards, config=config : get_sequence_batch(wildcards, config, force_basecaller='flappie'),
-        bam = lambda wildcards, config=config : get_alignment_batch(wildcards, config, force_basecaller='flappie', force_aligner=config["methylation_flappie_aligner"]),
-        tsv = lambda wildcards ,config=config : re.sub('.gz$', '.tsv.gz', get_sequence_batch(wildcards, config, force_basecaller='flappie'))
+        seq = lambda wildcards, config=config : get_sequence_batch(wildcards, config),
+        bam = lambda wildcards, config=config : get_alignment_batch(wildcards, config),
+        tsv = lambda wildcards ,config=config : re.sub('.gz$', '.tsv.gz', get_sequence_batch(wildcards, config))
     output:
-        "methylation/flappie/{runname, [^./]*}/{batch, [0-9]+}.{reference, [^./]*}.tsv"
+        "methylation/flappie/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference, [^.\/]*}.tsv"
     shadow: "minimal"
     threads: 1
     params:
@@ -116,7 +116,7 @@ rule methylation_flappie:
         py_bin = lambda wildcards : get_python(wildcards)
     resources:
         mem_mb = lambda wildcards, input, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 500 * threads)),
-        time_min = lambda wildcards, input, threads, attempt: int((240 / threads) * attempt)   # 15 min / 16 threads
+        time_min = lambda wildcards, input, threads, attempt: int((15 / threads) * attempt)   # 15 min / 1 thread
     shell:
         """
         {config[bin][samtools]} view -F 4 {input.bam} | {params.py_bin} {config[bin][methylation_flappie]} align {params.reference} {input.seq} {input.tsv} > {output}
@@ -127,7 +127,7 @@ rule methylation_flappie_merge_run:
     input:
         lambda wildcards: get_batches_methylation(wildcards, 'flappie')
     output:
-        temp("methylation/flappie/{runname, [^./]*}.{reference, [^./]*}.tsv")
+        temp("methylation/flappie/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.tsv")
     shell:
         """
         cat {input} > {output}
@@ -136,18 +136,18 @@ rule methylation_flappie_merge_run:
 # compress methylation caller tsv output
 rule methylation_compress:
     input:
-        "methylation/{methylation_caller}/{runname}.{reference}.tsv"
+        "methylation/{methylation_caller}/{aligner}/{basecaller}/runs/{runname}.{reference}.tsv"
     output:
-        "methylation/{methylation_caller, [^./]*}/{runname, [^./]*}.{reference, [^./]*}.tsv.gz"
+        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.tsv.gz"
     shell:
         "cat {input} | sort -k1,1 -k4,4 -k2,2n | gzip > {output}"
 
 # nanopolish methylation probability to frequencies
 rule methylation_nanopolish_frequencies:
     input:
-        ['methylation/nanopolish/{runname}.{{reference}}.tsv.gz'.format(runname=runname) for runname in config['runnames']]
+        ['methylation/nanopolish/{{aligner}}/{{basecaller}}/runs/{runname}.{{reference}}.tsv.gz'.format(runname=runname) for runname in config['runnames']]
     output:
-        "methylation/nanopolish.{reference, [^./]*}.frequencies.tsv"
+        "methylation/nanopolish/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.frequencies.tsv"
     params:
         log_p_threshold = config['methylation_nanopolish_logp_threshold']
     shell:
@@ -158,9 +158,9 @@ rule methylation_nanopolish_frequencies:
 # flappie methylation with sequences quality to frequencies
 rule methylation_flappie_frequencies:
     input:
-        ['methylation/flappie/{runname}.{{reference}}.tsv.gz'.format(runname=runname) for runname in config['runnames']]
+        ['methylation/flappie/{{aligner}}/{{basecaller}}/runs/{runname}.{{reference}}.tsv.gz'.format(runname=runname) for runname in config['runnames']]
     output:
-        "methylation/flappie.{reference, [^./]*}.frequencies.tsv"
+        "methylation/flappie/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.frequencies.tsv"
     params:
         qval_threshold = config['methylation_flappie_qval_threshold']
     shell:
@@ -171,9 +171,9 @@ rule methylation_flappie_frequencies:
 # frequencies to bedGraph
 rule methylation_bedGraph:
     input:
-        "methylation/{methylation_caller}.{reference}.frequencies.tsv"
+        "methylation/{methylation_caller}/{aligner}/{basecaller}/{tag}.{reference}.frequencies.tsv"
     output:
-        "methylation/{methylation_caller, [^./]*}.{coverage, [^./]*}.{reference, [^./]*}.bedGraph"
+        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{coverage, [^.\/]*}.{reference, [^.\/]*}.bedGraph"
     params:
         methylation_min_coverage = lambda wildcards : get_min_coverage(wildcards)
     shell:
@@ -184,9 +184,9 @@ rule methylation_bedGraph:
 # bedGraph to bigWig
 rule methylation_bigwig:
     input:
-        "methylation/{methylation_caller}.{coverage}.{reference}.bedGraph"
+        "methylation/{methylation_caller}/{aligner}/{basecaller}/{tag}.{coverage}.{reference}.bedGraph"
     output:
-        "methylation/{methylation_caller, [^./]*}.{coverage, [^./]*}.{reference, [^./]*}.bw"
+        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{coverage, [^.\/]*}.{reference, [^.\/]*}.bw"
     params:
         chr_sizes = lambda wildcards : config["references"][wildcards.reference]["chr_sizes"]
     shell:
@@ -197,10 +197,10 @@ rule methylation_bigwig:
 # 1D2 matched methylation table
 rule methylation_1D2:
     input:
-        values = "methylation/{methylation_caller}/{runname}.{reference}.tsv.gz",
-        pairs = "alignments/{aligner}/{basecaller}/{{runname}}.{{reference}}.1D2.tsv".format(aligner=config["methylation_nanopolish_aligner"], basecaller=config['methylation_nanopolish_basecaller'])
+        values = "methylation/{methylation_caller}/{aligner}/{basecaller}/runs/{runname}.{reference}.tsv.gz",
+        pairs = "alignments/{aligner}/{basecaller}/runs/{runname}.{reference}.1D2.tsv"
     output:
-        "methylation/{methylation_caller, [^./]*}/{runname, [^./]*}.{reference, [^./]*}.1D2.tsv.gz"
+        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.1D2.tsv.gz"
     params:
         py_bin = lambda wildcards : get_python(wildcards)
     shell:

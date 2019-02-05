@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # ---------------------------------------------------------------------------------
-# Copyright (c) 2018,  Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2019, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -93,7 +93,7 @@ rule storage_extract:
         index = "{data_raw}/{{runname}}/reads.fofn".format(data_raw = config["storage_data_raw"]),
         names = "subset/{tag}.txt"
     output:
-        directory("subset/{tag, [^./]*}/{runname, [^./]*}")
+        directory("subset/{tag, [^.\/]*}/{runname, [^.\/]*}")
     run:
         import os, itertools, tarfile
         # read target names

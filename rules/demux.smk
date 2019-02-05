@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # ---------------------------------------------------------------------------------
-# Copyright (c) 2018,  Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2019, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,7 @@ rule deepbinner:
         signals = "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
         model = lambda wildcards : config["deepbinner_models"][get_kit(wildcards)] if get_kit(wildcards, config) in config["deepbinner_models"] else config["deepbinner_models"]['default']
     output:
-        "demux/deepbinner/{runname, [^./]*}/{batch}.tsv"
+        "demux/deepbinner/{runname, [^.\/]*}/{batch}.tsv"
     shadow: "minimal"
     threads: config['threads_demux']
     params:
@@ -67,6 +67,6 @@ rule demux_merge_run:
     input:
         get_batches_demux
     output:
-        "demux/{demultiplexer, [^./]*}/{runname, [a-zA-Z0-9_-]+}.tsv"
+        "demux/{demultiplexer, [^.\/]*}/{runname, [^.\/]*}.tsv"
     shell:
         "cat {input} > {output}"

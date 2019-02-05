@@ -1,10 +1,10 @@
 # Storage
 
-The storage module of nanopype covers the import, indexing and extraction of raw nanopore reads. In general the raw data directory is expected to have one folder per Flow-Cell with a subfolder *reads* containing the packed *.fast5* files.
+The storage module of nanopype covers the import, indexing and extraction of raw nanopore reads. In general the raw data directory is expected to have one folder per flow cell with a subfolder *reads* containing the packed *.fast5* files.
 
 ```sh
 |--/data/raw/
-   |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/   # One Flow-Cell
+   |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/   # One flow cell
       |--reads/
          |--0.tar                                     # Packed .fast5
          |--1.tar
@@ -17,7 +17,7 @@ To pack reads e.g. from the MinKNOW output folder we provide an import script *n
 
     python3 scripts/nanopype_import.py /data/raw/runname/ /path/to/import
 
-You can specify one or more import directories, also by using wildcards in the path. This is useful after restarting an experiment and importing every folder containing a specific Flow-Cell ID. Consider changing the batch size in case of amplicon or RNA sequencing with significantly more but in general shorter reads.
+You can specify one or more import directories, also by using wildcards in the path. This is useful after restarting an experiment and importing every folder containing a specific flow cell ID. Consider changing the batch size in case of amplicon or RNA sequencing with significantly more but in general shorter reads.
 The order of reads in the archives is **not** guaranteed to be the same as in the output folders of MinKNOW. Running the script with the same arguments twice will validate the import process and report any inconsistency between import and raw data directories.
 
 **Important** Current MinKNOW versions support already packing of multiple reads into a single fast5 file. It is not yet tested, if this is compatible with all included tools of this pipeline. Re-packing these bundled fast5 will result in potentially huge archives!

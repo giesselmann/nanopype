@@ -1,5 +1,14 @@
 # Release notes
 
+#### v0.3.0
+
+Development release:
+
+The output of nanopype >= v0.3.0 is **not** backwards compatible due to major changes in the output filesystem structure.
+
+:   * Fix guppy installation instructions to not overwrite existing library installations
+    * Apply general output structure of *tool2/tool1/runs/runname.x* to all processing chains (see module documentation/tutorial for details).
+
 #### v0.2.1
 
 Development release:

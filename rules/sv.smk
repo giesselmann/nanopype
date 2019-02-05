@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # ---------------------------------------------------------------------------------
-# Copyright (c) 2018,  Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2019, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ rule sniffles:
     input:
         lambda wildcards, config=config : get_alignment(wildcards, config)
     output:
-        "sv/sniffles/{aligner}.{reference}.vcf"
+        "sv/sniffles/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.vcf"
     shadow: "minimal"
     threads: config['threads_sv']
     resources:

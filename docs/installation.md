@@ -141,8 +141,9 @@ The applications not available for automated installation require manual interac
 
 Guppy:
 ```
-tar -xzf ont-guppy-cpu_2.1.3_linux64.tar.gz -C [INSTALL_PREFIX] --strip 1
+tar -xzkf ont-guppy-cpu_2.1.3_linux64.tar.gz -C [INSTALL_PREFIX] --strip 1
 ```
+The -k flag is important to not overwrite existing files and preserve existing symbolic links such as *libhdf5.so".
 
 Albacore:
 ```

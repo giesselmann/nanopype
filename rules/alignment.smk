@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # ---------------------------------------------------------------------------------
-# Copyright (c) 2018,  Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2019, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ config['bin']['alignment_1D2'] = os.path.abspath(os.path.join(workflow.basedir, 
 
 # get batches
 def get_batches_aligner(wildcards, config):
-    return expand("alignments/{wildcards.aligner}/{wildcards.basecaller}/{wildcards.runname}/{{batch}}.{wildcards.reference}.bam".format(wildcards=wildcards), batch=get_batches(wildcards, config))
+    return expand("alignments/{wildcards.aligner}/{wildcards.basecaller}/runs/{wildcards.runname}/{{batch}}.{wildcards.reference}.bam".format(wildcards=wildcards), batch=get_batches(wildcards, config))
     
 
 # minimap alignment
@@ -53,7 +53,7 @@ rule minimap2:
         sequence = lambda wildcards ,config=config : get_sequence_batch(wildcards, config),
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     output:
-        pipe("alignments/minimap2/{basecaller, [^./]*}/{runname, [^./]*}/{batch, [0-9]+}.{reference}.sam")
+        pipe("alignments/minimap2/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference}.sam")
     threads: config['threads_alignment']
     group: "minimap2"
     resources:
@@ -71,7 +71,7 @@ rule graphmap:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         index = lambda wildcards: config['references'][wildcards.reference]['genome'] + ".gmidx"
     output:
-        pipe("alignments/graphmap/{basecaller, [^./]*}/{runname, [^./]*}/{batch, [0-9]+}.{reference}.sam")
+        pipe("alignments/graphmap/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference}.sam")
     threads: config['threads_alignment']
     group: "graphmap"
     resources:
@@ -100,7 +100,7 @@ rule ngmlr:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         index = lambda wildcards : config['references'][wildcards.reference]['genome'] + '.ngm'
     output:
-        pipe("alignments/ngmlr/{basecaller, [^./]*}/{runname, [^./]*}/{batch, [0-9]+}.{reference}.sam")
+        pipe("alignments/ngmlr/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference}.sam")
     threads: config['threads_alignment']
     group: "ngmlr"
     resources:
@@ -126,10 +126,10 @@ rule ngmlr_index:
 # sam to bam conversion and RG tag
 rule aligner_sam2bam:
     input:
-        "alignments/{aligner}/{basecaller}/{runname}/{batch}.{reference}.sam"
+        "alignments/{aligner}/{basecaller}/runs/{runname}/{batch}.{reference}.sam"
     output:
-        bam = "alignments/{aligner, [^/.]*}/{basecaller, [^./]*}/{runname, [^./]*}/{batch, [0-9]+}.{reference, [^./]*}.bam",
-        bai = "alignments/{aligner, [^/.]*}/{basecaller, [^./]*}/{runname, [^./]*}/{batch, [0-9]+}.{reference, [^./]*}.bam.bai"
+        bam = "alignments/{aligner, [^/.]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference, [^.\/]*}.bam",
+        bai = "alignments/{aligner, [^/.]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference, [^.\/]*}.bam.bai"
     shadow: "minimal"
     threads: 1
     params:
@@ -147,8 +147,8 @@ rule aligner_merge_run:
     input:
         lambda wildcards, config=config: get_batches_aligner(wildcards, config)
     output:
-        bam = "alignments/{aligner, [^./]*}/{basecaller, [^./]*}/{runname, [^./]*}.{reference, [^./]*}.bam",
-        bai = "alignments/{aligner, [^./]*}/{basecaller, [^./]*}/{runname, [^./]*}.{reference, [^./]*}.bam.bai"
+        bam = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.bam",
+        bai = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.bam.bai"
     shell:
         """
         {config[bin][samtools]} merge {output.bam} {input} -p
@@ -161,8 +161,8 @@ rule aligner_merge_run:
         # bam = ancient("alignments/{runname}.{aligner}.{reference}.bam"),
         # bai = ancient("alignments/{runname}.{aligner}.{reference}.bam.bai")
     # output:
-        # batch_bam = "alignments/{runname, [^/.]*}/{batch, [0-9]+}.{aligner, [^/.]*}.{reference, [^./]*}.bam",
-        # batch_bai = "alignments/{runname, [^/.]*}/{batch, [0-9]+}.{aligner, [^/.]*}.{reference, [^./]*}.bam.bai"
+        # batch_bam = "alignments/{runname, [^/.]*}/{batch, [0-9]+}.{aligner, [^/.]*}.{reference, [^.\/]*}.bam",
+        # batch_bai = "alignments/{runname, [^/.]*}/{batch, [0-9]+}.{aligner, [^/.]*}.{reference, [^.\/]*}.bam.bai"
     # shell:
         # """
         # {config[bin][samtools]} view -b -r '{wildcards.runname}/{wildcards.batch}' {input.bam} > {output.batch_bam}
@@ -172,10 +172,10 @@ rule aligner_merge_run:
 # merge run files
 rule aligner_merge_runs:
     input:
-        ['alignments/{{aligner}}/{{basecaller}}/{runname}.{{reference}}.bam'.format(runname=runname) for runname in config['runnames']]
+        ['alignments/{{aligner}}/{{basecaller}}/runs/{runname}.{{reference}}.bam'.format(runname=runname) for runname in config['runnames']]
     output:
-        bam = "alignments/{aligner, [^./]*}/{basecaller, [^./]*}.{reference, [^./]*}.bam",
-        bai = "alignments/{aligner, [^./]*}/{basecaller, [^./]*}.{reference, [^./]*}.bam.bai"
+        bam = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.bam",
+        bai = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.bam.bai"
     shell:
         """
         {config[bin][samtools]} merge {output.bam} {input} -p
@@ -185,9 +185,9 @@ rule aligner_merge_runs:
 # match 1D2 read pairs
 rule aligner_1D2:
     input:
-        "alignments/{aligner}/{basecaller}/{runname}.{reference}.bam"
+        "alignments/{aligner}/{basecaller}/runs/{runname}.{reference}.bam"
     output:
-        "alignments/{aligner, [^./]*}/{basecaller, [^./]*}/{runname, [^./]*}.{reference, [^./]*}.1D2.tsv"
+        "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.1D2.tsv"
     params:
         py_bin = lambda wildcards : get_python(wildcards),
         buffer = 200,
