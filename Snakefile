@@ -33,7 +33,18 @@
 # ---------------------------------------------------------------------------------
 # snakemake config
 configfile: "config.yaml"
-import os, sys
+import os, sys, collections
+
+
+# helper
+# https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
+def update(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.Mapping):
+            d[k] = update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
 
 
 # append username to shadow prefix if not present
@@ -72,7 +83,7 @@ with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as
             #raise EnvironmentError(name + " not found in PATH")
             print(' '.join(["[WARNING]", name, 'not executable or found in PATH']), file=sys.stderr)
     nanopype_env.update(nanopype_env_glob)
-    config.update(nanopype_env)
+    config = update(config, nanopype_env)
 
 
 # multi-run rules
