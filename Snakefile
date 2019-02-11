@@ -34,7 +34,9 @@
 # snakemake config
 configfile: "config.yaml"
 import os, sys, collections
+from snakemake.utils import min_version
 
+min_version("5.4.0")
 
 # helper
 # https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
