@@ -40,7 +40,7 @@ rule sniffles:
     input:
         lambda wildcards, config=config : get_alignment(wildcards, config)
     output:
-        "sv/sniffles/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.vcf"
+        "sv/sniffles/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.vcf.gz"
     shadow: "minimal"
     threads: config['threads_sv']
     resources:
@@ -48,5 +48,8 @@ rule sniffles:
         time_min = lambda wildcards, threads, attempt: int((3840 / threads) * attempt)   # 240 min / 16 threads
     shell:
         """
-        {config[bin][sniffles]} -m {input} -v {output} -t {threads} {config[sv_sniffles_flags]}
+		mkfifo sniffles_out
+        {config[bin][sniffles]} -m {input} -v sniffles_out -t {threads} {config[sv_sniffles_flags]} &
+		cat sniffles_out | gzip > {output}
+		rm -f sniffles_out
         """
