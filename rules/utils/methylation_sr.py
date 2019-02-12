@@ -140,11 +140,12 @@ class tsv_parser_flappie(tsv_parser):
 
 # scramble original sequence on modified sites to get IGV/GViz color coding
 class seq_scramble():
-    def __init__(self, ref_index, mod_records, mode='IGV'):
+    def __init__(self, ref_index, mod_records, mode='IGV', polish=False):
         self.ref_index = ref_index
         self.ref_names = set(ref_index.get_record_names())
         self.mod_records = mod_records
         self.mode = mode
+        self.polish = polish
         self.scrambles = {'IGV':
                             {'+':{'11':'CG', '00':'TG', '--':'AG'}, 
                              '-':{'11':'CG', '00':'CA', '--':'AG'}}, 
@@ -162,27 +163,55 @@ class seq_scramble():
         n = [op[0] for op in ops if op[1] in recOps]
         return sum(n)
         
-    def scramble(self, ID, flags, chr, pos, cigar, seq):
+    # bool mask of cigar operations
+    def __cigar_ops_mask__(self, cigar, include='M=X', exclude='DN'):
+        flatten = lambda l: [item for sublist in l for item in sublist]
+        dec_cigar = self.__decodeCigar__(cigar)
+        return np.array(flatten([[True]*l if op in include 
+                                                else [False]*l if op in exclude 
+                                                else [] for l, op in dec_cigar]))
+
+    # decode MD tag
+    def __decode_md__(self, seq, cigar, md):
+        flatten = lambda l: [item for sublist in l for item in sublist]
+        ops = [m[0] for m in re.findall(r'(([0-9]+)|([A-Z]|\^[A-Z]+))', md)]
+        if not len(ops):
+            print(md, file=sys.stderr)
+        ref_mask = np.array(flatten([[True] * int(x) if x.isdigit() else [False] * len(x.strip('^')) for x in ops]))
+        seq_mask = np.array(flatten([[True] * int(x) if x.isdigit() else [False] if not '^' in x else [] for x in ops]))
+        ref_seq = np.fromstring(''.join(['-' * int(x) if x.isdigit() else x.strip('^') for x in ops]), dtype=np.uint8)
+        seq_masked = np.fromstring(seq, dtype=np.uint8)[self.__cigar_ops_mask__(cigar, include='M=X', exclude='SI')]
+        ref_seq[ref_mask] = seq_masked[seq_mask]
+        return ref_seq.tostring().decode('utf-8')
+        
+    # encode MD tag
+    def __encode_md__(self, ref_slice, seq, cigar):
+        
+        return mdz
+        
+    # scramble seq content on CG sites and fix other mismatches
+    def scramble(self, ID, flags, chr, pos, cigar, seq, md=''):
         if not chr in self.ref_names:
             raise KeyError('{rname} not found in {ref}'.format(rname=chr, ref=self.ref_index.filename))
         strand = '-' if flags & 0x16 else '+'
         # parse cigar
-        dec_cigar = self.__decodeCigar__(cigar)
-        ref_len = self.__opsLength__(dec_cigar, recOps='MDN=X')
-        ref_slice = self.ref_index.get_record(chr)[pos - 1 : pos - 1 + ref_len]
+        ref_len = self.__opsLength__(self.__decodeCigar__(cigar), recOps='MDN=X')
         ref_begin = pos - 1
         ref_end = pos + ref_len - 1
+        if md:
+            ref_slice = self.__decode_md__(seq, cigar, md)
+        else:
+            ref_slice = self.ref_index.get_record(chr)[ref_begin : ref_end]
         # map seq to ref
         flatten = lambda l: [item for sublist in l for item in sublist]
-        read_mask = np.array(flatten([[True]*l if op in 'M=X' 
-                                                else [False]*l if op in 'SI' 
-                                                else [] for l, op in dec_cigar]))
-        ref_mask = np.array(flatten([[True]*l if op in 'M=X' 
-                                                else [False]*l if op in 'D' 
-                                                else [] for l, op in dec_cigar]))
+        read_mask = self.__cigar_ops_mask__(cigar, include='M=X', exclude='SI')
+        ref_mask = self.__cigar_ops_mask__(cigar, include='M=X', exclude='D')
         read_full = np.fromstring(seq.upper(), dtype=np.uint8)
         read_mapped = np.zeros(len(ref_slice), dtype=np.uint8)
-        read_mapped[ref_mask] = read_full[read_mask]
+        if not self.polish:
+            read_mapped[ref_mask] = read_full[read_mask]
+        else:
+            read_mapped[ref_mask] = np.fromstring(ref_slice, dtype=np.uint8)[ref_mask]
         # parse methylation marks
         sr_calls = self.mod_records.get_record(ID, chr, ref_begin, ref_end, strand)
         read_mapped_mod = np.fromstring('-' * len(ref_slice), dtype=np.uint8)
@@ -196,9 +225,11 @@ class seq_scramble():
             mod_seq = read_mapped_mod[ref_match_begin:ref_match_end]
             if mod_seq == '--' or mod_seq == '11' or mod_seq == '00':
                 scramble = self.scrambles[self.mode][strand][mod_seq]
-                read_mapped[ref_match_begin:ref_match_end] = np.fromstring(scramble, dtype=np.uint8)
+                #read_mapped[ref_match_begin:ref_match_end] = np.fromstring(scramble, dtype=np.uint8)
         read_full[read_mask] = read_mapped[ref_mask]
-        return read_full.tostring().decode('utf-8')
+        seq = read_full.tostring().decode('utf-8')
+        md = self.__encode_md__(ref_slice, seq, cigar)
+        return seq, md
 
 
 
@@ -213,16 +244,24 @@ if __name__ == '__main__':
     parser.add_argument("--threshold", type=float, default="2.5", help="Q-value threshold")
     parser.add_argument("--method", default="nanopolish", help="Methylation caller used")
     parser.add_argument("--mode", default="IGV", help="Output mode, either IGV or GViz")
+    parser.add_argument("--polish", action='store_true', help="Replace matches in sequence with reference")
     args = parser.parse_args()
     # load reference and methylation calls
     ref_idx = fasta_index(args.ref)
     mod_records = tsv_parser_nanopolish(args.tsv, args.threshold) if args.method == 'nanopolish' else tsv_parser_flappie(args.tsv, args.threshold) if args.method == 'flappie' else tsv_parser()
-    scrambler = seq_scramble(ref_idx, mod_records, args.mode)
+    scrambler = seq_scramble(ref_idx, mod_records, mode=args.mode, polish=args.polish)
     # parse SAM records from stdin and modify seq field
     for line in sys.stdin:
         if line.startswith('@'):
             print(line, end='')
         else:
             fields = line.strip().split('\t')
-            fields[9] = scrambler.scramble(fields[0], int(fields[1]), fields[2], int(fields[3]), fields[5], fields[9])
+            opt_fields = [tuple(x.split(':')) for x in fields[11:]]
+            opt_md = [f for f in opt_fields if f[0] == 'MD']
+            seq, md = scrambler.scramble(fields[0], int(fields[1]), fields[2], int(fields[3]), fields[5], fields[9], md=opt_md[0][2] if opt_md else '')
+            fields[9] = seq
+            if opt_md:
+                fields[11 + opt_fields.index(opt_md[0])] = ':'.join(['MD', 'Z', md])
+            else:
+                fields.append(':'.join(['MD', 'Z', md]))
             print('\t'.join([str(field) for field in fields]))
