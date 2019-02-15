@@ -53,10 +53,12 @@ rule extended:
         "bin/sniffles",
         "bin/deepbinner-runner.py"
 
-rule basecalling:
+rule alignment:
     input:
-        "bin/guppy_basecaller",
-        "bin/flappie"
+        "bin/minimap2",
+        "bin/graphmap",
+        "bin/ngmlr",
+        "bin/samtools"
 
 rule all:
     input:
