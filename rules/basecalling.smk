@@ -97,11 +97,13 @@ rule guppy:
         kit = lambda wildcards, config=config : get_kit(wildcards, config),
         #barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
         filtering = lambda wildcards : '--qscore_filtering --min_qscore {score}'.format(score = config['basecalling_guppy_qscore_filter']) if config['basecalling_guppy_qscore_filter'] > 0 else ''
+    singularity:
+        "docker://nanopype/basecalling"
     shell:
         """
         mkdir -p raw
         tar -C raw/ -xf {input}
-        {config[bin][guppy]} -i raw/ --recursive -t {threads} -s workspace/ --flowcell {params.flowcell} --kit {params.kit} {params.filtering} {config[basecalling_guppy_flags]}
+        {config[bin_singularity][guppy]} -i raw/ --recursive --cpu_threads_per_caller {threads} -s workspace/ --flowcell {params.flowcell} --kit {params.kit} {params.filtering} {config[basecalling_guppy_flags]}
         FASTQ_DIR='workspace/pass'
         if [ \'{params.filtering}\' = '' ]; then
             FASTQ_DIR='workspace'
@@ -128,6 +130,8 @@ rule flappie:
         time_min = lambda wildcards, threads, attempt: int((5760 / threads) * attempt) # 360 min / 16 threads
     params:
         py_bin = lambda wildcards : get_python(wildcards)
+    singularity:
+        "docker://nanopype/basecalling"
     shell:
         """
         export OPENBLAS_NUM_THREADS=1
@@ -135,12 +139,12 @@ rule flappie:
         tar -C raw/ -xf {input}
         find raw/ -regextype posix-extended -regex '^.*fast5' -type f -exec du -h {{}} + | sort -r -h | cut -f2 > raw.fofn
         split -e -n r/{threads} raw.fofn raw.fofn.part.
-        ls raw.fofn.part.* | xargs -n 1 -P {threads} -I {{}} $SHELL -c 'cat {{}} | shuf | xargs -n 1 {config[bin][flappie]} --model {config[basecalling_flappie_model]} {config[basecalling_flappie_flags]} > raw/{{}}.fastq'
+        ls raw.fofn.part.* | xargs -n 1 -P {threads} -I {{}} $SHELL -c 'cat {{}} | shuf | xargs -n 1 {config[bin_singularity][flappie]} --model {config[basecalling_flappie_model]} {config[basecalling_flappie_flags]} > raw/{{}}.fastq'
         find ./raw -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; > {wildcards.batch}.fq
         if [[ \'{wildcards.format}\' == *'q'* ]]; then
-            cat {wildcards.batch}.fq | {params.py_bin} {config[bin][methylation_flappie]} split methyl_marks.tsv | gzip > {output.sequence}
+            cat {wildcards.batch}.fq | {config[bin_singularity][python]} {config[sbin_singularity][methylation_flappie.py]} split methyl_marks.tsv | gzip > {output.sequence}
         else
-            cat {wildcards.batch}.fq | {params.py_bin} {config[bin][methylation_flappie]} split methyl_marks.tsv | tr '\t' ' ' | paste - - - - | cut -d '\t' -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output.sequence}
+            cat {wildcards.batch}.fq | {config[bin_singularity][python]} {config[sbin_singularity][methylation_flappie.py]} split methyl_marks.tsv | tr '\t' ' ' | paste - - - - | cut -d '\t' -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output.sequence}
         fi
         cat methyl_marks.tsv | gzip > {output.methyl_marks}
         """
