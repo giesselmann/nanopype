@@ -35,6 +35,7 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 ## packages
 RUN apt-get --yes update && \
 apt-get install -y --no-install-recommends wget \
+    gcc python3-dev \
     ca-certificates lsb-release apt-transport-https \
     libcunit1 libhdf5-10 libopenblas-base
 
@@ -46,10 +47,15 @@ RUN wget -O- https://mirror.oxfordnanoportal.com/apt/ont-repo.pub | apt-key add 
 
 ## GUPPY
 RUN apt-get --yes update && \
-apt-get install -y ont-guppy-cpu=2.3.1-1~xenial ont-guppy-cpu=2.3.1-1~xenial
+apt-get install -y ont-guppy-cpu=2.3.1-1~xenial
 
 RUN mkdir -p /app
 COPY . /app/
+WORKDIR /app
+
+RUN wget https://bootstrap.pypa.io/get-pip.py
+RUN python3 get-pip.py
+RUN python3 -m pip install -r requirements.txt
 
 COPY --from=build_stage /build/bin/* /bin/
 
