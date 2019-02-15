@@ -35,12 +35,13 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
 RUN apt-get --yes update && \
-apt-get install -y --no-install-recommends wget \
+apt-get install -y --no-install-recommends wget locales\
     gcc python3-dev \
     ca-certificates lsb-release apt-transport-https \
     libcunit1 libhdf5-10 libopenblas-base
 
 RUN update-ca-certificates
+RUN locale-gen en_US.UTF-8
 
 RUN mkdir -p /app
 COPY . /app/
@@ -50,7 +51,7 @@ RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3 get-pip.py
 RUN python3 -m pip install -r requirements.txt
 
-COPY --from=build_stage /build/bin/* /bin/
+COPY --from=build_stage /build/bin/* /usr/bin/
 
 WORKDIR /
 # default entrypoint is /bin/sh

@@ -57,7 +57,7 @@ RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3 get-pip.py
 RUN python3 -m pip install -r requirements.txt
 
-COPY --from=build_stage /build/bin/* /bin/
+COPY --from=build_stage /build/bin/* /usr/bin/
 
 WORKDIR /
 # default entrypoint is /bin/sh

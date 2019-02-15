@@ -73,7 +73,7 @@ if 'references' in nanopype_env:
             print("Chromosome sizes for {name} not found in {chr_sizes}, skipping entry".format(
                 name=name, chr_sizes=chr_sizes), file=sys.stderr)
             continue
-        config['references']['name'] = {"genome":genome, "chr_sizes":chr_sizes}
+        config['references'][name] = {"genome":genome, "chr_sizes":chr_sizes}
 
 
 # verify given binaries
@@ -84,7 +84,7 @@ if 'bin' in nanopype_env:
         config['bin_singularity'] = {}
     for name, loc in nanopype_env['bin'].items():
         loc_sys = None
-        loc_singularity = os.path.join('/bin', os.path.basename(loc))
+        loc_singularity = os.path.join('/usr/bin', os.path.basename(loc))
         if os.path.isfile(loc):
             # absolute path is given
             loc_sys = loc
