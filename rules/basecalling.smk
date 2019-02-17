@@ -59,8 +59,8 @@ rule albacore:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads
     params:
-        flowcell = lambda wildcards, config=config : get_flowcell(wildcards, config),
-        kit = lambda wildcards, config=config : get_kit(wildcards, config),
+        flowcell = lambda wildcards: get_flowcell(wildcards, config),
+        kit = lambda wildcards: get_kit(wildcards, config),
         barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
         filtering = lambda wildcards : '--disable_filtering' if config['basecalling_albacore_disable_filtering'] else ''
     shell:
@@ -92,8 +92,8 @@ rule guppy:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 4000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 90 min / 16 threads
     params:
-        flowcell = lambda wildcards, config=config : get_flowcell(wildcards, config),
-        kit = lambda wildcards, config=config : get_kit(wildcards, config),
+        flowcell = lambda wildcards: get_flowcell(wildcards, config),
+        kit = lambda wildcards: get_kit(wildcards, config),
         #barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
         filtering = lambda wildcards : '--qscore_filtering --min_qscore {score}'.format(score = config['basecalling_guppy_qscore_filter']) if config['basecalling_guppy_qscore_filter'] > 0 else ''
     singularity:
@@ -127,8 +127,6 @@ rule flappie:
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 5000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((5760 / threads) * attempt) # 360 min / 16 threads
-    params:
-        py_bin = lambda wildcards : get_python(wildcards)
     singularity:
         "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
     shell:

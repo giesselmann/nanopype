@@ -48,7 +48,7 @@ def get_batches_aligner(wildcards, config):
 # minimap alignment
 rule minimap2:
     input:
-        sequence = lambda wildcards ,config=config : get_sequence_batch(wildcards, config),
+        sequence = lambda wildcards: get_sequence_batch(wildcards, config),
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     output:
         pipe("alignments/minimap2/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference}.sam")
@@ -67,7 +67,7 @@ rule minimap2:
 # graphmap alignment
 rule graphmap:
     input:
-        sequence = lambda wildcards ,config=config : get_sequence_batch(wildcards, config),
+        sequence = lambda wildcards: get_sequence_batch(wildcards, config),
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         index = lambda wildcards: config['references'][wildcards.reference]['genome'] + ".gmidx"
     output:
@@ -100,7 +100,7 @@ rule graphmap_index:
 # NGMLR alignment
 rule ngmlr:
     input:
-        sequence = lambda wildcards ,config=config : get_sequence_batch(wildcards, config),
+        sequence = lambda wildcards: get_sequence_batch(wildcards, config),
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         index = lambda wildcards : directory(os.path.dirname(config['references'][wildcards.reference]['genome'])),
         index_flag = lambda wildcards: config['references'][wildcards.reference]['genome'] + '.ngm'
@@ -142,7 +142,7 @@ rule aligner_sam2bam:
     shadow: "minimal"
     threads: 1
     params:
-        ID = lambda wildcards, config=config : get_ID(wildcards, config)
+        ID = lambda wildcards : get_ID(wildcards, config)
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 5000)
     singularity:
@@ -156,7 +156,7 @@ rule aligner_sam2bam:
 # merge batch files
 rule aligner_merge_run:
     input:
-        lambda wildcards, config=config: get_batches_aligner(wildcards, config)
+        lambda wildcards: get_batches_aligner(wildcards, config)
     output:
         bam = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.bam.bai"
