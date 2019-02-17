@@ -35,13 +35,14 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
 RUN apt-get --yes update && \
-apt-get install -y --no-install-recommends wget\
+apt-get install -y --no-install-recommends wget locales \
     gcc python3-dev \
     ca-certificates lsb-release apt-transport-https \
     libcunit1 libhdf5-10 libopenblas-base
 
 RUN update-ca-certificates
-RUN echo "export LANGUAGE=en_US.UTF-8; export LANG=en_US.UTF-8; export LC_ALL=en_US.UTF-8" >> ~/.bash_profile
+RUN locale-gen en_US.UTF-8
+RUN echo "LANGUAGE=en_US.UTF-8; LANG=en_US.UTF-8; LC_ALL=en_US.UTF-8" >> /etc/environment
 
 RUN mkdir -p /app
 COPY . /app/
