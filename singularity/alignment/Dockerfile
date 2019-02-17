@@ -42,7 +42,9 @@ apt-get install -y --no-install-recommends wget locales \
 
 RUN update-ca-certificates
 RUN locale-gen en_US.UTF-8
-RUN echo "LANGUAGE=en_US.UTF-8; LANG=en_US.UTF-8; LC_ALL=en_US.UTF-8" >> /etc/environment
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
 RUN mkdir -p /app
 COPY . /app/
