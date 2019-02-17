@@ -53,6 +53,11 @@ rule extended:
         "bin/sniffles",
         "bin/deepbinner-runner.py"
 
+rule all:
+    input:
+        rules.core.input,
+        rules.extended.input
+
 rule alignment:
     input:
         "bin/minimap2",
@@ -60,10 +65,13 @@ rule alignment:
         "bin/ngmlr",
         "bin/samtools"
 
-rule all:
+rule methylation:
     input:
-        rules.core.input,
-        rules.extended.input
+        "bin/nanopolish",
+        "bin/samtools",
+        "bin/bedtools",
+        "bin/bedGraphToBigWig"
+
 
 # helper functions
 def find_go():
