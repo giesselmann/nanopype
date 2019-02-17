@@ -58,7 +58,7 @@ rule minimap2:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (8000 + 500 * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt)   # 60 min / 16 threads
     singularity:
-        "docker://nanopype/alignment"
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         {config[bin_singularity][minimap2]} {config[alignment_minimap2_flags]} {input.reference} {input.sequence} -t {threads} >> {output}
@@ -78,7 +78,7 @@ rule graphmap:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 80000),
         time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt),   # 90 min / 16 threads
     singularity:
-        "docker://nanopype/alignment"
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         {config[bin_singularity][graphmap]} align -r {input.reference} -d {input.sequence} -t {threads} {config[alignment_graphmap_flags]} >> {output}
@@ -91,7 +91,7 @@ rule graphmap_index:
     output:
         index = "{reference}.fa.gmidx"
     singularity:
-        "docker://nanopype/alignment"
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         {config[bin_singularity][graphmap]} align -r {input.fasta} --index-only
@@ -112,7 +112,7 @@ rule ngmlr:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 32000),
         time_min = lambda wildcards, threads, attempt: int((5760 / threads) * attempt)   # 360 min / 16 threads
     singularity:
-        "docker://nanopype/alignment"
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         cat {input.sequence} | {config[bin_singularity][ngmlr]} -r {input.reference} -t {threads} {config[alignment_ngmlr_flags]} >> {output}
@@ -125,7 +125,7 @@ rule ngmlr_index:
     output:
         index = "{reference}.fa.ngm"
     singularity:
-        "docker://nanopype/alignment"
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         echo '' | {config[bin_singularity][ngmlr]} -r {input.fasta}
@@ -146,7 +146,7 @@ rule aligner_sam2bam:
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 5000)
     singularity:
-        "docker://nanopype/alignment"
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         cat {input} | perl -anle 'BEGIN{{$header=1}}; if($header == 1){{ if($_ =~ /^@/) {{print $_}} else {{$header=0; print "\@RG\tID:{wildcards.runname}/{wildcards.batch}"}}}} else {{print $_}}' | perl -anle 'if($_ =~ /^@/){{print $_}}else{{print join("\t", @F, "RG:Z:{wildcards.runname}/{wildcards.batch}")}}' |  {config[bin_singularity][samtools]} view -b - | {config[bin_singularity][samtools]} sort -m 4G > {output.bam}
@@ -161,7 +161,7 @@ rule aligner_merge_run:
         bam = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.bam.bai"
     singularity:
-        "docker://nanopype/alignment"
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         {config[bin_singularity][samtools]} merge {output.bam} {input} -p
@@ -190,7 +190,7 @@ rule aligner_merge_runs:
         bam = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.bam.bai"
     singularity:
-        "docker://nanopype/alignment"
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         {config[bin_singularity][samtools]} merge {output.bam} {input} -p
@@ -207,7 +207,7 @@ rule aligner_1D2:
         buffer = 200,
         tolerance = 200
     singularity:
-        "docker://nanopype/alignment"
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         {config[bin_singularity][samtools]} view -F 4 {input} | {config[bin_singularity][python]} {config[sbin_singularity][alignment_1D2.py]} --buffer {params.buffer} --tolerance {params.tolerance} > {output}

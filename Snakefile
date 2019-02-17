@@ -33,13 +33,30 @@
 # ---------------------------------------------------------------------------------
 # imports
 import os, sys, collections
-import yaml
+import yaml, subprocess
 from snakemake.utils import min_version
 
 
 # snakemake config
 min_version("5.4.0")
 configfile: "config.yaml"
+
+
+# get pipeline version
+def get_tag():
+    cmd = 'git describe --tags'
+    try:
+        version = subprocess.check_output(cmd.split()).decode().strip()
+    except subprocess.CalledProcessError:
+        raise RuntimeError('Unable to get version number from git tags')
+    if '-' in version:
+        return 'latest'
+    else:
+        return version
+
+
+nanopype_tag = get_tag()
+config['version'] = {'tag': nanopype_tag}
 
 
 # append username to shadow prefix if not present

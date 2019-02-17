@@ -40,7 +40,6 @@ localrules: basecaller_merge_run, basecaller_merge_runs
 ruleorder: basecaller_compress > guppy > albacore > flappie
 # local config
 config['bin']['basecalling_qc'] = os.path.abspath(os.path.join(workflow.basedir, 'rules/utils/basecalling_qc.Rmd'))
-config['bin']['methylation_flappie'] = os.path.abspath(os.path.join(workflow.basedir, 'rules/utils/methylation_flappie.py'))
 
 # get batches
 def get_batches_basecaller(wildcards):
@@ -98,7 +97,7 @@ rule guppy:
         #barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
         filtering = lambda wildcards : '--qscore_filtering --min_qscore {score}'.format(score = config['basecalling_guppy_qscore_filter']) if config['basecalling_guppy_qscore_filter'] > 0 else ''
     singularity:
-        "docker://nanopype/basecalling"
+        "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         mkdir -p raw
@@ -131,7 +130,7 @@ rule flappie:
     params:
         py_bin = lambda wildcards : get_python(wildcards)
     singularity:
-        "docker://nanopype/basecalling"
+        "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         export OPENBLAS_NUM_THREADS=1
