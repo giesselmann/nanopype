@@ -47,22 +47,24 @@ def get_sequence_batch(wildcards, config, force_basecaller=None):
     elif hasattr(wildcards, 'basecaller'):
         basecaller = wildcards.basecaller
     else:
-        basecaller = config['basecalling_default']
+        raise RuntimeError("Unable to determine sequence batch with wildcards: {wildcards}".format(
+            wildcards=', '.join([str(key) + ':' + str(value) for key,value in wildcards])))
     base = "sequences/{basecaller}/runs/{wildcards.runname}/{wildcards.batch}".format(wildcards=wildcards, basecaller=basecaller)
     extensions = ['.fa', '.fasta', '.fq', '.fastq']
     for ext in extensions:
         if os.path.isfile(base + ext + '.gz') or os.path.isfile(base + ext):
             return base + ext + '.gz'
     return base + '.fastq.gz'
-    
-# get available merged sequence 
+
+# get available merged sequence
 def get_sequence(wildcards, config, force_basecaller=None):
     if force_basecaller:
         basecaller = force_basecaller
     elif hasattr(wildcards, 'basecaller'):
         basecaller = wildcards.basecaller
     else:
-        basecaller = config['basecalling_default']
+        raise RuntimeError("Unable to determine sequence file with wildcards: {wildcards}".format(
+            wildcards=', '.join([str(key) + ':' + str(value) for key,value in wildcards])))
     if hasattr(wildcards, 'runname') and wildcards.runname:
         base = "sequences/{basecaller}/runs/{wildcards.runname}".format(wildcards=wildcards, basecaller=basecaller)
     else:
@@ -72,7 +74,7 @@ def get_sequence(wildcards, config, force_basecaller=None):
         if os.path.isfile(base + ext + '.gz'):
             return base + ext + '.gz'
     return base + '.fastq.gz'
-    
+
 # get alignment batch with default basecaller and aligner
 def get_alignment_batch(wildcards, config, force_basecaller=None, force_aligner=None):
     if force_basecaller:
@@ -80,7 +82,8 @@ def get_alignment_batch(wildcards, config, force_basecaller=None, force_aligner=
     elif hasattr(wildcards, 'basecaller'):
         basecaller = wildcards.basecaller
     else:
-        basecaller = config['basecalling_default']
+        raise RuntimeError("Unable to determine alignment batch with wildcards: {wildcards}".format(
+            wildcards=', '.join([str(key) + ':' + str(value) for key,value in wildcards])))
     if force_aligner:
         aligner = force_aligner
     elif hasattr(wildcards, 'aligner'):
@@ -97,7 +100,8 @@ def get_alignment(wildcards, config, force_basecaller=None, force_aligner=None):
     elif hasattr(wildcards, 'basecaller'):
         basecaller = wildcards.basecaller
     else:
-        basecaller = config['basecalling_default']
+        raise RuntimeError("Unable to determine alignment file with wildcards: {wildcards}".format(
+            wildcards=', '.join([str(key) + ':' + str(value) for key,value in wildcards])))
     if force_aligner:
         aligner = force_aligner
     elif hasattr(wildcards, 'aligner'):
