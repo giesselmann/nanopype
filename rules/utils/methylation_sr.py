@@ -35,6 +35,7 @@ import os, sys, re
 import gzip
 import argparse
 import numpy as np
+import timeit
 from collections import defaultdict
 from signal import signal, SIGPIPE, SIG_DFL
 
@@ -150,9 +151,21 @@ class seq_scramble():
                             {'+':{'11':'CG', '00':'TG', '--':'AG'}, 
                              '-':{'11':'CG', '00':'CA', '--':'AG'}}, 
                           'GViz':
-                            {}}
+                            {'+':{'11':'AG', '00':'TG', '--':'CG'}, 
+                             '-':{'11':'AG', '00':'TG', '--':'CG'}}}
         self.ref_regex = re.compile('CG')
         
+    def __groupby__(self, a):
+        # source:
+        # https://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
+        diff = np.concatenate(([1], np.diff(a)))
+        idx = np.concatenate((np.where(diff)[0], [len(a)]))
+        index = np.empty(len(idx)-1,dtype='u4,u4,u4')
+        index['f0'] = a[idx[:-1]]
+        index['f1'] = np.diff(idx)
+        index['f2'] = idx[:-1]
+        return index
+
     # decode cigar into list of edits
     def __decodeCigar__(self, cigar):
         ops = [(int(op[:-1]), op[-1]) for op in re.findall('(\d*\D)',cigar)]
@@ -186,8 +199,26 @@ class seq_scramble():
         
     # encode MD tag
     def __encode_md__(self, ref_slice, seq, cigar):
-        
-        return mdz
+        ref_mask = self.__cigar_ops_mask__(cigar, include='M=X', exclude='DN')
+        seq_masked = np.fromstring(seq, dtype=np.uint8)[self.__cigar_ops_mask__(cigar, include='M=X', exclude='SI')]
+        seq_states = np.zeros(len(ref_slice), dtype=np.uint8)
+        seq_states[ref_mask] = np.where(np.fromstring(ref_slice, dtype=np.uint8)[ref_mask] == seq_masked, 0, 1)
+        seq_states[~ref_mask] = 2 # deletion ^ACTG
+        md = ''
+        seq_state_groups = self.__groupby__(seq_states)
+        for i, (state, state_len, state_offset) in enumerate(seq_state_groups):
+            if state == 0:      # exact match
+                md += str(state_len)
+            elif state == 1:    # mismatch
+                if state_len == 1:
+                    md += ref_slice[state_offset]
+                else:
+                    md += '0'.join(list(ref_slice[state_offset:state_offset+state_len]))
+            elif state == 2:    # deletion
+                md += '^' + ref_slice[state_offset : state_offset + state_len]
+            if state != 0 and i < len(seq_state_groups) and seq_state_groups[i+1][0] != 0:
+                md += '0'
+        return md
         
     # scramble seq content on CG sites and fix other mismatches
     def scramble(self, ID, flags, chr, pos, cigar, seq, md=''):
@@ -216,7 +247,7 @@ class seq_scramble():
         sr_calls = self.mod_records.get_record(ID, chr, ref_begin, ref_end, strand)
         read_mapped_mod = np.fromstring('-' * len(ref_slice), dtype=np.uint8)
         for _, begin, end, _, value in sr_calls:
-            read_mapped_mod[begin - ref_begin : end - ref_end] = np.fromstring(value * (end - begin), dtype=np.uint8)
+            read_mapped_mod[begin-ref_begin : end-ref_end if end!=ref_end else len(read_mapped_mod)] = np.fromstring(value * (end - begin), dtype=np.uint8)
         read_mapped_mod = read_mapped_mod.tostring().decode('utf-8')
         # find CGs in reference slice and scramble read according to methylation status
         for ref_match in self.ref_regex.finditer(ref_slice):
@@ -225,7 +256,7 @@ class seq_scramble():
             mod_seq = read_mapped_mod[ref_match_begin:ref_match_end]
             if mod_seq == '--' or mod_seq == '11' or mod_seq == '00':
                 scramble = self.scrambles[self.mode][strand][mod_seq]
-                #read_mapped[ref_match_begin:ref_match_end] = np.fromstring(scramble, dtype=np.uint8)
+                read_mapped[ref_match_begin:ref_match_end] = np.fromstring(scramble, dtype=np.uint8)
         read_full[read_mask] = read_mapped[ref_mask]
         seq = read_full.tostring().decode('utf-8')
         md = self.__encode_md__(ref_slice, seq, cigar)

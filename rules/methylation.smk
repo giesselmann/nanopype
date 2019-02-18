@@ -143,6 +143,24 @@ rule methylation_compress:
         "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
     shell:
         "cat {input} | sort -k1,1 -k4,4 -k2,2n | gzip > {output}"
+        
+# single read methylation tracks for IGV/GViz
+rule methylation_single_read_run:
+    input:
+        tsv = "methylation/{methylation_caller}/{aligner}/{basecaller}/runs/{runname}.{reference}.tsv.gz",
+        bam = "alignments/{aligner}/{basecaller}/runs/{runname}.{reference}.bam"
+    output:
+        bam = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.bam",
+        bai = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.bam.bai"
+    params:
+        reference = lambda wildcards: os.path.abspath(config['references'][wildcards.reference]['genome']),
+        py_bin = lambda wildcards : get_python(wildcards),
+        threshold = lambda wildcards : config['methylation_nanopolish_logp_threshold'] if wildcards.methylation_caller == 'nanopolish' else config['methylation_flappie_qval_threshold'] if wildcards.methylation_caller == 'flappie' else 0
+    shell:
+        """
+        {config[bin][samtools]} view -hF 4 {input.bam} | {params.py_bin} {config[bin][methylation_sr]} {params.reference} {input.tsv} --threshold {params.threshold} --method {wildcards.methylation_caller} --mode IGV --polish | {config[bin][samtools]} view -b > {output.bam}
+        {config[bin][samtools]} index {output.bam}
+        """
 
 # nanopolish methylation probability to frequencies
 rule methylation_nanopolish_frequencies:
