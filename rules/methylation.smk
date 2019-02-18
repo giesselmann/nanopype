@@ -77,8 +77,8 @@ rule methylation_nanopolish:
         tar -C raw/ -xf {input.signals}
         echo {input.sequences}
         zcat {input.sequences} > sequences.fasta
-        {config[bin][nanopolish]} index -d raw/ sequences.fasta
-        {config[bin][nanopolish]} call-methylation -t {threads} -r sequences.fasta -g {params.reference} -b {input.bam} > {output}
+        {config[bin_singularity][nanopolish]} index -d raw/ sequences.fasta
+        {config[bin_singularity][nanopolish]} call-methylation -t {threads} -r sequences.fasta -g {params.reference} -b {input.bam} > {output}
         """
 
 # merge batch tsv files and split connected CpGs

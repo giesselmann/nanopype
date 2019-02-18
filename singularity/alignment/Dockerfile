@@ -1,4 +1,4 @@
-# Nanopype Dockerfile Basecalling
+# Nanopype Dockerfile Alignment
 # BUILD STAGE
 FROM ubuntu:16.04 as build_stage
 

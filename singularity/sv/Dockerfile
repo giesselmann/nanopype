@@ -5,10 +5,9 @@ FROM ubuntu:16.04 as build_stage
 ## system packages
 RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
     git gcc g++ ninja-build ca-certificates \
-    binutils autoconf make cmake zlib1g-dev bzip2 libbz2-dev \
-    liblzma-dev libncurses5-dev \
+    binutils autoconf make cmake zlib1g-dev \
     apt-transport-https \
-    python python3.5 python3.5-dev
+    python3.5 python3.5-dev
 
 RUN update-ca-certificates
 
@@ -27,7 +26,7 @@ RUN pip3 install . --upgrade
 
 ## run setup rules
 RUN mkdir /build
-RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory /build methylation
+RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory /build sniffles
 
 # PACKAGE STAGE
 FROM ubuntu:16.04
@@ -37,8 +36,7 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 RUN apt-get --yes update && \
 apt-get install -y --no-install-recommends wget locales \
     gcc python3-dev \
-    ca-certificates apt-transport-https \
-    libcunit1 libhdf5-10 libopenblas-base
+    ca-certificates apt-transport-https
 
 RUN update-ca-certificates
 RUN locale-gen en_US.UTF-8
