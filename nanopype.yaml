@@ -1,0 +1,70 @@
+# Raw sequencing data parent directory containing one folder per flow cell
+storage_data_raw : /data/raw
+storage_data_import : /data/import
+
+
+# How to parse the folders found in 'storage_data_raw'. A 'reads' subfolder is
+# expected containing the batches of fast5 raw reads.
+# A runname pattern could be 20180101_FAH12345_FLO-MIN106_SQK-LSK109_WA01
+# Field IDs are zero based.
+storage_runname:
+    delimiter: '_'
+    field_ID: 1
+    field_flowcell: 2
+    filed_kit: 3
+
+
+# threads per processing batch, if given enough threads with -j n multiple
+# batches run in parallel. Also used as resource for cluster jobs.
+# Alignments need to be run with at least -j 2 for alignment and sam to bam
+# conversion.
+threads_basecalling: 4
+threads_alignment: 3
+threads_methylation: 4
+threads_sv: 4
+threads_demux: 4
+
+
+# basecalling
+# run basecalling and write predicted barcode into name of fastq/fasta output
+basecalling_albacore_barcoding: false
+# do not split output into pass and fail folders, report every sequence.
+basecalling_albacore_disable_filtering: true
+# command line flags directly passed to albacore e.g. --disable_pings
+basecalling_albacore_flags: ''
+# quality qscore filter for guppy. 0 means all reads are written to the output
+basecalling_guppy_qscore_filter: 0
+# command line flags directly passed to guppy
+basecalling_guppy_flags: ''
+# the flappie basecaller supports different models, check the docs for available options
+basecalling_flappie_model: 'r941_5mC'
+# command line flags directly passed to flappie
+basecalling_flappie_flags: ''
+
+
+# alignment
+# command line flags for minimap2
+alignment_minimap2_flags: '-ax map-ont -L'
+# command line flags for graphmap
+alignment_graphmap_flags: '-B 100'
+# command line flags for ngmlr
+alignment_ngmlr_flags: '-x ont --bam-fix'
+
+
+# methylation detection
+# Abs. log-likelyhood ratio to treat sites as methylated or unmethylated.
+methylation_nanopolish_logp_threshold: 2.5
+# Sequence quality threshold on CG sites to trust flappie methylation calls
+methylation_flappie_qval_threshold: 3
+
+
+# demux
+deepbinner_models:
+    default: SQK-RBK004_read_starts
+    EXP-NBD103: EXP-NBD103_read_starts
+    SQK-RBK004: SQK-RBK004_read_starts
+
+
+# structural variation
+# command line flags directly passed to the sniffles execution
+sv_sniffles_flags: '-s 10 -l 30 -r 2000 --genotype'

@@ -40,7 +40,7 @@ localrules: demux_merge_run
 # get batches
 def get_batches_demux(wildcards):
     return expand("demux/{wildcards.demultiplexer}/{wildcards.runname}/{{batch}}.tsv".format(wildcards=wildcards), batch=get_batches(wildcards, config=config))
-    
+
 # deepbinner demux
 rule deepbinner:
     input:
@@ -50,16 +50,16 @@ rule deepbinner:
         "demux/deepbinner/{runname, [^.\/]*}/{batch}.tsv"
     shadow: "minimal"
     threads: config['threads_demux']
-    params:
-        py_bin = lambda wildcards : get_python(wildcards)
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads
+    singularity:
+        "docker://nanopype/demux:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         mkdir -p raw
         tar -C raw/ -xf {input.signals}
-        {params.py_bin} {config[bin][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads {threads} --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
+        {config[bin_singularity][python]} {config[bin_singularity][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads {threads} --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
         """
 
 # merge and compression
@@ -68,5 +68,7 @@ rule demux_merge_run:
         get_batches_demux
     output:
         "demux/{demultiplexer, [^.\/]*}/{runname, [^.\/]*}.tsv"
+    singularity:
+        "docker://nanopype/demux:{tag}".format(tag=config['version']['tag'])
     shell:
         "cat {input} > {output}"

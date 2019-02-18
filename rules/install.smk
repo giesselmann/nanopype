@@ -58,6 +58,21 @@ rule all:
         rules.core.input,
         rules.extended.input
 
+rule alignment:
+    input:
+        "bin/minimap2",
+        "bin/graphmap",
+        "bin/ngmlr",
+        "bin/samtools"
+
+rule methylation:
+    input:
+        "bin/nanopolish",
+        "bin/samtools",
+        "bin/bedtools",
+        "bin/bedGraphToBigWig"
+
+
 # helper functions
 def find_go():
     for path in os.environ["PATH"].split(os.pathsep):
@@ -72,6 +87,9 @@ if not 'threads_build' in config:
 
 if not 'build_generator' in config:
     config['build_generator'] = '"Unix Makefiles"'
+
+if not 'flappie_src' in config:
+    config['flappie_src'] = True
 
 # detailed build rules
 rule UCSCtools:
@@ -293,16 +311,16 @@ rule hdf5:
 
 rule Flappie:
     input:
-        git_lfs = rules.gitlfs.output.bin,
-        blas = rules.OpenBLAS.output.src,
-        hdf5 = rules.hdf5.output.src
+        lambda wildcards,config=config: [rules.gitlfs.output.bin] +
+        ([rules.OpenBLAS.output.src] if config['flappie_src'] else []) +
+        ([rules.hdf5.output.src] if config['flappie_src'] else [])
     output:
         bin = "bin/flappie"
     threads: config['threads_build']
     shell:
         """
         install_prefix=`pwd`
-        {input.git_lfs} install
+        bin/git-lfs install
         export PATH=$install_prefix/bin:$PATH
         mkdir -p src && cd src
         if [ ! -d flappie ]; then
@@ -313,4 +331,14 @@ rule Flappie:
         mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} ../
         cmake --build . --config Release -- -j {threads}
         cp flappie ../../../{output.bin}
+        """
+
+rule Guppy:
+    output:
+        bin = "bin/guppy_basecaller"
+    shell:
+        """
+        wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.1_linux64.tar.gz && \
+        tar --skip-old-files -xzf ont-guppy-cpu_2.3.1_linux64.tar.gz -C / --strip 1 && \
+        rm ont-guppy-cpu_2.3.1_linux64.tar.gz
         """

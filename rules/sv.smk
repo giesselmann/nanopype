@@ -46,9 +46,11 @@ rule sniffles:
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 1000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((3840 / threads) * attempt)   # 240 min / 16 threads
+    singularity:
+        "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin][sniffles]} -m {input} -v {output} -t {threads} {config[sv_sniffles_flags]}
+        {config[bin_singularity][sniffles]} -m {input} -v {output} -t {threads} {config[sv_sniffles_flags]}
         """
 
 # compress vcf file
@@ -58,6 +60,8 @@ rule sv_compress:
     output:
         "sv/sniffles/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.vcf.gz"
     threads: 1
+    singularity:
+        "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         cat {input} | gzip > {output}

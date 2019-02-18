@@ -39,8 +39,7 @@ The basecalling module can create the following file structure relative to the w
 ## Tools
 Depending on the application you can choose from one of the following basecallers, listed with their associated configuration options. Downstream applications making use of the basecalling module can either enforce a specific basecaller or used the default configuration:
 
-:   * basecalling_default: guppy
-    * threads_basecalling: 4
+:   * threads_basecalling: 4
 
 ### Albacore
 The ONT closed source software based on a deep neural network. The installer is accessible after login to the community board.

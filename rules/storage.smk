@@ -10,17 +10,17 @@
 #
 # ---------------------------------------------------------------------------------
 # Copyright (c) 2018-2019, Pay Giesselmann, Max Planck Institute for Molecular Genetics
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,10 +38,8 @@ localrules: storage_index_run, storage_extract
 # fast5 signal location
 LOC_RAW = "/Raw/"
 
-
 def get_batches_indexing(wildcards):
     return expand("{data_raw}/{wildcards.runname}/reads/{{batch}}.fofn".format(data_raw = config["storage_data_raw"], wildcards=wildcards), batch=get_batches(wildcards, config=config))
-
 
 # extract read ID from individual fast5 files
 rule storage_index_batch:
@@ -60,7 +58,7 @@ rule storage_index_batch:
         subprocess.run('tar -C reads/ -xf {input}'.format(input=input), check=True, shell=True, stdout=subprocess.PIPE)
         f5files = [os.path.join(dirpath, f) for dirpath, _, files in os.walk('reads/') for f in files if f.endswith('.fast5')]
         with open(output[0], 'w') as fp_out:
-            # scan files 
+            # scan files
             for f5file in f5files:
                 try:
                     with h5py.File(f5file, 'r') as f5:
@@ -69,24 +67,25 @@ rule storage_index_batch:
                         print('\t'.join([os.path.join('reads', wildcards.batch + '.tar', os.path.relpath(f5file, start='./reads')), ID]), file=fp_out)
                 except:
                     pass
- 
+
 # merge batch indices
 rule storage_index_run:
     input:
-        get_batches_indexing
+        batches = get_batches_indexing
     output:
-        "{data_raw}/{{runname}}/reads.fofn".format(data_raw = config["storage_data_raw"])
-    shell:
-        """
-        cat {input} > {output}
-        """
-        
- # index multiple runs       
+        fofn = "{data_raw}/{{runname}}/reads.fofn".format(data_raw = config["storage_data_raw"])
+    run:
+        with open(output.fofn, 'w') as fp_out:
+            for f in input.batches:
+                with open(f, 'r') as fp_in:
+                    fp_out.write(fp_in.read())
+
+ # index multiple runs
 rule storage_index_runs:
     input:
         files = lambda wildcards : ["{data_raw}/{runname}/reads.fofn".format(data_raw = config["storage_data_raw"], runname=rn) for rn in config['runnames']]
-        
-        
+
+
 # extract reads from indexed run
 rule storage_extract:
     input:
@@ -134,4 +133,3 @@ rule storage_extract_multi:
         touch("subset/{tag}.done")
     run:
         print(input.files)
-        
