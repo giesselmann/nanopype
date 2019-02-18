@@ -72,7 +72,7 @@ class test_unit_rules(unittest.TestCase):
         with open(os.path.join(self.test_dir, 'runnames.txt'), 'w') as fp:
             for runname in runnames:
                 print(runname, file=fp)
-        self.snk_cmd = 'snakemake -j 4 --use-singularity --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
+        self.snk_cmd = 'snakemake -j 4 --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
 
     # test indexing
     def test_storage(self):
@@ -103,6 +103,14 @@ class test_unit_rules(unittest.TestCase):
 
     def test_sniffles(self):
         subprocess.run(self.snk_cmd + "sv/sniffles/ngmlr/guppy/test.test.vcf", check=True, shell=True)
+
+
+# same tests but run within singularity
+class test_unit_singularity(test_unit_rules):
+    def setUp(self):
+        super().setUp()
+        self.snk_cmd = 'snakemake -j 4 --use-singularity --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
+
 
 # main function
 if __name__ == '__main__':
