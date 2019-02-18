@@ -39,7 +39,7 @@ from snakemake.utils import min_version
 
 # snakemake config
 min_version("5.4.0")
-configfile: "config.yaml"
+configfile: "nanopype.yaml"
 
 
 # get pipeline version
