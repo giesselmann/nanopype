@@ -50,8 +50,6 @@ rule deepbinner:
         "demux/deepbinner/{runname, [^.\/]*}/{batch}.tsv"
     shadow: "minimal"
     threads: config['threads_demux']
-    params:
-        py_bin = lambda wildcards : get_python(wildcards)
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads

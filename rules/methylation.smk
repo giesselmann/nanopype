@@ -59,13 +59,12 @@ rule methylation_nanopolish:
         signals = "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
         sequences = lambda wildcards ,config=config : get_sequence_batch(wildcards, config),
         bam = lambda wildcards, config=config : get_alignment_batch(wildcards, config),
-        bai = lambda wildcards, config=config : get_alignment_batch(wildcards, config) + '.bai'
+        bai = lambda wildcards, config=config : get_alignment_batch(wildcards, config) + '.bai',
+        reference = lambda wildcards: os.path.abspath(config['references'][wildcards.reference]['genome'])
     output:
         "methylation/nanopolish/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference, [^.\/]*}.tsv"
     shadow: "minimal"
     threads: config['threads_methylation']
-    params:
-        reference = lambda wildcards: os.path.abspath(config['references'][wildcards.reference]['genome'])
     resources:
         mem_mb = lambda wildcards, input, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 500 * threads)),
         time_min = lambda wildcards, input, threads, attempt: int((960 / threads) * attempt)   # 60 min / 16 threads
