@@ -339,6 +339,6 @@ rule Guppy:
     shell:
         """
         wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.1_linux64.tar.gz && \
-        tar --skip-old-files -xzf ont-guppy-cpu_2.3.1_linux64.tar.gz -C / --strip 1 && \
+        tar --skip-old-files -xzf ont-guppy-cpu_2.3.1_linux64.tar.gz -C ./ --strip 1 && \
         rm ont-guppy-cpu_2.3.1_linux64.tar.gz
         """

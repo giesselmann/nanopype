@@ -46,7 +46,7 @@ configfile: "nanopype.yaml"
 def get_tag():
     cmd = 'git describe --tags'
     try:
-        version = subprocess.check_output(cmd.split()).decode().strip()
+        version = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
     except subprocess.CalledProcessError:
         raise RuntimeError('Unable to get version number from git tags')
     if '-' in version:

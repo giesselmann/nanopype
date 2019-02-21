@@ -36,7 +36,7 @@ import os, sys
 from rules.utils.get_file import get_batches, get_sequence
 from rules.utils.storage import get_flowcell, get_kit
 # local rules
-localrules: basecaller_merge_run, basecaller_merge_runs
+localrules: basecaller_merge_run, basecaller_merge_runs, basecaller_qc
 ruleorder: basecaller_compress > guppy > albacore > flappie
 
 # get batches
@@ -179,8 +179,8 @@ rule fastx_stats:
         "{file}.{format}.gz"
     output:
         temp("{file}.{format, (fasta|fastq|fa|fq)}.qc.tsv")
-    params:
-        py_bin = lambda wildcards : get_python(wildcards)
+    resources:
+        time_min = lambda wildcards, threads, attempt: int(60 * attempt) # 60 min / 1 thread
     run:
         import rules.utils.basecalling_fastx_stats
         rules.utils.basecalling_fastx_stats.main(input[0], output=output[0])
@@ -197,6 +197,5 @@ rule basecaller_qc:
         """
         if=$(pwd)/{input}
         of=$(pwd)/{output}
-        echo "{config[sbin_singularity][basecalling_qc.Rmd]}"
         Rscript -e "rmarkdown::render('"'{config[sbin_singularity][basecalling_qc.Rmd]}'"', output_file = '"'$of'"')" $if
         """
