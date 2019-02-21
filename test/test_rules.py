@@ -88,6 +88,9 @@ class test_unit_rules(unittest.TestCase):
     def test_flappie(self):
         subprocess.run(self.snk_cmd + 'sequences/flappie/test.fastq.gz', check=True, shell=True)
 
+    def test_qc(self):
+        subprocess.run(self.snk_cmd + 'sequences/guppy/test.fastq.pdf', check=True, shell=True)
+
     # Test alignment
     def test_minimap2(self):
         subprocess.run(self.snk_cmd + 'alignments/minimap2/guppy/test.test.bam', check=True, shell=True)

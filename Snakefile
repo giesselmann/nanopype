@@ -142,11 +142,11 @@ for s in [s for s in os.listdir(os.path.join(os.path.dirname(workflow.snakefile)
         os.path.isfile(os.path.join(os.path.dirname(workflow.snakefile), 'rules/utils', s))]:
     if s.startswith('__') or s.startswith('.'):
         continue
-    config['sbin'][s] = os.path.abspath(os.path.join('rules/utils', s))
+    config['sbin'][s] = os.path.join(os.path.dirname(workflow.snakefile), 'rules/utils', s)
     if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
         config['sbin_singularity'][s] = os.path.join('/app/rules/utils', s)
     else:
-        config['sbin_singularity'][s] = os.path.abspath(os.path.join('rules/utils', s))
+        config['sbin_singularity'][s] = config['sbin'][s]
 
 
 # find the python executable

@@ -38,8 +38,6 @@ from rules.utils.storage import get_flowcell, get_kit
 # local rules
 localrules: basecaller_merge_run, basecaller_merge_runs
 ruleorder: basecaller_compress > guppy > albacore > flappie
-# local config
-config['bin']['basecalling_qc'] = os.path.abspath(os.path.join(workflow.basedir, 'rules/utils/basecalling_qc.Rmd'))
 
 # get batches
 def get_batches_basecaller(wildcards):
@@ -178,7 +176,7 @@ rule basecaller_compress:
 # basecalling QC
 rule fastx_stats:
     input:
-        "{file}.{format}"
+        "{file}.{format}.gz"
     output:
         temp("{file}.{format, (fasta|fastq|fa|fq)}.qc.tsv")
     params:
@@ -193,10 +191,12 @@ rule basecaller_qc:
         "{file}.{format}.qc.tsv"
     output:
         "{file}.{format, (fasta|fastq|fa|fq)}.pdf"
-    params:
-        qc_script = config['bin']['basecalling_qc']
-    run:
-        import os, subprocess
-        input_nrm = os.path.abspath(str(input))
-        output_nrm = os.path.abspath(str(output))
-        subprocess.run("Rscript -e 'rmarkdown::render(\"{qc_script}\", output_file = \"{output}\")' {input}".format(qc_script=params.qc_script, output=output_nrm, input=input_nrm), check=True, shell=True)
+    singularity:
+        "docker://nanopype/analysis:{tag}".format(tag=config['version']['tag'])
+    shell:
+        """
+        if=$(pwd)/{input}
+        of=$(pwd)/{output}
+        echo "{config[sbin_singularity][basecalling_qc.Rmd]}"
+        Rscript -e "rmarkdown::render('"'{config[sbin_singularity][basecalling_qc.Rmd]}'"', output_file = '"'$of'"')" $if
+        """
