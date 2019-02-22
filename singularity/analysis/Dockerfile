@@ -27,6 +27,7 @@ RUN R -e "install.packages('ggplot2', repos = 'https://cloud.r-project.org/')"
 RUN R -e "install.packages('knitr', repos = 'https://cloud.r-project.org/')"
 RUN R -e "install.packages('grid', repos = 'https://cloud.r-project.org/')"
 RUN R -e "install.packages('gridExtra', repos = 'https://cloud.r-project.org/')"
+RUN R -e "install.packages('tinytex')" -e "tinytex::install_tinytex()"
 
 RUN mkdir -p /app
 COPY . /app/
