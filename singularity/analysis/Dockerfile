@@ -19,15 +19,15 @@ ENV LC_ALL en_US.UTF-8
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
 RUN add-apt-repository 'deb [arch=amd64,i386] https://cran.rstudio.com/bin/linux/ubuntu xenial/'
 RUN apt-get update
-RUN apt-get install --yes r-base pandoc
+RUN apt-get install --yes r-base pandoc texlive-latex-base
 
 # install R packages
-RUN R -e "install.packages('rmarkdown', repos = 'https://cloud.r-project.org/')"
-RUN R -e "install.packages('ggplot2', repos = 'https://cloud.r-project.org/')"
-RUN R -e "install.packages('knitr', repos = 'https://cloud.r-project.org/')"
-RUN R -e "install.packages('grid', repos = 'https://cloud.r-project.org/')"
-RUN R -e "install.packages('gridExtra', repos = 'https://cloud.r-project.org/')"
-RUN R -e "install.packages('tinytex')" -e "tinytex::install_tinytex()"
+RUN R -e "install.packages('rmarkdown', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('ggplot2', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('knitr', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('grid', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('gridExtra', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('tinytex', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')" -e "tinytex::install_tinytex()"
 
 RUN mkdir -p /app
 COPY . /app/
