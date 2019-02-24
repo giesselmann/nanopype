@@ -38,7 +38,8 @@ RUN apt-get --yes update && \
 apt-get install -y --no-install-recommends wget locales \
     gcc python3-dev \
     ca-certificates lsb-release apt-transport-https \
-    libcunit1 libhdf5-10 libopenblas-base
+    libcunit1 libhdf5-10 libopenblas-base \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN update-ca-certificates
 RUN locale-gen en_US.UTF-8

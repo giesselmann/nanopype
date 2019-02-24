@@ -6,8 +6,9 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
 RUN apt-get --yes update && \
-apt-get install -y --no-install-recommends wget locales \
-    ca-certificates apt-transport-https software-properties-common
+    apt-get install -y --no-install-recommends wget locales \
+    ca-certificates apt-transport-https software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN update-ca-certificates
 RUN locale-gen en_US.UTF-8

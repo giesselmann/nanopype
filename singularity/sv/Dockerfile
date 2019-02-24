@@ -34,9 +34,10 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
 RUN apt-get --yes update && \
-apt-get install -y --no-install-recommends wget locales \
+    apt-get install -y --no-install-recommends wget locales \
     gcc python3-dev \
-    ca-certificates apt-transport-https
+    ca-certificates apt-transport-https \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN update-ca-certificates
 RUN locale-gen en_US.UTF-8
