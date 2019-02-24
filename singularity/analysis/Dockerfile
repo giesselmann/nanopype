@@ -23,9 +23,7 @@ RUN apt-get update && apt-get install --no-install-recommends --yes \
     g++ gcc make \
     r-base \
     pandoc \
-    texlive-latex-full \
-    texlive-latex-extra \
-    texlive-fonts-recommended \
+    texlive-full \
     && rm -rf /var/lib/apt/lists/*
 
 # install R packages
