@@ -18,25 +18,27 @@ ENV LC_ALL en_US.UTF-8
 # install R
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
 RUN add-apt-repository 'deb [arch=amd64,i386] https://cran.rstudio.com/bin/linux/ubuntu xenial/'
+RUN add-apt-repository -y ppa:jonathonf/texlive
 RUN apt-get update && apt-get install --no-install-recommends --yes \
+    g++ gcc make \
     r-base \
     pandoc \
-    texlive-latex-base \
+    texlive-latex-full \
     texlive-latex-extra \
     texlive-fonts-recommended \
     && rm -rf /var/lib/apt/lists/*
 
-ENV HOME /root
-
 # install R packages
-RUN Rscript -e "install.packages('rmarkdown', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
-RUN Rscript -e "install.packages('ggplot2', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
-RUN Rscript -e "install.packages('knitr', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
-RUN Rscript -e "install.packages('grid', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
-RUN Rscript -e "install.packages('gridExtra', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('rmarkdown', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('ggplot2', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('knitr', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('grid', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('gridExtra', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
 
 RUN mkdir -p /app
 COPY . /app/
+
+ENV HOME /root
 
 WORKDIR /
 # default entrypoint is /bin/sh
