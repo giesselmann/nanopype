@@ -263,15 +263,10 @@ rule gitlfs:
         bin = "bin/git-lfs"
     shell:
         """
-        export PATH=$(pwd)/{input.go}:$PATH
-        mkdir -p src && cd src
-        if [ ! -d git-lfs ]; then
-            git clone https://github.com/git-lfs/git-lfs.git --branch v2.6.0 --depth=1 && cd git-lfs
-        else
-            cd git-lfs && git fetch --all --tags --prune && git checkout tags/v2.6.0
-        fi
-        make
-        cp bin/git-lfs ../../bin
+        mkdir -p src/gocode
+        export GOPATH=$(pwd)/src/gocode
+        {input.go}/go get github.com/github/git-lfs
+        cp src/gocode/bin/git-lfs bin/
         """
 
 rule OpenBLAS:
@@ -320,7 +315,7 @@ rule Flappie:
     shell:
         """
         install_prefix=`pwd`
-        bin/git-lfs install
+        bin/git-lfs install --local
         export PATH=$install_prefix/bin:$PATH
         mkdir -p src && cd src
         if [ ! -d flappie ]; then
