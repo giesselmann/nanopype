@@ -188,14 +188,15 @@ rule fastx_stats:
 # report from basecalling
 rule basecaller_qc:
     input:
-        "{file}.{format}.qc.tsv"
+        tsv = "{file}.{format}.qc.tsv"
     output:
-        "{file}.{format, (fasta|fastq|fa|fq)}.pdf"
+        pdf = "{file}.{format, (fasta|fastq|fa|fq)}.pdf"
     singularity:
         "docker://nanopype/analysis:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        if=$(pwd)/{input}
-        of=$(pwd)/{output}
-        Rscript -e "rmarkdown::render('"'{config[sbin_singularity][basecalling_qc.Rmd]}'"', output_file = '"'$of'"')" $if
+        wd=$(pwd)
+        cp {config[sbin_singularity][basecalling_qc.Rmd]} ./
+        Rscript -e 'rmarkdown::render("basecalling_qc.Rmd")' ${{wd}}/{input.tsv}
+        mv basecalling_qc.pdf {output.pdf}
         """

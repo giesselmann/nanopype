@@ -6,8 +6,9 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
 RUN apt-get --yes update && \
-apt-get install -y --no-install-recommends wget locales \
-    ca-certificates apt-transport-https software-properties-common
+    apt-get install -y --no-install-recommends wget locales \
+    ca-certificates apt-transport-https software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN update-ca-certificates
 RUN locale-gen en_US.UTF-8
@@ -18,19 +19,25 @@ ENV LC_ALL en_US.UTF-8
 # install R
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
 RUN add-apt-repository 'deb [arch=amd64,i386] https://cran.rstudio.com/bin/linux/ubuntu xenial/'
-RUN apt-get update
-RUN apt-get install --yes r-base pandoc
+RUN add-apt-repository -y ppa:jonathonf/texlive
+RUN apt-get update && apt-get install --no-install-recommends --yes \
+    g++ gcc make \
+    r-base \
+    pandoc \
+    texlive-full \
+    && rm -rf /var/lib/apt/lists/*
 
 # install R packages
-RUN R -e "install.packages('rmarkdown', repos = 'https://cloud.r-project.org/')"
-RUN R -e "install.packages('ggplot2', repos = 'https://cloud.r-project.org/')"
-RUN R -e "install.packages('knitr', repos = 'https://cloud.r-project.org/')"
-RUN R -e "install.packages('grid', repos = 'https://cloud.r-project.org/')"
-RUN R -e "install.packages('gridExtra', repos = 'https://cloud.r-project.org/')"
+RUN R -e "install.packages('rmarkdown', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('ggplot2', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('knitr', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('grid', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
+RUN R -e "install.packages('gridExtra', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
 
 RUN mkdir -p /app
 COPY . /app/
-WORKDIR /app
+
+ENV HOME /root
 
 WORKDIR /
 # default entrypoint is /bin/sh
