@@ -1,4 +1,4 @@
-# nanopype 
+# Nanopype
 
 [![Docker Automated build](https://img.shields.io/docker/automated/giesselmann/nanopype.svg)](https://hub.docker.com/r/giesselmann/nanopype/) [![Read the Docs (version)](https://img.shields.io/readthedocs/nanopype/latest.svg)](https://nanopype.readthedocs.io/en/latest/)
 

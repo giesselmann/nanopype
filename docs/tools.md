@@ -1,12 +1,12 @@
 # Tools
 
-Nanopype integrates a variety of different tools merged into processing pipelines for common use cases.
+Nanopype integrates a growing number of different tools merged into processing workflows for common use cases.
 
-## Core
+## Processing
 **Basecalling**
 
 :   * Albacore (access restricted to ONT community, manual install required)
-    * Guppy (access restricted to ONT community, manual install required)
+    * Guppy
     * Flappie *https://github.com/nanoporetech/flappie*
 
 **Alignment**
@@ -15,9 +15,20 @@ Nanopype integrates a variety of different tools merged into processing pipeline
     * Graphmap *https://github.com/isovic/graphmap*
     * Ngmlr *https://github.com/philres/ngmlr*
 
+## Analysis
+
 **Methylation detection**
 
 :   * Nanopolish *https://github.com/jts/nanopolish*
+    * Flappie *https://github.com/nanoporetech/flappie*
+
+**Structural variation**
+
+:   * Sniffles *https://github.com/fritzsedlazeck/Sniffles*
+
+**Demultiplexing**
+
+:   * Deepbinner *https://github.com/rrwick/Deepbinner*
 
 **Miscellaneous**
 
@@ -26,11 +37,4 @@ Nanopype integrates a variety of different tools merged into processing pipeline
     * UCSCTools *http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/*
         * bedGraphToBigWig
 
-## Extended
-**Structural variation**
 
-:   * Sniffles *https://github.com/fritzsedlazeck/Sniffles*
-
-**Demultiplexing**
-
-:   * Deepbinner *https://github.com/rrwick/Deepbinner*
