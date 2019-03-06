@@ -148,12 +148,23 @@ for s in [s for s in os.listdir(os.path.join(os.path.dirname(workflow.snakefile)
     else:
         config['sbin_singularity'][s] = config['sbin'][s]
 
+		
+# helper of submodules are called relative to the pipeline base directory
+config['sbin']['base'] = os.path.join(os.path.dirname(workflow.snakefile))
+if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
+    config['sbin_singularity']['base'] = '/app'
+else:
+    config['sbin_singularity']['base'] = config['sbin']['base']
+
 
 # find the python executable
 # Python executable of the workflow
 config['bin']['python'] = sys.executable
 # In the container we just use python3
-config['bin_singularity']['python'] = 'python3'
+if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
+	config['bin_singularity']['python'] = 'python3'
+else:
+	config['bin_singularity']['python'] = sys.executable
 
 
 # names for multi-run rules

@@ -33,7 +33,7 @@
 # ---------------------------------------------------------------------------------
 # imports
 import os, sys
-from rules.utils.get_file import get_batches, get_sequence
+from rules.utils.get_file import get_batches, get_batch_ext, get_sequence
 from rules.utils.storage import get_flowcell, get_kit
 # local rules
 localrules: basecaller_merge_run, basecaller_merge_runs, basecaller_qc
@@ -48,7 +48,7 @@ def get_batches_basecaller(wildcards):
 # albacore basecalling
 rule albacore:
     input:
-        "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
+        lambda wildcards : "{data_raw}/{{runname}}/reads/{{batch}}.{ext}".format(data_raw = config["storage_data_raw"], ext=get_batch_ext(wildcards, config))
     output:
         "sequences/albacore/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shadow: "minimal"
@@ -60,11 +60,12 @@ rule albacore:
         flowcell = lambda wildcards: get_flowcell(wildcards, config),
         kit = lambda wildcards: get_kit(wildcards, config),
         barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
-        filtering = lambda wildcards : '--disable_filtering' if config['basecalling_albacore_disable_filtering'] else ''
+        filtering = lambda wildcards : '--disable_filtering' if config['basecalling_albacore_disable_filtering'] else '',
+        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], 'reads', wildcards.runname)
     shell:
         """
         mkdir -p raw
-        tar -C raw/ -xf {input}
+        {config[sbin][storage_batch2fast5.sh]} {input} {params.batch_base} raw/ {config[sbin][base]} {config[bin][python]}
         {config[bin][albacore]} -i raw/ --recursive -t {threads} -s raw/ --flowcell {params.flowcell} --kit {params.kit} --output_format fastq {params.filtering} {params.barcoding} {config[basecalling_albacore_flags]}
         FASTQ_DIR='raw/workspace/'
         if [ \'{params.filtering}\' = '' ]; then
@@ -81,7 +82,7 @@ rule albacore:
 # guppy basecalling
 rule guppy:
     input:
-        "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"]),
+        lambda wildcards : "{data_raw}/{{runname}}/reads/{{batch}}.{ext}".format(data_raw = config["storage_data_raw"], ext=get_batch_ext(wildcards, config))
     output:
         "sequences/guppy/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shadow: "minimal"
@@ -93,13 +94,14 @@ rule guppy:
         flowcell = lambda wildcards: get_flowcell(wildcards, config),
         kit = lambda wildcards: get_kit(wildcards, config),
         #barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
-        filtering = lambda wildcards : '--qscore_filtering --min_qscore {score}'.format(score = config['basecalling_guppy_qscore_filter']) if config['basecalling_guppy_qscore_filter'] > 0 else ''
+        filtering = lambda wildcards : '--qscore_filtering --min_qscore {score}'.format(score = config['basecalling_guppy_qscore_filter']) if config['basecalling_guppy_qscore_filter'] > 0 else '',
+        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], 'reads', wildcards.runname)
     singularity:
         "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         mkdir -p raw
-        tar -C raw/ -xf {input}
+        {config[sbin_singularity][storage_batch2fast5.sh]} {input} {params.batch_base} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
         {config[bin_singularity][guppy]} -i raw/ --recursive --cpu_threads_per_caller {threads} -s workspace/ --flowcell {params.flowcell} --kit {params.kit} {params.filtering} {config[basecalling_guppy_flags]}
         FASTQ_DIR='workspace/pass'
         if [ \'{params.filtering}\' = '' ]; then
@@ -116,7 +118,7 @@ rule guppy:
 # flappie basecalling
 rule flappie:
     input:
-        "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"])
+        lambda wildcards : "{data_raw}/{{runname}}/reads/{{batch}}.{ext}".format(data_raw = config["storage_data_raw"], ext=get_batch_ext(wildcards, config))
     output:
         sequence = "sequences/flappie/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz",
         methyl_marks = "sequences/flappie/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.tsv.gz"
@@ -125,13 +127,15 @@ rule flappie:
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 5000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((5760 / threads) * attempt) # 360 min / 16 threads
+    params:
+        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], 'reads', wildcards.runname)
     singularity:
         "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         export OPENBLAS_NUM_THREADS=1
         mkdir -p raw
-        tar -C raw/ -xf {input}
+        {config[sbin_singularity][storage_batch2fast5.sh]} {input} {params.batch_base} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
         find raw/ -regextype posix-extended -regex '^.*fast5' -type f -exec du -h {{}} + | sort -r -h | cut -f2 > raw.fofn
         split -e -n r/{threads} raw.fofn raw.fofn.part.
         ls raw.fofn.part.* | xargs -n 1 -P {threads} -I {{}} $SHELL -c 'cat {{}} | shuf | xargs -n 1 {config[bin_singularity][flappie]} --model {config[basecalling_flappie_model]} {config[basecalling_flappie_flags]} > raw/{{}}.fastq'

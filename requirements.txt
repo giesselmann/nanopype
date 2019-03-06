@@ -2,3 +2,4 @@ snakemake>=5.3.0
 h5py>=2.7.1
 numpy
 watchdog
+submodules/ont_fast5_api

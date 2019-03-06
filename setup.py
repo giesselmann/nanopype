@@ -13,7 +13,7 @@
 #  Berlin, Germany
 #  Written by Pay Giesselmann
 # -----------------------------------------------------------------------
-import os, sys
+import os, sys, shutil
 import site
 from setuptools import setup
 from setuptools.command.install import install
@@ -21,24 +21,24 @@ from setuptools.command.develop import develop
 from setuptools.command.egg_info import egg_info
 
 
-class AppendPathCmd(install):
+def run_cstm_cmd(self):
+    # append binary folder to PYTHON PATH
+    if self.tools:
+        with open(os.path.join(site.getsitepackages()[0], 'nanopype.pth'), 'w') as fp:
+            print('import os; os.environ["PATH"] = "{dir}" + os.pathsep + os.environ["PATH"]'.format(dir=os.path.abspath(self.tools)), file=fp)
+
+
+class CustomInstallCmd(install):
     user_options = install.user_options + [
         ('tools=', None, None),
     ]
     def initialize_options(self):
         install.initialize_options(self)
         self.tools = None
-        #self.someval = None
-
-    def finalize_options(self):
-        print("value of tools is", self.tools)
-        install.finalize_options(self)
 
     def run(self):
         install.run(self)
-        if self.tools:
-            with open(os.path.join(site.getsitepackages()[0], 'nanopype.pth'), 'w') as fp:
-                print('import os; os.environ["PATH"] += os.pathsep + "{dir}"'.format(dir=os.path.abspath(self.tools)), file=fp)
+        run_cstm_cmd(self)
 
 
 setup(
@@ -56,6 +56,6 @@ setup(
     scripts=['scripts/nanopype_import.py',],
     zip_safe=False,
     cmdclass={
-        'install': AppendPathCmd
+        'install': CustomInstallCmd
     }
 )

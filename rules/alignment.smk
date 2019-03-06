@@ -51,7 +51,7 @@ rule minimap2:
         sequence = lambda wildcards: get_sequence_batch(wildcards, config),
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     output:
-        pipe("alignments/minimap2/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference}.sam")
+        pipe("alignments/minimap2/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference}.sam")
     threads: config['threads_alignment']
     group: "minimap2"
     resources:
@@ -71,7 +71,7 @@ rule graphmap:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         index = lambda wildcards: config['references'][wildcards.reference]['genome'] + ".gmidx"
     output:
-        pipe("alignments/graphmap/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference}.sam")
+        pipe("alignments/graphmap/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference}.sam")
     threads: config['threads_alignment']
     group: "graphmap"
     resources:
@@ -105,7 +105,7 @@ rule ngmlr:
         index = lambda wildcards : directory(os.path.dirname(config['references'][wildcards.reference]['genome'])),
         index_flag = lambda wildcards: config['references'][wildcards.reference]['genome'] + '.ngm'
     output:
-        pipe("alignments/ngmlr/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference}.sam")
+        pipe("alignments/ngmlr/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference}.sam")
     threads: config['threads_alignment']
     group: "ngmlr"
     resources:
@@ -137,8 +137,8 @@ rule aligner_sam2bam:
     input:
         "alignments/{aligner}/{basecaller}/runs/{runname}/{batch}.{reference}.sam"
     output:
-        bam = "alignments/{aligner, [^/.]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference, [^.\/]*}.bam",
-        bai = "alignments/{aligner, [^/.]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [0-9]+}.{reference, [^.\/]*}.bam.bai"
+        bam = "alignments/{aligner, [^/.]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference, [^.\/]*}.bam",
+        bai = "alignments/{aligner, [^/.]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference, [^.\/]*}.bam.bai"
     shadow: "minimal"
     threads: 1
     params:

@@ -37,8 +37,20 @@ from snakemake.io import glob_wildcards
 
 # batches of packed fast5 files
 def get_batches(wildcards, config):
-    batches, = glob_wildcards("{datadir}/{wildcards.runname}/reads/{{id}}.tar".format(datadir=config["storage_data_raw"], wildcards=wildcards))
-    return batches
+    batches_tar, = glob_wildcards("{datadir}/{wildcards.runname}/reads/{{id}}.tar".format(datadir=config["storage_data_raw"], wildcards=wildcards))
+    batches_fast5, = glob_wildcards("{datadir}/{wildcards.runname}/reads/{{id}}.fast5".format(datadir=config["storage_data_raw"], wildcards=wildcards))
+    return batches_tar + batches_fast5
+    
+def get_batch_ext(wildcards, config):
+    raw_prefix = "{datadir}/{wildcards.runname}/reads/{wildcards.batch}".format(datadir=config["storage_data_raw"], wildcards=wildcards)
+    print(raw_prefix)
+    # TODO idx prefix
+    if os.path.isfile(raw_prefix + ".tar"):
+        return "tar"
+    elif os.path.isfile(raw_prefix + ".fast5"):
+        return "fast5"
+    else:
+        pass
 
 # get available batch sequence
 def get_sequence_batch(wildcards, config, force_basecaller=None):
