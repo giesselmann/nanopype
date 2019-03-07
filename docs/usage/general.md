@@ -7,6 +7,11 @@ Raw data is stored in per flow cell run folders. Nanopype is parsing the flow ce
 
 > 20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01
 
+??? info "raw data"
+    Raw nanopore read data is organized in directories per flow cell. The name is used to parse important experimental information such as flow cell type and sequencing kit.
+    A suggested pattern is *20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01* with fixed first four fields and an arbitrary number of user defined tags at the end.
+    Nanopype will search a *reads/* subfolder for tar archives containing packed fast5 files with signal values from the sequencer. A *reads.fofn* can be created to index the run and enable efficient extraction of reads of interest.
+
 with the corresponding configuration entries:
 
 ```

@@ -1,33 +1,33 @@
 # Docker
 
-* Make own subsection here containing more detailed description on what it means to include other tools and why (ONT software)
-* Link to docker
-
-Run nanopype with all its dependencies from within an automated built docker container. This is primarily for local usage and does currently not support snakemakes cluster engine. The compressed docker image size is ~500 MB.
+The all-in-one Docker image of Nanopype contains all its dependencies and is build automatically on [dockerHub](https://hub.docker.com/r/giesselmann/nanopype). This is primarily meant for local usage and does currently not support snakemakes cluster engine. The compressed docker image size is ~500 MB. From the Docker shell run:
 
     docker pull giesselmann/nanopype
 
-You can extend and customize your docker in the following way:
+The container is tagged with the pipeline version. To obtain a specific version run e.g.:
 
-    docker run -it --mount type=bind,source=/host/installer/path,target=/src giesselmann/nanopype
+    docker pull giesselmann/nanopype:v0.4.0
 
-In the docker shell you could install e.g. albacore from ONT after you downloaded the python wheel to the hosts */host/installer/path*:
+Docker images can get access to the hosts file system with the *bind* argument. Test the container by mounting your current directory:
 
-    pip3 install ont_albacore-2.3.3-cp35-cp35m-manylinux1_x86_64.whl
+    docker run -it --mount type=bind,source=$(pwd),target=/host giesselmann/nanopype
 
-Press CTRL + P and CTRL + Q to detach from the running container and run
+Inside of the container type
 
-    docker ps
+    ls -l /host
 
-to get the *CONTAINER_ID* of the currently running container. Save the changes, attach to the running container and exit:
+to see the files of the host system from where the container was started. Leave a running container with *exit*.
 
-    docker commit CONTAINER_ID giesselmann/nanopype
-    docker attach CONTAINER_ID
+Changes made to the file system of the container are not persistent. For configuration purpose we clone the pipeline repository and map it later into the container.
 
-***
+```
+mkdir -p src && cd src
+git clone --recursive https://github.com/giesselmann/nanopype
+cd nanopype
+```
 
-## Troubleshooting
-There are some common errors that could arise during the installation process. If you encounter one of the following error messages, please consider the respective solution attempts.
+To use Docker for processing you will need to mount the pipeline, your data and a processing directory to the container. Any processing results not copied to the host will not persist inside the container after leaving it! From the Nanopype repository run:
 
-**not a supported wheel on this platform**
-:   Nanopype requires at least python3.4 (The Docker image uses python3.5). If you install additional packages (e.g. albacore) from python wheels, make sure the downloaded binary packages matches the local python version.
+    docker run -it --mount type=bind,source=$(pwd),target=/app \
+    --mount type=bind,source=/path/to/miniondata,target=/data \
+    --mount type=bind,source=/path/to/project,target=/processing giesselmann/nanopype

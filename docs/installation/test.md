@@ -1,23 +1,35 @@
 # Tests
 
-* Restructure such that calls are in the beginning
-* Make a generic call like ```test/test_rules.py test_unit_rules.<CASE>```
+After installation and [environment](configuration.md) configuration the successful setup can be tested with sample data included in the pipeline repository.
 
-From the Nanopype repository run either all or only a subset of the available tests:
-### Python
+An initial test validates the presence of all required tools. This is only required for [source](src.md) installations and to check if manual e.g. albacore installations are found correctly. The test will check all supported tools, if you do not plan to use parts of the pipeline, you can ignore failing test cases.
 
-    python3 test/test_rules.py
-    python3 test/test_rules.py test_unit_rules.test_storage
+    python3 test/test_install.py
 
-### Docker
+Secondly the functionality of the pipeline itself is tested on a small sample data set. The command is slightly different depending on the installation method:
 
-    docker run -it giesselmann/nanopype
-    cd /app
-    python3 test/test_rules.py
-    python3 test/test_rules.py test_unit_rules.test_flappie
+**Singularity**
 
+```
+cd /path/to/nanopype
+python3 test/test_rules.py test_unit_singularity.<CASE>
+```
 
-To test if the installation and configuration was successful, we provide a small MinION dataset of a human cell line. The available test cases are:
+**Source**
+
+```
+cd /path/to/nanopype
+python3 test/test_rules.py test_unit_src.<CASE>
+```
+
+**Docker**
+
+```
+docker run -it giesselmann/nanopype
+python3 /app/test/test_rules.py test_unit_src.<CASE>
+```
+
+Available test cases are:
 
 **Storage**
 :   * test_storage
@@ -38,7 +50,4 @@ To test if the installation and configuration was successful, we provide a small
 **Structural Variation**
 :   * test_sniffles
 
-
-The test takes ~20 min on 4 cores and downloads ~54 MB reference sequence for the alignment module.
-Tests cover all modules of the pipeline, if some tools (e.g. albacore) are not installed, the associated tests will fail. Independent parts of the pipeline will however still work.
-Note that test runtimes are not representative due to very small batch sizes.
+To run all test call the test script without any test case. The test takes ~20 min on 4 cores and downloads ~54 MB reference sequence for the alignment module. Tests cover all modules of the pipeline, if some tools (e.g. albacore in the Docker container) are not installed, the associated tests will fail. Independent parts of the pipeline will however still work. Note that test runtimes are not representative due to very small batch sizes.
