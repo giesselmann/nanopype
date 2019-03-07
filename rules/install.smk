@@ -37,26 +37,27 @@ import os
 rule default:
     shell : ""
 
-rule core:
+rule processing:
     input:
+        "bin/guppy_basecaller"
         "bin/flappie",
         "bin/bedtools",
         "bin/samtools",
         "bin/minimap2",
         "bin/graphmap",
-        "bin/ngmlr",
-        "bin/nanopolish",
-        "bin/bedGraphToBigWig"
+        "bin/ngmlr"
 
-rule extended:
+rule analysis:
     input:
+        "bin/nanopolish",
+        "bin/bedGraphToBigWig",
         "bin/sniffles",
         "bin/deepbinner-runner.py"
 
 rule all:
     input:
-        rules.core.input,
-        rules.extended.input
+        rules.processing.input,
+        rules.analysis.input
 
 rule alignment:
     input:
@@ -304,7 +305,7 @@ rule hdf5:
         cmake --build . --config Release --target install
         """
 
-rule Flappie:
+rule flappie:
     input:
         lambda wildcards,config=config: [rules.gitlfs.output.bin] +
         ([rules.OpenBLAS.output.src] if config['flappie_src'] else []) +
@@ -328,7 +329,7 @@ rule Flappie:
         cp flappie ../../../{output.bin}
         """
 
-rule Guppy:
+rule guppy:
     output:
         bin = "bin/guppy_basecaller"
     shell:

@@ -38,7 +38,7 @@ import urllib.request
 
 
 # Test cases
-class test_unit_rules(unittest.TestCase):
+class test_unit_src(unittest.TestCase):
     def setUp(self):
         self.repo_dir = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
         self.test_dir = os.path.join(self.repo_dir, 'test')
@@ -109,7 +109,7 @@ class test_unit_rules(unittest.TestCase):
 
 
 # same tests but run within singularity
-class test_unit_singularity(test_unit_rules):
+class test_unit_singularity(test_unit_src):
     def setUp(self):
         super().setUp()
         self.snk_cmd = 'snakemake -j 4 --use-singularity --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
