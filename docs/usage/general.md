@@ -24,7 +24,7 @@ storage_runname:
 
 ## Snakemake
 
-The basic concept of snakemake and thus also nanopype is to request an output file which can be generated from one or more input files. Snakemake will recursively build a graph and determine required intermediate or temporary data to be processed. In general you can run snakemake from within your processing directory with
+The basic concept of Snakemake and thus also Nanopype is to request an output file which can be generated from one or more input files. Snakemake will recursively build a graph and determine required intermediate or temporary data to be processed. In general you can run Snakemake from within your processing directory with
 
     snakemake --snakefile /path/to/nanopype/Snakefile [OPTIONS...] [FILE]
 
@@ -32,7 +32,7 @@ or from the installation path with specifying the working directory:
 
     snakemake --directory /path/to/processing [OPTIONS...] [FILE]
 
-Nanopype expects a **config.yaml** in the root of the processing directory. A template with default values is found in the nanopype repository. You can either edit the parameters within the file or override them from the command line:
+Nanopype expects a **config.yaml** in the root of the processing directory. A template with default values is found in the Nanopype repository. You can either edit the parameters within the file or override them from the command line:
 
     snakemake [OPTIONS...] [FILE] --config threads_basecalling=16
 

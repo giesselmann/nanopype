@@ -25,11 +25,11 @@ We provide Singularity images per module, wrapper to build and install tools fro
 
 </center>
 
-Independant of the operating system you'll need a working **python3** installation and **git** to clone the pipeline repository. On Linux and MacOS these are likely already present, on Windows we can recommend [gitforwindows](https://gitforwindows.org/) as a starting point.
+Independent of the operating system you'll need a working **python3** installation and **git** to clone the pipeline repository. On Linux and MacOS these are likely already present, on Windows we can recommend [gitforwindows](https://gitforwindows.org/) as a starting point.
 
-**Rrecommendation:** If possible use the Singularity workflow of Nanopype. If you have already existing installations or wish to customize or optimize the build process go for the source installation. If you want to quickly test or run the pipeline on a Windows machine use the all-in-one Docker container.
+**Recommendation:** If possible use the Singularity workflow of Nanopype. If you have already existing installations or wish to customize or optimize the build process go for the source installation. If you want to quickly test or run the pipeline on a Windows machine use the all-in-one Docker container.
 
 !!! warning "Configuration"
-    Independant of the installation the pipeline needs to be configured once [globaly](configuration.md) and for each sample [locally](../usage/general.md).
+    Independent of the installation the pipeline needs to be configured once [globally](configuration.md) and for each sample [locally](../usage/general.md).
 
-[^1]: Some tools provided by Oxford Nanopore are only available through the ONT-community for users with access. After manual installation these are supported by nanopype but cannot be distributed in Docker images.
+[^1]: Some tools provided by Oxford Nanopore Technologies are only available through the ONT-community for users with access. After manual installation these are supported by Nanopype but cannot be distributed in Docker images.

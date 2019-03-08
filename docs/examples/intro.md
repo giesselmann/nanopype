@@ -2,7 +2,7 @@
 
 The tutorial is a step by step guide into the usage of the pipeline. Aside from the preparation steps in the introduction, the different parts work independently from each other. The examples will make use of the test data provided for the unit tests of Nanopype. The following steps assume Nanopype is installed in your home directory ```~/src/nanopype``` and you have activated the virtual environment if used. Also make sure you have run the tests of [installation](../installation/prerequisites.md) and [configuration](../installation/configuration.md).
 
-To get started create an empty directory and copy the read archive from the nanopype repository into it.
+To get started create an empty directory and copy the read archive from the Nanopype repository into it.
 
 *Docker*
 ```

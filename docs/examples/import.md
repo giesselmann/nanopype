@@ -1,6 +1,6 @@
 # Data Import
 
-Raw data from the sequencer in *fast5* format needs to be imported into nanopype compatible batches. Each batch contains a configurable number of reads. This tutorial covers the import and indexing of multiple runs.
+Raw data from the sequencer in *fast5* format needs to be imported into Nanopype compatible batches. Each batch contains a configurable number of reads. This tutorial covers the import and indexing of multiple runs.
 
 Since the provided test data is already properly packaged, we need to restore the original MinKNOW output.
 
@@ -15,7 +15,7 @@ done
 ```
 
 ### Packaging
-The next steps use the import script of nanopype to pack single reads into *tar* archives. First we reproduce the test data archives:
+The next steps use the import script of Nanopype to pack single reads into *tar* archives. First we reproduce the test data archives:
 
 ```
 mkdir -p data/raw2
@@ -40,7 +40,7 @@ An import session is generating detailed output similar to the following:
 
 ### Verification
 
-To compare the nanopype test archives to the newly created ones you could run:
+To compare the Nanopype test archives to the newly created ones you could run:
 
 ```
 run=20180221_FAH48596_FLO-MIN107_SQK-LSK108_human_Hues64
