@@ -15,7 +15,7 @@ An example on how to enable a not yet supported cluster system is given in *prof
     * status.py - job status request from cluster management
     * jobscript.sh - wrapper script for rules to be executed
 
-**Important:** When working with batches of raw nanopore reads, Nanopype makes use of snakemakes shadow mechanism. A shadow directory is temporary per rule execution and can be placed on per node local storage to reduce network overhead. The shadow prefix e.g. */scratch/local/* is set in the profiles config.yaml. The *--profile* argument tells snakemake to use a specific profile:
+**Important:** When working with batches of raw nanopore reads, Nanopype makes use of Snakemake's shadow mechanism. A shadow directory is temporary per rule execution and can be placed on per node local storage to reduce network overhead. The shadow prefix e.g. */scratch/local/* is set in the profiles config.yaml. The *--profile* argument tells Snakemake to use a specific profile:
 
     snakemake --profile /path/nanopype/profiles/mxq [OPTIONS...] [FILE]
 

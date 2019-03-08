@@ -74,7 +74,7 @@ The installation will create the following folder structure relative to a given 
    |--share
 ```
 
-Nanopype integrates a variety of different **[tools](../tools.md)** merged into processing pipelines for common use cases. We provide snakemake rules to download and build all dependencies. From within the Nanopype repository run
+Nanopype integrates a variety of different **[tools](../tools.md)** merged into processing pipelines for common use cases. We provide Snakemake rules to download and build all dependencies. From within the Nanopype repository run
 
     snakemake --snakefile rules/install.smk --directory /path/to/INSTALL_PREFIX all
 
@@ -87,7 +87,7 @@ to build and install all tools into **src**, **bin** and **lib** folders of the 
     # specific tool only
     snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] samtools
 
-The --directory argument of snakemake is used as installation prefix. By running snakemake with e.g. -j 4 multiple targets are build in parallel at the cost of interleaved output to the shell. To further accelerate the build you may try the following to build 8 tools (-j 8) with 8 threads each (threads_build=8) using the CMake generator Ninja:
+The --directory argument of Snakemake is used as installation prefix. By running Snakemake with e.g. -j 4 multiple targets are build in parallel at the cost of interleaved output to the shell. To further accelerate the build you may try the following to build 8 tools (-j 8) with 8 threads each (threads_build=8) using the CMake generator Ninja:
 
     snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] all -j 8 --config threads_build=8 build_generator=Ninja
 
@@ -128,4 +128,4 @@ There are some common errors that could arise during the installation process. I
 :   Nanopype requires at least python3.4 (The Docker image uses python3.5). If you install additional packages (e.g. albacore) from python wheels, make sure the downloaded binary packages matches the local python version.
 
 **terminated by signal 4**
-:   Nanopype is mostly compiling integrated tools from source. In heterogenous cluster environments this can lead to errors if the compilation takes place on a machine supporting modern vector instructions (SSE, AVX, etc.) but execution also uses less recent computers. The error message *terminated by signal 4* indicates an instruction in the software not supported by the underlying hardware. Please re-compile and install the tools from a machine with a common subset of vector instructions in this case.
+:   Nanopype is mostly compiling integrated tools from source. In heterogeneous cluster environments this can lead to errors if the compilation takes place on a machine supporting modern vector instructions (SSE, AVX, etc.) but execution also uses less recent computers. The error message *terminated by signal 4* indicates an instruction in the software not supported by the underlying hardware. Please re-compile and install the tools from a machine with a common subset of vector instructions in this case.

@@ -1,6 +1,6 @@
 # Docker
 
-The all-in-one Docker image of Nanopype contains all its dependencies and is build automatically on [dockerHub](https://hub.docker.com/r/giesselmann/nanopype). This is primarily meant for local usage and does currently not support snakemakes cluster engine. The compressed docker image size is ~500 MB. From the Docker shell run:
+The all-in-one Docker image of Nanopype contains all its dependencies and is build automatically on [dockerHub](https://hub.docker.com/r/giesselmann/nanopype). This is primarily meant for local usage and does currently not support Snakemake's cluster engine. The compressed docker image size is ~500 MB. From the Docker shell run:
 
     docker pull giesselmann/nanopype
 

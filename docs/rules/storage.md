@@ -1,6 +1,6 @@
 # Storage
 
-The storage module of nanopype covers the import, indexing and extraction of raw nanopore reads. In general the raw data directory is expected to have one folder per flow cell with a subfolder *reads* containing the packed *.fast5* files.
+The storage module of Nanopype covers the import, indexing and extraction of raw nanopore reads. In general the raw data directory is expected to have one folder per flow cell with a subfolder *reads* containing the packed *.fast5* files.
 
 ```sh
 |--/data/raw/
@@ -21,7 +21,7 @@ You can specify one or more import directories, also by using wildcards in the p
 The order of reads in the archives is **not** guaranteed to be the same as in the output folders of MinKNOW. Running the script with the same arguments twice will validate the import process and report any inconsistency between import and raw data directories.
 
 **Important** Current MinKNOW versions support already packing of multiple reads into a single fast5 file. It is not yet tested, if this is compatible with all included tools of this pipeline. Re-packing these bundled fast5 will result in potentially huge archives!
-Future releases of nanopype will transparently support both, tar and fast5 archives.
+Future releases of Nanopype will transparently support both, tar and fast5 archives.
 
 ## Indexing
 
@@ -39,7 +39,7 @@ Together with the import, this is the only rule requiring **write access** to th
 
 ## Extraction
 
-It is possible to extract a **subset** of fast5 files from the packed and indexed run. Extraction requires a previously indexed run, a list of read IDs and works by requesting a directory from nanopype:
+It is possible to extract a **subset** of fast5 files from the packed and indexed run. Extraction requires a previously indexed run, a list of read IDs and works by requesting a directory from Nanopype:
 
     snakemake --snakefile /path/to/nanopype/Snakefile subset/roi/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01
 

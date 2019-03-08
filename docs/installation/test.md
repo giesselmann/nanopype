@@ -50,4 +50,4 @@ Available test cases are:
 **Structural Variation**
 :   * test_sniffles
 
-To run all test call the test script without any test case. The test takes ~20 min on 4 cores and downloads ~54 MB reference sequence for the alignment module. Tests cover all modules of the pipeline, if some tools (e.g. albacore in the Docker container) are not installed, the associated tests will fail. Independent parts of the pipeline will however still work. Note that test runtimes are not representative due to very small batch sizes.
+To run all test call the test script without any test case. The test takes ~20 min on 4 cores and downloads ~54 MB reference sequence for the alignment module. Tests cover all modules of the pipeline, if some tools (e.g. albacore in the Docker container) are not installed, the associated tests will fail. Independent parts of the pipeline will however still work. Note that test run times are not representative due to very small batch sizes.

@@ -1,12 +1,12 @@
 # Basecalling
 
-The basecller translates the raw electrical signal from the sequencer into a nucleotide sequence in fastq or fasta format. As input the packed **fast5** files as provided by the [storage](storage.md) module are required.
+The basecaller translates the raw electrical signal from the sequencer into a nucleotide sequence in fastq or fasta format. As input the packed **fast5** files as provided by the [storage](storage.md) module are required.
 
 In order to process the output of one flow cell with the basecaller *albacore* run from within your processing directory:
 
     snakemake --snakefile /path/to/nanopype/Snakefile sequences/albacore/runs/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.gz
 
-Valid file extensions are fasta/fa, fastq/fq in gzipped form. Providing a *runnames.txt* with one runname per line it is possible to process multiple flow cells at once and merge the output into a single file e.g.:
+Valid file extensions are fasta/fa, fastq/fq in gzipped form. Providing a *runnames.txt* with one run name per line it is possible to process multiple flow cells at once and merge the output into a single file e.g.:
 
     snakemake --snakefile /path/to/nanopype/Snakefile sequences/albacore/WA01.fastq.gz
 
