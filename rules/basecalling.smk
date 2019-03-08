@@ -201,6 +201,6 @@ rule basecaller_qc:
         """
         wd=$(pwd)
         cp {config[sbin_singularity][basecalling_qc.Rmd]} ./
-        Rscript -e 'rmarkdown::render("basecalling_qc.Rmd")' ${{wd}}/{input.tsv}
+        Rscript --vanilla -e 'rmarkdown::render("basecalling_qc.Rmd")' ${{wd}}/{input.tsv}
         mv basecalling_qc.pdf {output.pdf}
         """

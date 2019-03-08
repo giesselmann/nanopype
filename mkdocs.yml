@@ -93,7 +93,6 @@ nav:
     - Singularity: installation/singularity.md
     - Source: installation/src.md
     - Docker: installation/docker.md
-    - Cluster support: installation/cluster.md
     - Configuration: installation/configuration.md
     - Tests: installation/test.md
   - Workflow:

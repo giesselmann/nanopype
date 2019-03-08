@@ -1,8 +1,8 @@
-# Usage
+# Usage 
 
 ## Workflow config
 
-The default workflow configuration **config.yaml** in the installation directory serves as a template and needs to be copied to each working directory. The meaning of tool specific parameters is explained in the **Modules** section.
+The default workflow configuration **nanopype.yaml** in the installation directory serves as a template and needs to be copied to each working directory. The meaning of tool specific parameters is explained in the **Modules** section.
 Raw data is stored in per flow cell run folders. Nanopype is parsing the flow cell ID, its type and the used sequencing kit from the name. A possible naming pattern is:
 
 > 20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01
