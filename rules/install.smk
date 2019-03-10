@@ -39,7 +39,7 @@ rule default:
 
 rule processing:
     input:
-        "bin/guppy_basecaller"
+        "bin/guppy_basecaller",
         "bin/flappie",
         "bin/bedtools",
         "bin/samtools",
@@ -316,7 +316,6 @@ rule flappie:
     shell:
         """
         install_prefix=`pwd`
-        bin/git-lfs install --local
         export PATH=$install_prefix/bin:$PATH
         mkdir -p src && cd src
         if [ ! -d flappie ]; then
@@ -324,6 +323,7 @@ rule flappie:
         else
             cd flappie && git fetch --all --tags --prune && git checkout master
         fi
+        bin/git-lfs install --local
         mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} ../
         cmake --build . --config Release -- -j {threads}
         cp flappie ../../../{output.bin}
