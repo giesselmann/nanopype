@@ -34,7 +34,7 @@ ls -l data/raw
 The last step is to copy the config template to our working directory and adjust the raw data path:
 
 ```
-cp ~/src/nanopype/config.yaml ./
+cp ~/src/nanopype/nanopype.yaml ./
 ```
 
 With your favorite text editor change the path to:

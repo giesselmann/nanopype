@@ -10,7 +10,7 @@ wget -O references/chr6.fa.gz http://hgdownload.cse.ucsc.edu/goldenpath/hg38/chr
 gzip -d references/chr6.fa.gz
 ```
 
-The *environment.yaml* in the original repository already contains an entry for this tutorial:
+The *env.yaml* in the original repository already contains an entry for this tutorial:
 
     references:
         test:
