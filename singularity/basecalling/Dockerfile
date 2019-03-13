@@ -59,7 +59,7 @@ RUN pip3 install . --upgrade
 
 ## run setup rules
 RUN mkdir /build
-RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory /build Flappie --config flappie_src=False
+RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory /build flappie --config flappie_src=False
 
 # PACKAGE STAGE
 FROM ubuntu:16.04
