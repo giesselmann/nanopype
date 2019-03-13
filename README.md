@@ -6,7 +6,7 @@
 
 Detailed documentation and tutorials are available at [readthedocs](https://nanopype.readthedocs.io/en/stable/).
 
-<img style="float: right;" src="images/workflow.png"width="30%" hspace="20">
+<img style="float: right;" src="https://github.com/giesselmann/nanopype/blob/master/docs/images/workflow.png" width="30%" hspace="20">
 
 Nanopype is a snakemake based pipeline providing convenient Oxford Nanopore Technology (ONT) data processing and storage solutions.
 
