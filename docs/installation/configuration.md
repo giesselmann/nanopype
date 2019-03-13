@@ -30,31 +30,31 @@ references:
     ```
     references:
         mm9:
-            genome: /project/bioinf_meissner/references/mm9/mm9.fa
-            chr_sizes: /project/bioinf_meissner/references/mm9/mm9.chrom.sizes
+            genome: ~/references/mm9/mm9.fa
+            chr_sizes: ~/references/mm9/mm9.chrom.sizes
         mm10:
-            genome: /project/bioinf_meissner/references/mm10/mm10.fa
-            chr_sizes: /project/bioinf_meissner/references/mm10/mm10.chrom.sizes
+            genome: ~/references/mm10/mm10.fa
+            chr_sizes: ~/references/mm10/mm10.chrom.sizes
         hg19:
-            genome: /project/bioinf_meissner/references/hg19/hg19.fa
-            chr_sizes: /project/bioinf_meissner/references/hg19/hg19.chrom.sizes
+            genome: ~/references/hg19/hg19.fa
+            chr_sizes: ~/references/hg19/hg19.chrom.sizes
         hg38:
-            genome: /project/bioinf_meissner/references/hg38/hg38.fa
-            chr_sizes: /project/bioinf_meissner/references/hg38/hg38.chrom.sizes
+            genome: ~/references/hg38/hg38.fa
+            chr_sizes: ~/references/hg38/hg38.chrom.sizes
 
     bin:
-        albacore: /project/minion/bin/read_fast5_basecaller.py
-        flappie: /project/minion/bin/flappie
-        guppy: /project/minion/bin/guppy_basecaller
-        bedtools: /project/minion/bin/bedtools
-        graphmap: /project/minion/bin/graphmap
-        minimap2: /project/minion/bin/minimap2
-        nanopolish: /project/minion/bin/nanopolish
-        ngmlr: /project/minion/bin/ngmlr
-        samtools: /project/minion/bin/samtools
-        sniffles: /project/minion/bin/sniffles
-        deepbinner: /project/minion/bin/deepbinner-runner.py
-        bedGraphToBigWig: /project/minion/bin/bedGraphToBigWig
+        albacore: ~/bin/read_fast5_basecaller.py
+        flappie: ~/bin/flappie
+        guppy: ~/bin/guppy_basecaller
+        bedtools: ~/bin/bedtools
+        graphmap: ~/bin/graphmap
+        minimap2: ~/bin/minimap2
+        nanopolish: ~/bin/nanopolish
+        ngmlr: ~/bin/ngmlr
+        samtools: ~/bin/samtools
+        sniffles: ~/bin/sniffles
+        deepbinner: ~/bin/deepbinner-runner.py
+        bedGraphToBigWig: ~/bin/bedGraphToBigWig
     ```
 
 
@@ -117,10 +117,51 @@ Parameters of the cluster config are accessible inside the cluster submission co
 
 Furthermore Nanopype specifies per rule a configurable number of threads and calculates the estimated run time and memory consumption accordingly. Integration and customization of these parameters is described in the [cluster](../usage/cluster.md) chapter of the workflow section.
 
+## Job properties
 
+All Nanopype workflows specify **threads** and **time_min** and **mem_mb** resources. If supported by the cluster engine you could therefore use:
+
+    snakemake --cluster "qsub {threads} --runtime {resources.time_min} --memory {resources.mem_mb}"
+    
+If the formats of estimated runtime and memory consumption do not match your cluster system a custom [wrapper](https://snakemake.readthedocs.io/en/stable/executable.html#job-properties) script is easily set up. To convert from time in minutes to a custom string the following snippet is a starting point:
+
+??? info "example cluster_wrapper.py format conversion"
+    ```
+    import os, sys
+    from snakemake.utils import read_job_properties
+
+    jobscript = sys.argv[-1]
+    job_properties = read_job_properties(jobscript)
+    
+    # default resources
+    threads = '1'
+    runtime = '01:00'
+    memory = '16000M'
+    # parse resources
+    if "threads" in job_properties:
+        threads = str(job_properties["threads"])
+    if "resources" in job_properties:
+        resources = job_properties["resources"]
+        if "mem_mb" in resources: memory = str(resources["mem_mb"]) + 'M'
+        if "time_min" in resources: runtime = "{:02d}:{:02d}".format(*divmod(resources["time_min"], 60))
+    
+    # cmd and submission
+    cmd = 'sub --threads={threads} --memory={memory} --time="{runtime}" {jobscript}'.format(threads=threads, memory=memory, runtime=runtime, jobscript=jobscript)
+    os.system(cmd)
+    ```
+
+The respective Snakemake command line would then be:
+
+    snakemake --cluster cluster_wrapper.py
+    
+resulting in a cluster submission on the shell similar to:
+
+    sub --threads=1 --memory=16000M --time="00:15" ./snakemake/tmp123/job_xy.sh
+    
+    
 ## Custom cluster integration
 
-An example on how to enable a not yet supported cluster system is given in *profiles/mxq/* of the git repository. Briefly four components are required:
+A full example on how to enable a not yet supported cluster system is given in *profiles/mxq/* of the git repository. Briefly four components are required:
 
 :   * config.yaml - cluster specific command line arguments
     * submit.py - job submission to cluster management
