@@ -2,7 +2,7 @@
 
 Nanopype is based on the three key components binaries, raw data handling and processing. After finishing the [installation](../installation/prerequisites.md) and [environment](../installation/configuration.md) configuration, the pipeline is ready to process nanopore data sets. If you use Nanopype for the first time you might consider following the [tutorial](../examples/intro.md) first.
 
-The default workflow configuration **nanopype.yaml** in the installation directory of Nanopype serves as a template and needs to be copied to each working directory. The file is required in each processing directory and parsed in every invocation of the pipeline. The meaning of tool specific parameters is documented in the [Modules](../rules/intro.md) section.
+The default workflow configuration **nanopype.yaml** in the installation directory of Nanopype serves as a template and needs to be copied to each working directory. The file is required in each processing directory and parsed in every invocation of the pipeline. The meaning of tool specific parameters is documented in the Modules section.
 
 !!! error "Caution"
     The parameters in the config file have significant impact on the computed output. In contrast to the incorporated tools the configuration is not controlled or versioned by Nanopype. Changing entries without re-running the pipeline will lead to inconsistency between config and processed data.
