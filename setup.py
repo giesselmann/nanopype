@@ -9,11 +9,29 @@
 #  REQUIRES      : none
 #
 # -----------------------------------------------------------------------
-#  All rights reserved to Max Planck Institute for Molecular Genetics
-#  Berlin, Germany
-#  Written by Pay Giesselmann
-# -----------------------------------------------------------------------
-import os, sys
+# Copyright (c) 2018-2019, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# Written by Pay Giesselmann
+# ---------------------------------------------------------------------------------
+import os, sys, shutil
 import site
 from setuptools import setup
 from setuptools.command.install import install
@@ -21,29 +39,29 @@ from setuptools.command.develop import develop
 from setuptools.command.egg_info import egg_info
 
 
-class AppendPathCmd(install):
+def run_cstm_cmd(self):
+    # append binary folder to PYTHON PATH
+    if self.tools:
+        with open(os.path.join(site.getsitepackages()[0], 'nanopype.pth'), 'w') as fp:
+            print('import os; os.environ["PATH"] = "{dir}" + os.pathsep + os.environ["PATH"]'.format(dir=os.path.abspath(self.tools)), file=fp)
+
+
+class CustomInstallCmd(install):
     user_options = install.user_options + [
         ('tools=', None, None),
     ]
     def initialize_options(self):
         install.initialize_options(self)
         self.tools = None
-        #self.someval = None
-
-    def finalize_options(self):
-        print("value of tools is", self.tools)
-        install.finalize_options(self)
 
     def run(self):
         install.run(self)
-        if self.tools:
-            with open(os.path.join(site.getsitepackages()[0], 'nanopype.pth'), 'w') as fp:
-                print('import os; os.environ["PATH"] += os.pathsep + "{dir}"'.format(dir=os.path.abspath(self.tools)), file=fp)
+        run_cstm_cmd(self)
 
 
 setup(
     name='nanopype',
-    version='0.3.0',
+    version='0.4.0',
     author='Pay Giesselmann',
     author_email='giesselmann@molgen.mpg.de',
     description='Nanopore data processing workflows',
@@ -56,6 +74,6 @@ setup(
     scripts=['scripts/nanopype_import.py',],
     zip_safe=False,
     cmdclass={
-        'install': AppendPathCmd
+        'install': CustomInstallCmd
     }
 )

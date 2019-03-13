@@ -4,7 +4,7 @@
 
 **MIT License**
 
-Copyright &copy; 2018 Pay Giesselmann
+Copyright &copy; 2018 - 2019 Pay Giesselmann
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,6 @@ SOFTWARE.
 ## Tools
 
 External software downloaded and build for the Nanopype pipeline as described in the
-[installation](installation.md) section is left untouched by the above statement.
+[installation](installation/prerequisites.md) section is left untouched by the above statement.
 Please refer to the documented sources to obtain a copy of the respective
 licenses.

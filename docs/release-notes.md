@@ -1,5 +1,15 @@
 # Release notes
 
+#### v0.4.0
+
+Development release:
+
+Version 0.4.0 is the singularity and bulk-fast5 release.
+
+:   * Setup singularity images for each module
+    * Support both, .tar of single fast5 and bulk-fast5 of current MinKNOW versions
+    * Enhance documentation details on installation and cluster usage
+
 #### v0.3.0
 
 Development release:

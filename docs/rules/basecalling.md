@@ -1,12 +1,12 @@
 # Basecalling
 
-The basecller translates the raw electrical signal from the sequencer into a nucleotide sequence in fastq or fasta format. As input the packed **fast5** files as provided by the [storage](storage.md) module are required.
+The basecaller translates the raw electrical signal from the sequencer into a nucleotide sequence in fastq or fasta format. As input the packed **fast5** files as provided by the [storage](storage.md) module are required.
 
 In order to process the output of one flow cell with the basecaller *albacore* run from within your processing directory:
 
     snakemake --snakefile /path/to/nanopype/Snakefile sequences/albacore/runs/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.gz
 
-Valid file extensions are fasta/fa, fastq/fq in gzipped form. Providing a *runnames.txt* with one runname per line it is possible to process multiple flow cells at once and merge the output into a single file e.g.:
+Valid file extensions are fasta/fa, fastq/fq in gzipped form. Providing a *runnames.txt* with one run name per line it is possible to process multiple flow cells at once and merge the output into a single file e.g.:
 
     snakemake --snakefile /path/to/nanopype/Snakefile sequences/albacore/WA01.fastq.gz
 
@@ -39,8 +39,7 @@ The basecalling module can create the following file structure relative to the w
 ## Tools
 Depending on the application you can choose from one of the following basecallers, listed with their associated configuration options. Downstream applications making use of the basecalling module can either enforce a specific basecaller or used the default configuration:
 
-:   * basecalling_default: guppy
-    * threads_basecalling: 4
+:   * threads_basecalling: 4
 
 ### Albacore
 The ONT closed source software based on a deep neural network. The installer is accessible after login to the community board.

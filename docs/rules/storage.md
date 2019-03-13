@@ -1,6 +1,8 @@
 # Storage
 
-The storage module of nanopype covers the import, indexing and extraction of raw nanopore reads. In general the raw data directory is expected to have one folder per flow cell with a subfolder *reads* containing the packed *.fast5* files.
+The storage module of Nanopype covers the import, indexing and extraction of raw nanopore reads. In general the raw data directory is expected to have one folder per flow cell with a subfolder *reads* containing the packed or bulk *.fast5* files.
+
+The folder structure for packeaged single read fast5 files is:
 
 ```sh
 |--/data/raw/
@@ -11,7 +13,23 @@ The storage module of nanopype covers the import, indexing and extraction of raw
           ...
          |--reads.fofn                                # Index file
 ```
+
+For bulk-fast5 output from recent MinKNOW versions, the batches can be directly copied to the reads folder.
+
+```sh
+|--/data/raw/
+   |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/   # One flow cell
+      |--reads/
+         |--batch_0.fast5                             # Bulk-fast5
+         |--batch_1.fast5
+          ...
+         |--reads.fofn                                # Index file
+```
+
+
 ## Import
+
+*This section is for backwards compatibility with MinKNOW versions writing each read into a single .fast5 file. Recent versions create bulk-fast5 output which can be directly used with Nanopype*
 
 To pack reads e.g. from the MinKNOW output folder we provide an import script *nanopype_import.py* in the scripts folder of the repository. The basic usage is:
 
@@ -19,9 +37,6 @@ To pack reads e.g. from the MinKNOW output folder we provide an import script *n
 
 You can specify one or more import directories, also by using wildcards in the path. This is useful after restarting an experiment and importing every folder containing a specific flow cell ID. Consider changing the batch size in case of amplicon or RNA sequencing with significantly more but in general shorter reads.
 The order of reads in the archives is **not** guaranteed to be the same as in the output folders of MinKNOW. Running the script with the same arguments twice will validate the import process and report any inconsistency between import and raw data directories.
-
-**Important** Current MinKNOW versions support already packing of multiple reads into a single fast5 file. It is not yet tested, if this is compatible with all included tools of this pipeline. Re-packing these bundled fast5 will result in potentially huge archives!
-Future releases of nanopype will transparently support both, tar and fast5 archives.
 
 ## Indexing
 
@@ -32,14 +47,14 @@ An index file *reads.fofn* with one line per read containing the ID and the arch
 Together with the import, this is the only rule requiring **write access** to the raw data. We highly recommend, running it once after the experiment and making the run folder write protected afterwards with e.g.:
 
     run=20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01
-    chmod 444 /data/raw/$run/reads/*.tar
+    chmod 444 /data/raw/$run/reads/*
     chmod 444 /data/raw/$run/reads.fofn
     chmod 555 /data/raw/$run/reads
     chmod 555 /data/raw/$run
 
 ## Extraction
 
-It is possible to extract a **subset** of fast5 files from the packed and indexed run. Extraction requires a previously indexed run, a list of read IDs and works by requesting a directory from nanopype:
+It is possible to extract a **subset** of fast5 files from the packed and indexed run. Extraction requires a previously indexed run, a list of read IDs and works by requesting a directory from Nanopype:
 
     snakemake --snakefile /path/to/nanopype/Snakefile subset/roi/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01
 

@@ -37,26 +37,42 @@ import os
 rule default:
     shell : ""
 
-rule core:
+rule processing:
     input:
+        "bin/guppy_basecaller",
         "bin/flappie",
         "bin/bedtools",
         "bin/samtools",
         "bin/minimap2",
         "bin/graphmap",
-        "bin/ngmlr",
-        "bin/nanopolish",
-        "bin/bedGraphToBigWig"
+        "bin/ngmlr"
 
-rule extended:
+rule analysis:
     input:
+        "bin/nanopolish",
+        "bin/bedGraphToBigWig",
         "bin/sniffles",
         "bin/deepbinner-runner.py"
 
 rule all:
     input:
-        rules.core.input,
-        rules.extended.input
+        rules.processing.input,
+        rules.analysis.input
+
+rule alignment:
+    input:
+        "bin/minimap2",
+        "bin/graphmap",
+        "bin/ngmlr",
+        "bin/samtools"
+
+rule methylation:
+    input:
+        "bin/nanopolish",
+        "bin/samtools",
+        "bin/bedtools",
+        "bin/bedGraphToBigWig"
+
 
 # helper functions
 def find_go():
@@ -72,6 +88,9 @@ if not 'threads_build' in config:
 
 if not 'build_generator' in config:
     config['build_generator'] = '"Unix Makefiles"'
+
+if not 'flappie_src' in config:
+    config['flappie_src'] = True
 
 # detailed build rules
 rule UCSCtools:
@@ -245,15 +264,10 @@ rule gitlfs:
         bin = "bin/git-lfs"
     shell:
         """
-        export PATH=$(pwd)/{input.go}:$PATH
-        mkdir -p src && cd src
-        if [ ! -d git-lfs ]; then
-            git clone https://github.com/git-lfs/git-lfs.git --branch v2.6.0 --depth=1 && cd git-lfs
-        else
-            cd git-lfs && git fetch --all --tags --prune && git checkout tags/v2.6.0
-        fi
-        make
-        cp bin/git-lfs ../../bin
+        mkdir -p src/gocode
+        export GOPATH=$(pwd)/src/gocode
+        {input.go}/go get github.com/github/git-lfs
+        cp src/gocode/bin/git-lfs bin/
         """
 
 rule OpenBLAS:
@@ -291,18 +305,17 @@ rule hdf5:
         cmake --build . --config Release --target install
         """
 
-rule Flappie:
+rule flappie:
     input:
-        git_lfs = rules.gitlfs.output.bin,
-        blas = rules.OpenBLAS.output.src,
-        hdf5 = rules.hdf5.output.src
+        lambda wildcards,config=config: [rules.gitlfs.output.bin] +
+        ([rules.OpenBLAS.output.src] if config['flappie_src'] else []) +
+        ([rules.hdf5.output.src] if config['flappie_src'] else [])
     output:
         bin = "bin/flappie"
     threads: config['threads_build']
     shell:
         """
         install_prefix=`pwd`
-        {input.git_lfs} install
         export PATH=$install_prefix/bin:$PATH
         mkdir -p src && cd src
         if [ ! -d flappie ]; then
@@ -310,7 +323,18 @@ rule Flappie:
         else
             cd flappie && git fetch --all --tags --prune && git checkout master
         fi
+        {input[0]} install --local
         mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} ../
         cmake --build . --config Release -- -j {threads}
         cp flappie ../../../{output.bin}
+        """
+
+rule guppy:
+    output:
+        bin = "bin/guppy_basecaller"
+    shell:
+        """
+        wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.1_linux64.tar.gz && \
+        tar --skip-old-files -xzf ont-guppy-cpu_2.3.1_linux64.tar.gz -C ./ --strip 1 && \
+        rm ont-guppy-cpu_2.3.1_linux64.tar.gz
         """

@@ -38,7 +38,7 @@ import urllib.request
 
 
 # Test cases
-class test_unit_rules(unittest.TestCase):
+class test_unit_src(unittest.TestCase):
     def setUp(self):
         self.repo_dir = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
         self.test_dir = os.path.join(self.repo_dir, 'test')
@@ -59,20 +59,20 @@ class test_unit_rules(unittest.TestCase):
         if not os.path.isfile(size_file):
             urllib.request.urlretrieve('http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.chrom.sizes', size_file)
         # modify config and copy to workdir
-        with open(os.path.join(self.test_dir, '..', 'config.yaml'), 'r') as fp:
+        with open(os.path.join(self.test_dir, '..', 'nanopype.yaml'), 'r') as fp:
             try:
                 default_config = yaml.load(fp)
             except yaml.YAMLError as exc:
                 print(exc)
         default_config['storage_data_raw'] = data_dir
-        with open(os.path.join(self.test_dir, 'config.yaml'), 'w') as fp:
+        with open(os.path.join(self.test_dir, 'nanopype.yaml'), 'w') as fp:
             yaml.dump(default_config, fp, default_flow_style=False)
         # create readnames file
         runnames = [os.path.basename(f) for f in glob.glob(os.path.join(data_dir, '*'))]
         with open(os.path.join(self.test_dir, 'runnames.txt'), 'w') as fp:
             for runname in runnames:
                 print(runname, file=fp)
-        self.snk_cmd = 'snakemake -j 8 --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
+        self.snk_cmd = 'snakemake -j 4 --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
 
     # test indexing
     def test_storage(self):
@@ -88,21 +88,32 @@ class test_unit_rules(unittest.TestCase):
     def test_flappie(self):
         subprocess.run(self.snk_cmd + 'sequences/flappie/test.fastq.gz', check=True, shell=True)
 
+    def test_qc(self):
+        subprocess.run(self.snk_cmd + 'sequences/guppy/test.fastq.pdf', check=True, shell=True)
+
     # Test alignment
     def test_minimap2(self):
-        subprocess.run(self.snk_cmd + 'alignments/minimap2/flappie/test.test.bam', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'alignments/minimap2/guppy/test.test.bam', check=True, shell=True)
 
     def test_graphmap(self):
-        subprocess.run(self.snk_cmd + 'alignments/graphmap/flappie/test.test.bam', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'alignments/graphmap/guppy/test.test.bam', check=True, shell=True)
 
     def test_ngmlr(self):
-        subprocess.run(self.snk_cmd + 'alignments/ngmlr/flappie/test.test.bam', check=True, shell=True)
+        subprocess.run(self.snk_cmd + 'alignments/ngmlr/guppy/test.test.bam', check=True, shell=True)
 
     def test_nanopolish(self):
         subprocess.run(self.snk_cmd + 'methylation/nanopolish/ngmlr/guppy/test.1x.test.bw', check=True, shell=True)
 
     def test_sniffles(self):
         subprocess.run(self.snk_cmd + "sv/sniffles/ngmlr/guppy/test.test.vcf", check=True, shell=True)
+
+
+# same tests but run within singularity
+class test_unit_singularity(test_unit_src):
+    def setUp(self):
+        super().setUp()
+        self.snk_cmd = 'snakemake -j 4 --use-singularity --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
+
 
 # main function
 if __name__ == '__main__':

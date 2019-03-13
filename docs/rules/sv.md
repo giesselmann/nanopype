@@ -1,6 +1,6 @@
 # Structural Variations
 
-Nanopore sequencing is especially suitable to resolve structural variations including insertions, deletions, duplications, inversions, and translocations. The output of the structural variations module of nanopype is a vcf file for further downstream processing. To run e.g. Sniffles on the ngmlr alignment output of multiple flow cells specified in a *runnames.txt* execute:
+Nanopore sequencing is especially suitable to resolve structural variations including insertions, deletions, duplications, inversions, and translocations. The output of the structural variations module of Nanopype is a vcf file for further downstream processing. To run e.g. Sniffles on the NGMLR alignment output of multiple flow cells specified in a *runnames.txt* execute:
 
     snakemake --snakefile /path/to/nanopype/Snakefile sv/sniffles/ngmlr/guppy/WA01.hg38.vcf
 

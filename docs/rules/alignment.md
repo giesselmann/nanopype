@@ -5,19 +5,19 @@ The alignment step maps basecalled reads against a reference genome. If not alre
 To align the reads of one flow cell against reference genome hg38 with *flappie* basecalling and aligner *minimap2* run from within your processing directory:
 
     snakemake --snakefile /path/to/nanopype/Snakefile alignments/minimap2/flappie/runs/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam
-    
-This requires an entry *hg38* in your **env.yaml** in the nanopype installation directory:
+
+This requires an entry *hg38* in your **env.yaml** in the Nanopype installation directory:
 
     references:
         hg38:
             genome: /path/to/references/hg38/hg38.fa
             chr_sizes: /path/to/references/hg38/hg38.chrom.sizes
-            
+
 Providing a *runnames.txt* with one runname per line it is possible to process multiple flow cells at once and merge the output into a single track e.g.:
 
     snakemake --snakefile /path/to/nanopype/Snakefile alignments/minimap2/flappie/WA01.hg38.bam
 
-Some aligners require an indexed reference genome, nanopype will automatically build one uppon first use. An alignment job is always connected with a sam2bam conversion and sorting in an additonal thread. The above commands with 3 configured alignment threads will therefore fail if snakemake is invoked with less than 4 threads (at least *-j 4* is required). The default input sequence format for alignment rules is *fastq*, yet if possible, the alignment module will use already basecalled batches in the sequences/[basecaller]/[runname]/ folder of the working directory.
+Some aligners require an indexed reference genome, Nanopype will automatically build one uppon first use. An alignment job is always connected with a sam2bam conversion and sorting in an additional thread. The above commands with 3 configured alignment threads will therefore fail if Snakemake is invoked with less than 4 threads (at least *-j 4* is required). The default input sequence format for alignment rules is *fastq*, yet if possible, the alignment module will use already basecalled batches in the sequences/[basecaller]/[runname]/ folder of the working directory.
 
 ## Folder structure
 
@@ -49,7 +49,6 @@ The alignment module can create the following file structure relative to the wor
 The default basecaller for alignments can be configured in the **config.yaml** of the working directory. Depending on the application you can choose from one of the listed aligners. All alignment rules share a set of global config variables:
 
 :   * threads_alignment: 3
-    * basecalling_default: flappie
 
 ### Minimap2
 

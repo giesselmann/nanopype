@@ -1,6 +1,6 @@
 # \BUILD\---------------------------------------------------------------
 #
-#  CONTENTS      : Nanopype all-in-one Docker
+#  CONTENTS      : Nanopype singularity basecalling
 #
 #  DESCRIPTION   : Dockerfile
 #
@@ -35,16 +35,15 @@
 # BUILD STAGE
 FROM ubuntu:16.04 as build_stage
 
-MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
-
 ## system packages
 RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
     git gcc g++ ninja-build ca-certificates \
-    binutils autoconf make cmake zlib1g-dev bzip2 libbz2-dev \
-    liblzma-dev libncurses5-dev libcunit1-dev \
-    python python3.5 python3.5-dev
+    apt-transport-https \
+    make cmake python3.5 python3.5-dev \
+    libcunit1-dev libhdf5-dev libopenblas-dev
 
 RUN update-ca-certificates
+
 ## set up python 3
 RUN ln -s /usr/bin/python3.5 /usr/bin/python3
 RUN mkdir -p /src
@@ -52,50 +51,47 @@ WORKDIR /src
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3 get-pip.py
 
-# copy and configure nanopype
+## copy and configure nanopype
 RUN mkdir -p /app
-WORKDIR /app
 COPY . /app/
+WORKDIR /app
 RUN pip3 install . --upgrade
 
-# run setup rules
-RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory / all
+## run setup rules
+RUN mkdir /build
+RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory /build Flappie --config flappie_src=False
 
 # PACKAGE STAGE
 FROM ubuntu:16.04
+MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
+
+## packages
 RUN apt-get --yes update && \
-apt-get install -y --no-install-recommends wget git gcc g++ \
-    zlib1g-dev bzip2 libbz2-dev \
-    liblzma-dev libncurses5-dev libcunit1 \
-    ca-certificates \
-    python python3.5 python3.5-dev
+apt-get install -y --no-install-recommends wget \
+    gcc python3-dev \
+    ca-certificates lsb-release apt-transport-https \
+    libcunit1 libhdf5-10 libopenblas-base \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN update-ca-certificates
-## set up python 3
-RUN ln -s /usr/bin/python3.5 /usr/bin/python3
-RUN mkdir -p /src
-WORKDIR /src
+
+RUN wget -O- https://mirror.oxfordnanoportal.com/apt/ont-repo.pub | apt-key add - && \
+    echo "deb http://mirror.oxfordnanoportal.com/apt xenial-stable non-free" | \
+        tee /etc/apt/sources.list.d/nanoporetech.sources.list
+
+## GUPPY
+RUN apt-get --yes update && \
+apt-get install -y ont-guppy-cpu=2.3.1-1~xenial
+
+RUN mkdir -p /app
+COPY . /app/
+WORKDIR /app
+
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3 get-pip.py
+RUN python3 -m pip install -r requirements.txt
 
-## copy binaries from build stage
-RUN mkdir -p /bin
-RUN mkdir -p /lib
-COPY --from=build_stage /bin/* /bin/
-COPY --from=build_stage /lib/* /lib/
+COPY --from=build_stage /build/bin/* /usr/bin/
 
-## set up nanopye
-# copy and configure nanopype
-WORKDIR /app
-COPY . /app/
-
-RUN pip3 install . --upgrade
-# re-run python module installer
-RUN snakemake --snakefile rules/install.smk --directory / deepbinner
-RUN pip3 install . --upgrade --install-option="--tools=/bin"
-
-# create working directories
-RUN mkdir -p /data/raw
-RUN mkdir -p /data/import
-RUN mkdir -p /data/processing
-WORKDIR /data/processing
+WORKDIR /
+# default entrypoint is /bin/sh

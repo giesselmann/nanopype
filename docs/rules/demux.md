@@ -4,7 +4,7 @@ With barcoded libraries nanopore sequencing allows to pool multiple samples on a
 
     snakemake --snakefile /path/to/nanopype/Snakefile demux/deepbinner/20180101_FAH12345_FLO-MIN106_SQK-RBK004_WA01.tsv
 
-Note the different sequencing kit *SQK-RBK004* used in this example. 
+Note the different sequencing kit *SQK-RBK004* used in this example.
 
 ## Folder structure
 
@@ -33,13 +33,13 @@ The demultiplexing module includes the following tools and their respective conf
 
 ### Albacore
 
-The ONT basecaller directly supports demultiplexing in sequence space. 
+The ONT basecaller directly supports demultiplexing in sequence space.
 
     basecalling_albacore_barcoding: true
 
 ### Deepbinner
 
-Deepbinner: Demultiplexing barcoded Oxford Nanopore reads with deep convolutional neural networks. The network is trained to classify barcodes based on the raw nanopore signal. The model for the NN needs to be copied from the Deepbinner repository to the working directory and depends on the used sequencing kit. The kit is parsed from the runname as described in the [configuration](../configuration.md).
+Deepbinner: Demultiplexing barcoded Oxford Nanopore Technologies reads with deep convolutional neural networks (CNN). The network is trained to classify barcodes based on the raw nanopore signal. The model for the CNN needs to be copied from the Deepbinner repository to the working directory and depends on the used sequencing kit. The kit is parsed from the run name as described in the [configuration](../installation/configuration.md).
 
     threads_demux: 4
     deepbinner_models:

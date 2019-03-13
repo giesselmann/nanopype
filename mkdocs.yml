@@ -35,7 +35,7 @@ site_name: Nanopype Documentation
 site_description: 'Snakemake pipelines for nanopore sequencing data archiving, processing and analysis'
 site_author: 'Pay Giesselmann'
 site_url: 'https://nanopype.readthedocs.io'
-copyright: 'Copyright &copy; 2018 - 2018 Pay Giesselmann, Max Planck Institute for Molecular Genetics'
+copyright: 'Copyright &copy; 2018 - 2019 Pay Giesselmann, Max Planck Institute for Molecular Genetics'
 
 repo_name: 'giesselmann/nanopype'
 repo_url: 'https://github.com/giesselmann/nanopype/'
@@ -86,10 +86,18 @@ markdown_extensions:
 
 # Page tree
 nav:
-  - Getting started: index.md
-  - Installation: installation.md
-  - Configuration: configuration.md
-  - Usage: usage.md
+  - Introduction: index.md
+  - Tools in Nanopype: tools.md
+  - Installation:
+    - Prerequisites: installation/prerequisites.md
+    - Singularity: installation/singularity.md
+    - Source: installation/src.md
+    - Docker: installation/docker.md
+    - Configuration: installation/configuration.md
+    - Tests: installation/test.md
+  - Workflow:
+    - General: usage/general.md
+    - Cluster computing: usage/cluster.md
   - Modules:
     - Storage: rules/storage.md
     - Basecalling: rules/basecalling.md

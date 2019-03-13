@@ -1,6 +1,6 @@
 # \HEADER\-------------------------------------------------------------------------
 #
-#  CONTENTS      : environment inspection
+#  CONTENTS      : extract single fast5 from bulk or index file
 #
 #  DESCRIPTION   : none
 #
@@ -31,8 +31,37 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-import sys
 
-# get the python currently running
-def get_python(wildcards):
-    return sys.executable
+# cmd line arguments
+batch_file=$1
+raw_dir=$2
+target_dir=$3
+pipeline_dir=$4
+python_bin=$5
+
+
+# batch type from file extension
+batch_file_name=$(basename -- "$batch_file")
+batch_file_ext="${batch_file_name##*.}"
+
+
+# extract based on batch type
+case $batch_file_ext in
+	"tar")
+		# batch of single read fast5 in .tar format
+		tar -C $target_dir -xf $batch_file
+	;;
+	"fast5")
+		# batch of single reads in bulk file
+		$python_bin $pipeline_dir/submodules/ont_fast5_api/ont_fast5_api/conversion_tools/multi_to_single_fast5.py -i $batch_file -s $target_dir
+	;;
+	"txt")
+		# batch of single read in file of IDs, requires indexed run
+		# TODO
+	;;
+	*)
+		echo "Unrecognized batch type."
+		exit -1
+	;;
+esac
+

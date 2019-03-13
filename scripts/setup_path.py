@@ -1,8 +1,8 @@
-# \HEADER\-------------------------------------------------------------------------
+# \SCRIPT\-------------------------------------------------------------------------
 #
 #  CONTENTS      : Snakemake nanopore data pipeline
 #
-#  DESCRIPTION   : nanopore sv detection rules
+#  DESCRIPTION   : Import raw fast5 from MinKNOW to nanopype packages
 #
 #  RESTRICTIONS  : none
 #
@@ -31,38 +31,9 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-# imports
-from rules.utils.get_file import get_alignment
-localrules: sv_compress
+import os, sys, site
 
-# sniffles sv detection
-rule sniffles:
-    input:
-        lambda wildcards, config=config : get_alignment(wildcards, config)
-    output:
-        temp("sv/sniffles/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.vcf")
-    shadow: "minimal"
-    threads: config['threads_sv']
-    resources:
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 1000 * threads)),
-        time_min = lambda wildcards, threads, attempt: int((3840 / threads) * attempt)   # 240 min / 16 threads
-    singularity:
-        "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
-    shell:
-        """
-        {config[bin_singularity][sniffles]} -m {input} -v {output} -t {threads} {config[sv_sniffles_flags]}
-        """
 
-# compress vcf file
-rule sv_compress:
-    input:
-        "sv/sniffles/{aligner}/{basecaller}/{tag}.{reference}.vcf"
-    output:
-        "sv/sniffles/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.vcf.gz"
-    threads: 1
-    singularity:
-        "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
-    shell:
-        """
-        cat {input} | gzip > {output}
-        """
+if __name__ == '__main__':
+    with open(os.path.join(site.getsitepackages()[0], 'nanopype.pth'), 'w') as fp:
+        print('import os; os.environ["PATH"] = "{dir}" + os.pathsep + os.environ["PATH"]'.format(dir=os.path.abspath(sys.argv[1])), file=fp)

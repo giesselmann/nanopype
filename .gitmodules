@@ -1,0 +1,3 @@
+[submodule "submodules/ont_fast5_api"]
+	path = submodules/ont_fast5_api
+	url = https://github.com/nanoporetech/ont_fast5_api
