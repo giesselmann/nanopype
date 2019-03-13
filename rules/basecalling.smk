@@ -61,7 +61,7 @@ rule albacore:
         kit = lambda wildcards: get_kit(wildcards, config),
         barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
         filtering = lambda wildcards : '--disable_filtering' if config['basecalling_albacore_disable_filtering'] else '',
-        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], 'reads', wildcards.runname)
+        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], wildcards.runname, 'reads')
     shell:
         """
         mkdir -p raw
@@ -95,7 +95,7 @@ rule guppy:
         kit = lambda wildcards: get_kit(wildcards, config),
         #barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
         filtering = lambda wildcards : '--qscore_filtering --min_qscore {score}'.format(score = config['basecalling_guppy_qscore_filter']) if config['basecalling_guppy_qscore_filter'] > 0 else '',
-        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], 'reads', wildcards.runname)
+        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], wildcards.runname, 'reads')
     singularity:
         "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
     shell:
@@ -128,7 +128,7 @@ rule flappie:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 5000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((5760 / threads) * attempt) # 360 min / 16 threads
     params:
-        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], 'reads', wildcards.runname)
+        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], wildcards.runname, 'reads')
     singularity:
         "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
     shell:
@@ -202,5 +202,6 @@ rule basecaller_qc:
         wd=$(pwd)
         cp {config[sbin_singularity][basecalling_qc.Rmd]} ./
         Rscript --vanilla -e 'rmarkdown::render("basecalling_qc.Rmd")' ${{wd}}/{input.tsv}
+        rm ./basecalling_qc.Rmd
         mv basecalling_qc.pdf {output.pdf}
         """
