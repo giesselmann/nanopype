@@ -11,6 +11,6 @@ To get started the **[installation](installation/prerequisites.md)** chapter des
 
 Recurring steps of the nanopore data analysis are covered under **[workflow](usage/general.md)** for both local and cluster usage.
 
-The **[modules](rules/intro.md)** part covers an in depth description of all available tools and workflows together with their respective configuration options. This section is the main reference of the pipeline.
+The **modules** part covers an in depth description of all available tools and workflows together with their respective configuration options. This section is the main reference of the pipeline.
 
 Finally for new users the **[tutorial](examples/intro.md)** might be helpful to learn the general concepts and usage of the pipeline. To complete the tutorial the test reads included in the package are sufficient and no separate wet-lab experiemnt is required.
