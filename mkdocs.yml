@@ -99,7 +99,6 @@ nav:
     - General: usage/general.md
     - Cluster computing: usage/cluster.md
   - Modules:
-    - Intro: rules/intro.md
     - Storage: rules/storage.md
     - Basecalling: rules/basecalling.md
     - Alignment: rules/alignment.md
