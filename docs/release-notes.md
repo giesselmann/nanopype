@@ -1,5 +1,11 @@
 # Release notes
 
+#### v0.4.1
+
+Development release:
+
+:   * Update guppy_basecaller to version v2.3.5
+
 #### v0.4.0
 
 Development release:

@@ -75,13 +75,10 @@ apt-get install -y --no-install-recommends wget \
 
 RUN update-ca-certificates
 
-RUN wget -O- https://mirror.oxfordnanoportal.com/apt/ont-repo.pub | apt-key add - && \
-    echo "deb http://mirror.oxfordnanoportal.com/apt xenial-stable non-free" | \
-        tee /etc/apt/sources.list.d/nanoporetech.sources.list
-
 ## GUPPY
-RUN apt-get --yes update && \
-apt-get install -y ont-guppy-cpu=2.3.1-1~xenial
+RUN wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.5_linux64.tar.gz && \
+        tar --skip-old-files -xzf ont-guppy-cpu_2.3.5_linux64.tar.gz -C /usr/ --strip 1 && \
+        rm ont-guppy-cpu_2.3.5_linux64.tar.gz
 
 RUN mkdir -p /app
 COPY . /app/
