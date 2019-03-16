@@ -115,11 +115,11 @@ Parameters of the cluster config are accessible inside the cluster submission co
 
     snakemake --cluster-config cluster.json --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time}"
 
-Furthermore Nanopype specifies per rule a configurable number of threads and calculates the estimated run time and memory consumption accordingly. Integration and customization of these parameters is described in the [cluster](../usage/cluster.md) chapter of the workflow section.
+This cluster configuration is static per target and needs to be conservative enough to handle any type of input data. For a more fine grained control Nanopype specifies per rule a configurable number of threads and calculates the estimated run time and memory consumption accordingly. Integration and customization of these parameters is described in the following section.
 
 ## Job properties
 
-All Nanopype workflows specify **threads** and **time_min** and **mem_mb** resources. If supported by the cluster engine you could therefore use:
+All Nanopype workflows specify **threads** and **time_min** and **mem_mb** resources. Furthermore runtime and memory are dynamically increased if a clsuter job fails or is killed by the cluster management (Due to runtime or memory violation). To restart jobs Snakemake needs to be executed with e.g. --restart-times 3. If supported by the cluster engine you could then use:
 
     snakemake --cluster "qsub {threads} --runtime {resources.time_min} --memory {resources.mem_mb}"
     
