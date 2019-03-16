@@ -334,8 +334,8 @@ rule guppy:
         bin = "bin/guppy_basecaller"
     shell:
         """
-        # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.1_linux64.tar.gz && \
+        # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.1_linux64.tar.gz &&
         wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.5_linux64.tar.gz && \
-        tar --skip-old-files -xzf ont-guppy-cpu_2.3.1_linux64.tar.gz -C ./ --strip 1 && \
-        rm ont-guppy-cpu_2.3.1_linux64.tar.gz
+        tar --skip-old-files -xzf ont-guppy-cpu_2.3.5_linux64.tar.gz -C ./ --strip 1 && \
+        rm ont-guppy-cpu_2.3.5_linux64.tar.gz
         """
