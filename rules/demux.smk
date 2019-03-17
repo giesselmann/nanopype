@@ -2,7 +2,7 @@
 #
 #  CONTENTS      : Snakemake nanopore data pipeline
 #
-#  DESCRIPTION   : nanopore basecalling rules
+#  DESCRIPTION   : nanopore demultiplexing rules
 #
 #  RESTRICTIONS  : none
 #
