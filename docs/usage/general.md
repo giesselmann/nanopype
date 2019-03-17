@@ -29,7 +29,7 @@ storage_runname:
     delimiter: '_'
     field_ID: 1
     field_flowcell: 2
-    filed_kit: 3
+    field_kit: 3
 ```
 
 Copying the **nanopype.yaml** from the pipeline repository into the processing directory is the first step before further local workflow configuration and processing.
