@@ -10,7 +10,7 @@ storage_runname:
     delimiter: '_'
     field_ID: 1
     field_flowcell: 2
-    filed_kit: 3
+    field_kit: 3
 
 
 # threads per processing batch, if given enough threads with -j n multiple
@@ -22,6 +22,8 @@ threads_alignment: 3
 threads_methylation: 4
 threads_sv: 4
 threads_demux: 4
+threads_transcript: 4
+threads_transcript_batch: 4
 
 
 # basecalling
@@ -67,3 +69,7 @@ deepbinner_models:
 # structural variation
 # command line flags directly passed to the sniffles execution
 sv_sniffles_flags: '-s 10 -l 30 -r 2000 --genotype'
+
+
+# transcriptome
+transcript_use_pychopper: True
