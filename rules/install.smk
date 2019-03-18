@@ -381,7 +381,7 @@ rule racon:
         else
             cd racon && git fetch --all --tags --prune && git checkout 1.3.2
         fi
-        mkdir build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release ..
+        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release ..
         make
         cp bin/racon ../../../{output.bin}
         """
