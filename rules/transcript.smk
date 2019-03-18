@@ -40,11 +40,12 @@ from rules.utils.get_file import get_batches
 # identify full length cDNA reads
 rule pychopper:
     input:
-        "sequences/{basecaller}/runs/{runname}/{batch}.{format}.gz"
+        seq = "sequences/{basecaller}/runs/{runname}/{batch}.{format}.gz",
+        prmr = ""
     output:
-        "transcript/pychopper/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fastq|fq)}.gz"
+        seq = "sequences/pychopper/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fastq|fq)}.gz"
     shadow: "minimal"
-    threads: config['threads_transcript_batch']
+    threads: 1
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 4000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 90 min / 16 threads
@@ -52,24 +53,26 @@ rule pychopper:
         "docker://nanopype/transcript:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-
+        mkfifo input_seq
+        mkfifo output_seq
+        zcat {input.seq} > input_seq &
+        {config[bin_singularity][python]} {config[bin_singularity][cdna_classifier.py]} -b {input.prmr} input_seq output_seq &
+        cat output_seq | gzip > {output.seq}
         """
 
-# splice alignment
-rule minimap2_splice:
+# spliced alignment to gff
+rule spliced_bam2gff:
     input:
-        sequence = lambda wildcards: get_sequence_batch(wildcards, config),
-        reference = lambda wildcards: config['references'][wildcards.reference]['genome']
+        bam = "alignments/{aligner}/{basecaller}/{tag}.{reference}.bam"
     output:
-        pipe("alignments/minimap2/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference}.sam")
-    threads: config['threads_alignment']
-    group: "minimap2"
+        gff = "transcript_isoforms/pinfish/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.gff"
+    threads: config['threads_transcript']
     resources:
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (8000 + 500 * threads)),
-        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt)   # 60 min / 16 threads
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 4000 * threads)),
+        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 90 min / 16 threads
     singularity:
         "docker://nanopype/transcript:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][minimap2]} {config[transcript_minimap2_flags]} {input.reference} {input.sequence} -t {threads} >> {output}
+        
         """

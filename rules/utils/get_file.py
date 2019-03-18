@@ -33,6 +33,7 @@
 # ---------------------------------------------------------------------------------
 import os
 from snakemake.io import glob_wildcards
+from .storage import get_kit
 
 
 # batches of packed fast5 files
@@ -61,7 +62,11 @@ def get_sequence_batch(wildcards, config, force_basecaller=None):
     else:
         raise RuntimeError("Unable to determine sequence batch with wildcards: {wildcards}".format(
             wildcards=', '.join([str(key) + ':' + str(value) for key,value in wildcards])))
-    base = "sequences/{basecaller}/runs/{wildcards.runname}/{wildcards.batch}".format(wildcards=wildcards, basecaller=basecaller)
+    kit = get_kit(wildcards, config)
+    if kit in [] and config['transcript_use_pychopper']:
+        base = "sequences/pychopper/{basecaller}/runs/{wildcards.runname}/{wildcards.batch}".format(wildcards=wildcards, basecaller=basecaller)
+    else:
+        base = "sequences/{basecaller}/runs/{wildcards.runname}/{wildcards.batch}".format(wildcards=wildcards, basecaller=basecaller)
     extensions = ['.fa', '.fasta', '.fq', '.fastq']
     for ext in extensions:
         if os.path.isfile(base + ext + '.gz') or os.path.isfile(base + ext):

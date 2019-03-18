@@ -51,7 +51,8 @@ rule minimap2:
         sequence = lambda wildcards: get_sequence_batch(wildcards, config),
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     output:
-        pipe("alignments/minimap2/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference}.sam")
+        # pipe("alignments/minimap2/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference}.sam")
+        pipe("alignments/minimap2/{sequence_workflow}/runs/{batch, [^.]*}.{reference}.sam")
     threads: config['threads_alignment']
     group: "minimap2"
     resources:
@@ -135,14 +136,12 @@ rule ngmlr_index:
 # sam to bam conversion and RG tag
 rule aligner_sam2bam:
     input:
-        "alignments/{aligner}/{basecaller}/runs/{runname}/{batch}.{reference}.sam"
+        "alignments/{aligner}/{sequence_workflow}/runs/{batch}.{reference}.sam"
     output:
-        bam = "alignments/{aligner, [^/.]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference, [^.\/]*}.bam",
-        bai = "alignments/{aligner, [^/.]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference, [^.\/]*}.bam.bai"
+        bam = "alignments/{aligner, [^/.]*}/{sequence_workflow}/runs/{batch, [^.\/]*}.{reference, [^.\/]*}.bam",
+        bai = "alignments/{aligner, [^/.]*}/{sequence_workflow}/runs/{batch, [^.\/]*}.{reference, [^.\/]*}.bam.bai"
     shadow: "minimal"
     threads: 1
-    params:
-        ID = lambda wildcards : get_ID(wildcards, config)
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 5000)
     singularity:
