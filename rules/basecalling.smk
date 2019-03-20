@@ -36,16 +36,21 @@ import os, sys
 from rules.utils.get_file import get_batch_ids_raw, get_batch_ext
 from rules.utils.storage import get_flowcell, get_kit
 # local rules
-localrules: basecaller_merge_run, basecaller_merge_runs, basecaller_qc
-ruleorder: basecaller_compress > guppy > albacore > flappie
+localrules: basecaller_merge_run, basecaller_qc
 
 # get batches
-def get_batches_basecaller(wildcards):
-    batches = expand("sequences/{wildcards.basecaller}/batches/{wildcards.runname}/{{batch}}.{wildcards.format}.gz",
-                    wildcards=wildcards, 
-                    batch=get_batch_ids_raw(wildcards.runname, config=config))
-    return batches
-
+def get_batches_basecaller(wildcards, config):
+    if wildcards.tag in config['runnames']:
+        return expand("sequences/{sequence_workflow}/batches/{runname}/{batch}.{format}.gz",
+                            sequence_workflow=wildcards.sequence_workflow,
+                            runname=wildcards.tag,
+                            batch=get_batch_ids_raw(wildcards.tag, config),
+                            format=wildcards.format)
+    else:
+        return expand("sequences/{sequence_workflow}/{runname}.{format}.gz",
+                            sequence_workflow=wildcards.sequence_workflow,
+                            runname=[runname for runname in config['runnames']],
+                            format=wildcards.format)
 
 # albacore basecalling
 rule albacore:
@@ -62,12 +67,11 @@ rule albacore:
         flowcell = lambda wildcards: get_flowcell(wildcards, config),
         kit = lambda wildcards: get_kit(wildcards, config),
         barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
-        filtering = lambda wildcards : '--disable_filtering' if config['basecalling_albacore_disable_filtering'] else '',
-        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], wildcards.runname, 'reads')
+        filtering = lambda wildcards : '--disable_filtering' if config['basecalling_albacore_disable_filtering'] else ''
     shell:
         """
         mkdir -p raw
-        {config[sbin][storage_batch2fast5.sh]} {input} {params.batch_base} raw/ {config[sbin][base]} {config[bin][python]}
+        {config[sbin][storage_batch2fast5.sh]} {input} raw/ {config[sbin][base]} {config[bin][python]}
         {config[bin][albacore]} -i raw/ --recursive -t {threads} -s raw/ --flowcell {params.flowcell} --kit {params.kit} --output_format fastq {params.filtering} {params.barcoding} {config[basecalling_albacore_flags]}
         FASTQ_DIR='raw/workspace/'
         if [ \'{params.filtering}\' = '' ]; then
@@ -96,14 +100,13 @@ rule guppy:
         flowcell = lambda wildcards: get_flowcell(wildcards, config),
         kit = lambda wildcards: get_kit(wildcards, config),
         #barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
-        filtering = lambda wildcards : '--qscore_filtering --min_qscore {score}'.format(score = config['basecalling_guppy_qscore_filter']) if config['basecalling_guppy_qscore_filter'] > 0 else '',
-        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], wildcards.runname, 'reads')
+        filtering = lambda wildcards : '--qscore_filtering --min_qscore {score}'.format(score = config['basecalling_guppy_qscore_filter']) if config['basecalling_guppy_qscore_filter'] > 0 else ''
     singularity:
         "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         mkdir -p raw
-        {config[sbin_singularity][storage_batch2fast5.sh]} {input} {params.batch_base} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
+        {config[sbin_singularity][storage_batch2fast5.sh]} {input} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
         {config[bin_singularity][guppy]} -i raw/ --recursive --cpu_threads_per_caller {threads} -s workspace/ --flowcell {params.flowcell} --kit {params.kit} {params.filtering} {config[basecalling_guppy_flags]}
         FASTQ_DIR='workspace/pass'
         if [ \'{params.filtering}\' = '' ]; then
@@ -129,15 +132,13 @@ rule flappie:
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 5000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((5760 / threads) * attempt) # 360 min / 16 threads
-    params:
-        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], wildcards.runname, 'reads')
     singularity:
         "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         export OPENBLAS_NUM_THREADS=1
         mkdir -p raw
-        {config[sbin_singularity][storage_batch2fast5.sh]} {input} {params.batch_base} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
+        {config[sbin_singularity][storage_batch2fast5.sh]} {input} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
         find raw/ -regextype posix-extended -regex '^.*fast5' -type f -exec du -h {{}} + | sort -r -h | cut -f2 > raw.fofn
         split -e -n r/{threads} raw.fofn raw.fofn.part.
         ls raw.fofn.part.* | xargs -n 1 -P {threads} -I {{}} $SHELL -c 'cat {{}} | shuf | xargs -n 1 {config[bin_singularity][flappie]} --model {config[basecalling_flappie_model]} {config[basecalling_flappie_flags]} > raw/{{}}.fastq'
@@ -153,31 +154,11 @@ rule flappie:
 # merge and compression
 rule basecaller_merge_run:
     input:
-        get_batches_basecaller
+        lambda wildcards: get_batches_basecaller(wildcards, config)
     output:
-        "sequences/{basecaller, [^.\/]*}/batches/{runname, [^.\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
+        "sequences/{sequence_workflow, ((?!batches).)*}/{tag, [^.\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shell:
         "cat {input} > {output}"
-
-# merge run files
-rule basecaller_merge_runs:
-    input:
-        ['sequences/{{basecaller}}/batches/{runname}.{{format}}.gz'.format(runname=runname) for runname in config['runnames']]
-    output:
-        "sequences/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
-    shell:
-        """
-        cat {input} > {output}
-        """
-
-# compression
-rule basecaller_compress:
-    input:
-        "{file}.{format}"
-    output:
-        "{file}.{format, (fasta|fastq|fa|fq)}.gz"
-    shell:
-        "gzip {input}"
 
 # basecalling QC
 rule fastx_stats:

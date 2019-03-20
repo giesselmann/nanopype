@@ -52,14 +52,12 @@ rule deepbinner:
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads
-    params:
-        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], 'reads', wildcards.runname)
     singularity:
         "docker://nanopype/demux:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         mkdir -p raw
-        {config[sbin_singularity][storage_batch2fast5.sh]} {input.signals} {params.batch_base} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
+        {config[sbin_singularity][storage_batch2fast5.sh]} {input.signals} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
         {config[bin_singularity][python]} {config[bin_singularity][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads {threads} --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
         """
 

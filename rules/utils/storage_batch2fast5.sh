@@ -34,10 +34,9 @@
 
 # cmd line arguments
 batch_file=$1
-raw_dir=$2
-target_dir=$3
-pipeline_dir=$4
-python_bin=$5
+target_dir=$2
+pipeline_dir=$3
+python_bin=$4
 
 
 # batch type from file extension
@@ -64,4 +63,3 @@ case $batch_file_ext in
 		exit -1
 	;;
 esac
-

@@ -40,15 +40,8 @@ def get_batch_ids_raw(runname, config):
     batches_tar, = glob_wildcards("{datadir}/{runname}/reads/{{id}}.tar".format(datadir=config["storage_data_raw"], runname=runname))
     batches_fast5, = glob_wildcards("{datadir}/{runname}/reads/{{id}}.fast5".format(datadir=config["storage_data_raw"], runname=runname))
     return batches_tar + batches_fast5
-    
-    
-# batches of packed fast5 files
-# def get_batches(wildcards, config):
-    # batches_tar, = glob_wildcards("{datadir}/{wildcards.runname}/reads/{{id}}.tar".format(datadir=config["storage_data_raw"], wildcards=wildcards))
-    # batches_fast5, = glob_wildcards("{datadir}/{wildcards.runname}/reads/{{id}}.fast5".format(datadir=config["storage_data_raw"], wildcards=wildcards))
-    # return batches_tar + batches_fast5
 
-# get type of fast5 batch from basename    
+# get type of fast5 batch from basename
 def get_batch_ext(wildcards, config):
     raw_prefix = "{datadir}/{wildcards.runname}/reads/{wildcards.batch}".format(datadir=config["storage_data_raw"], wildcards=wildcards)
     # TODO idx prefix
@@ -58,6 +51,17 @@ def get_batch_ext(wildcards, config):
         return "fast5"
     else:
         pass
+
+def get_signal_batch(wildcards, config):
+    batch_type, batch = wildcards.batch.split('/', 1)
+    raw_dir = config['storage_data_raw']
+    batch_file = os.path.join(raw_dir, batch_type, 'reads', batch)
+    if os.path.isfile(batch_file + '.tar'):
+        return batch_file + '.tar'
+    elif os.path.isfile(batch_file + '.fast5'):
+        return batch_file + '.fast5'
+    else:
+        return []
 
 # get available batch sequence
 def get_sequence_batch(wildcards, config):
@@ -89,7 +93,7 @@ def get_sequence_batch(wildcards, config):
 
 # get alignment batch with default basecaller and aligner
 def get_alignment_batch(wildcards, config):
-    bam = "alignments/{wildcards.aligner}/{wildcards.sequence_workflow}/batches/{wildcards.runname}/{wildcards.batch}.{wildcards.reference}.bam".format(
+    bam = "alignments/{wildcards.aligner}/{wildcards.sequence_workflow}/batches/{wildcards.batch}.{wildcards.reference}.bam".format(
             wildcards=wildcards)
     return bam
 

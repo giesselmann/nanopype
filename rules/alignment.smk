@@ -36,21 +36,21 @@ import os, glob
 from rules.utils.get_file import get_batch_ids_raw, get_sequence_batch
 from rules.utils.storage import get_ID
 # local rules
-localrules: graphmap_index, ngmlr_index, aligner_merge_batches_run, aligner_merge_runs, aligner_1D2
+localrules: graphmap_index, ngmlr_index, aligner_merge_batches_run, aligner_1D2
 #ruleorder: aligner_sam2bam > aligner_merge_batches_run
 
 
 # get batches
 def get_batches_aligner(wildcards, config):
     if wildcards.tag in config['runnames']:
-        return expand("alignments/{aligner}/{sequence_workflow}/batches/{runname}/{batch}.{reference}.bam", 
+        return expand("alignments/{aligner}/{sequence_workflow}/batches/{runname}/{batch}.{reference}.bam",
                             aligner=wildcards.aligner,
                             sequence_workflow=wildcards.sequence_workflow,
                             runname=wildcards.tag,
                             batch=get_batch_ids_raw(wildcards.tag, config),
                             reference=wildcards.reference)
     else:
-        return expand("alignments/{aligner}/{sequence_workflow}/{runname}.{reference}.bam", 
+        return expand("alignments/{aligner}/{sequence_workflow}/{runname}.{reference}.bam",
                             aligner=wildcards.aligner,
                             sequence_workflow=wildcards.sequence_workflow,
                             runname=[runname for runname in config['runnames']],
