@@ -32,15 +32,14 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 # imports
-from rules.utils.get_file import get_alignment
 localrules: sv_compress
 
 # sniffles sv detection
 rule sniffles:
     input:
-        lambda wildcards, config=config : get_alignment(wildcards, config)
+        "alignments/{aligner}/{sequence_workflow}/{tag}.{reference}.bam"
     output:
-        temp("sv/sniffles/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.vcf")
+        temp("sv/sniffles/{aligner, [^.\/]*}/{sequence_workflow}/{tag, [^.\/]*}.{reference, [^.\/]*}.vcf")
     shadow: "minimal"
     threads: config['threads_sv']
     resources:
@@ -56,9 +55,9 @@ rule sniffles:
 # compress vcf file
 rule sv_compress:
     input:
-        "sv/sniffles/{aligner}/{basecaller}/{tag}.{reference}.vcf"
+        "sv/sniffles/{aligner}/{sequence_workflow}/{tag}.{reference}.vcf"
     output:
-        "sv/sniffles/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.vcf.gz"
+        "sv/sniffles/{aligner, [^.\/]*}/{sequence_workflow, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.vcf.gz"
     threads: 1
     singularity:
         "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])

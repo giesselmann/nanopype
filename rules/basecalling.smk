@@ -33,7 +33,7 @@
 # ---------------------------------------------------------------------------------
 # imports
 import os, sys
-from rules.utils.get_file import get_batches, get_batch_ext, get_sequence
+from rules.utils.get_file import get_batch_ids_raw, get_batch_ext
 from rules.utils.storage import get_flowcell, get_kit
 # local rules
 localrules: basecaller_merge_run, basecaller_merge_runs, basecaller_qc
@@ -41,7 +41,9 @@ ruleorder: basecaller_compress > guppy > albacore > flappie
 
 # get batches
 def get_batches_basecaller(wildcards):
-    batches = expand("sequences/{wildcards.basecaller}/runs/{wildcards.runname}/{{batch}}.{wildcards.format}.gz".format(wildcards=wildcards), batch=get_batches(wildcards, config=config))
+    batches = expand("sequences/{wildcards.basecaller}/batches/{wildcards.runname}/{{batch}}.{wildcards.format}.gz",
+                    wildcards=wildcards, 
+                    batch=get_batch_ids_raw(wildcards.runname, config=config))
     return batches
 
 
@@ -50,7 +52,7 @@ rule albacore:
     input:
         lambda wildcards : "{data_raw}/{{runname}}/reads/{{batch}}.{ext}".format(data_raw = config["storage_data_raw"], ext=get_batch_ext(wildcards, config))
     output:
-        "sequences/albacore/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
+        "sequences/albacore/batches/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
@@ -84,7 +86,7 @@ rule guppy:
     input:
         lambda wildcards : "{data_raw}/{{runname}}/reads/{{batch}}.{ext}".format(data_raw = config["storage_data_raw"], ext=get_batch_ext(wildcards, config))
     output:
-        "sequences/guppy/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
+        "sequences/guppy/batches/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
@@ -120,8 +122,8 @@ rule flappie:
     input:
         lambda wildcards : "{data_raw}/{{runname}}/reads/{{batch}}.{ext}".format(data_raw = config["storage_data_raw"], ext=get_batch_ext(wildcards, config))
     output:
-        sequence = "sequences/flappie/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz",
-        methyl_marks = "sequences/flappie/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.tsv.gz"
+        sequence = "sequences/flappie/batches/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz",
+        methyl_marks = "sequences/flappie/batches/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.tsv.gz"
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
@@ -153,14 +155,14 @@ rule basecaller_merge_run:
     input:
         get_batches_basecaller
     output:
-        "sequences/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
+        "sequences/{basecaller, [^.\/]*}/batches/{runname, [^.\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shell:
         "cat {input} > {output}"
 
 # merge run files
 rule basecaller_merge_runs:
     input:
-        ['sequences/{{basecaller}}/runs/{runname}.{{format}}.gz'.format(runname=runname) for runname in config['runnames']]
+        ['sequences/{{basecaller}}/batches/{runname}.{{format}}.gz'.format(runname=runname) for runname in config['runnames']]
     output:
         "sequences/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shell:

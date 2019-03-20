@@ -121,7 +121,7 @@ if 'bin' in nanopype_env:
             if loc_sys:
                 config['bin'][name] = loc_sys
             else:
-                print("[WARNING] {name} not found as {loc} and only available in singularity rules.".format(
+                print("[WARNING] {name} not found as {loc} and is only available in singularity rules.".format(
                     name=name, loc=loc), file=sys.stderr)
         else:
             # singularity rules use system wide executables
@@ -129,7 +129,7 @@ if 'bin' in nanopype_env:
                 config['bin_singularity'][name] = loc_sys
                 config['bin'][name] = loc_sys
             else:
-                print("[WARNING] {name} not found as {loc} and not available in the workflow.".format(
+                print("[WARNING] {name} not found as {loc} and is not available in the workflow.".format(
                     name=name, loc=loc), file=sys.stderr)
 
 

@@ -32,13 +32,13 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 # imports
-from rules.utils.get_file import get_batches
+from rules.utils.get_file import get_batch_ids_raw
 # local rules
 localrules: demux_merge_run
 
 # get batches
 def get_batches_demux(wildcards):
-    return expand("demux/{wildcards.demultiplexer}/{wildcards.runname}/{{batch}}.tsv".format(wildcards=wildcards), batch=get_batches(wildcards, config=config))
+    return expand("demux/{wildcards.demultiplexer}/{wildcards.runname}/{{batch}}.tsv".format(wildcards=wildcards), batch=get_batch_ids_raw(wildcards, config))
 
 # deepbinner demux
 rule deepbinner:

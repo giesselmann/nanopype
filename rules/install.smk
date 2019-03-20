@@ -365,6 +365,8 @@ rule pychopper:
             cd pychopper && git fetch --all --tags --prune && git checkout v0.4.0
         fi
         # TODO fix for error 'libparasail.so not found'
+        {config[python]} -m pip install --upgrade incremental
+        {config[python]} -m pip install --upgrade certifi
         {config[python]} -m pip install parasail==1.1.15 --upgrade
         {config[python]} setup.py install
         cp $(pwd)/scripts/cdna_classifier.py ../../{output.bin}

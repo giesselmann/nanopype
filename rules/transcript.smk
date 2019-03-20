@@ -32,18 +32,18 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 # imports
-from rules.utils.get_file import get_batches
+from rules.utils.get_file import get_batch_ids_raw
 # local rules
 # localrules: demux_merge_run
 
 
 # identify full length cDNA reads
-rule pychopper:
+checkpoint pychopper:
     input:
-        seq = "sequences/{basecaller}/runs/{runname}/{batch}.{format}.gz",
-        prmr = ""
+        seq = "sequences/{basecaller}/batches/{batch}.{format}.gz"
+        #prmr = ""
     output:
-        seq = "sequences/pychopper/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fastq|fq)}.gz"
+        seq = "sequences/pychopper/{basecaller, [^.\/]*}/batches/{batch, [^.]*}.{format, (fastq|fq)}.gz"
     shadow: "minimal"
     threads: 1
     resources:
@@ -56,16 +56,16 @@ rule pychopper:
         mkfifo input_seq
         mkfifo output_seq
         zcat {input.seq} > input_seq &
-        {config[bin_singularity][python]} {config[bin_singularity][cdna_classifier.py]} -b {input.prmr} input_seq output_seq &
+        {config[bin_singularity][python]} {config[bin_singularity][cdna_classifier]} -b {input.prmr} input_seq output_seq &
         cat output_seq | gzip > {output.seq}
         """
 
 # spliced alignment to gff
 rule spliced_bam2gff:
     input:
-        bam = "alignments/{aligner}/{basecaller}/{tag}.{reference}.bam"
+        bam = "alignments/{aligner}/{sequence_workflow}/{tag}.{reference}.bam"
     output:
-        gff = "transcript_isoforms/pinfish/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.gff"
+        gff = "transcript_isoforms/pinfish/{aligner, [^.\/]*}/{sequence_workflow, [^.]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.gff"
     threads: config['threads_transcript']
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 4000 * threads)),
