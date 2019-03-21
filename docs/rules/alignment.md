@@ -4,7 +4,7 @@ The alignment step maps basecalled reads against a reference genome. If not alre
 
 To align the reads of one flow cell against reference genome hg38 with *flappie* basecalling and aligner *minimap2* run from within your processing directory:
 
-    snakemake --snakefile /path/to/nanopype/Snakefile alignments/minimap2/flappie/runs/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam
+    snakemake --snakefile /path/to/nanopype/Snakefile alignments/minimap2/flappie/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam
 
 This requires an entry *hg38* in your **env.yaml** in the Nanopype installation directory:
 
@@ -27,26 +27,26 @@ The alignment module can create the following file structure relative to the wor
 |--alignments/
    |--minimap2/                                                 # Minimap2 alignment
       |--albacore/                                              # Using albacore basecalling
-         |--runs
+         |--batches
             |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
                |--0.hg38.bam
                |--1.hg38.bam
                ...
-            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam
+         |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam
          |--WA01.hg38.bam
    |--graphmap/                                                 # GraphMap alignment
       |--flappie/                                               # Using flappie basecalling
-         |--runs
+         |--batches
             |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
                |--0.hg19.bam
                ...
-            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg19.bam
+         |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg19.bam
          |--WA01.hg19.bam
 ```
 
 ## Tools
 
-The default basecaller for alignments can be configured in the **config.yaml** of the working directory. Depending on the application you can choose from one of the listed aligners. All alignment rules share a set of global config variables:
+Depending on the application you can choose from one of the listed aligners. All alignment rules share a set of global config variables:
 
 :   * threads_alignment: 3
 

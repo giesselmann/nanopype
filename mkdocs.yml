@@ -103,8 +103,9 @@ nav:
     - Basecalling: rules/basecalling.md
     - Alignment: rules/alignment.md
     - Methylation: rules/methylation.md
-    - Demultiplexing: rules/demux.md
+    - Transcriptome: rules/transcript.md
     - Structural Variation: rules/sv.md
+    - Demultiplexing: rules/demux.md
   - Tutorial:
     - Intro : examples/intro.md
     - Data import: examples/import.md

@@ -61,7 +61,7 @@ rule deepbinner:
         {config[bin_singularity][python]} {config[bin_singularity][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads {threads} --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
         """
 
-# merge and compression
+# merge
 rule demux_merge_run:
     input:
         get_batches_demux

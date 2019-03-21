@@ -415,10 +415,10 @@ rule pinfish:
         else
             cd pinfish && git fetch --all --tags --prune && git checkout master
         fi
-        cd cluster_gff && make && cd ..
-        cd collapse_partials && make && cd ..
-        cd polish_clusters && make && cd ..
-        cd spliced_bam2gff && make && cd ..
+        cd cluster_gff && rm -f cluster_gff && make && cd ..
+        cd collapse_partials && rm -f collapse_partials && make && cd ..
+        cd polish_clusters && rm -f polish_clusters && make && cd ..
+        cd spliced_bam2gff && rm -f spliced_bam2gff && make && cd ..
         cp cluster_gff/cluster_gff ../../bin/
         cp collapse_partials/collapse_partials ../../bin/
         cp polish_clusters/polish_clusters ../../bin/

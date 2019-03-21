@@ -17,22 +17,22 @@ If not already present, this will trigger basecalling and alignment of the raw d
    |--nanopolish/                                                 # Nanopolish
       |--ngmlr/                                                   # NGMLR alignment
          |--guppy/                                                # Guppy sequences
-            |--runs/
+            |--batches/
                |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
                   |--0.hg38.tsv                                   # Single read batches
                   |--1.hg38.tsv
                    ...
-               |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
+            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
             |--WA01.1x.hg38.bedGraph                              # Mean methylation level
             |--WA01.1x.hg38.bw
    |--flappie/                                                    # Flappie
       |--ngmlr/
          |--flappie/
-            |--runs/
+            |--batches/
                |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
                   |--0.hg38.tsv                                   # Single read batches
                   |--1.hg38.tsv
-               |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
+            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
             |--WA01.1x.hg38.bedGraph
             |--WA01.1x.hg38.bw
 ```
@@ -54,7 +54,7 @@ A log-likelihood ratio greater 2.5 is considered a methylated CpG, a ratio less 
 
 To directly get the single read methylation levels of a single flow cell you can run:
 
-    snakemake --snakefile /path/to/nanopype/Snakefile methylation/nanopolish/ngmlr/guppy/runs/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
+    snakemake --snakefile /path/to/nanopype/Snakefile methylation/nanopolish/ngmlr/guppy/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
 
 Nanopolish specific configuration parameters are:
 

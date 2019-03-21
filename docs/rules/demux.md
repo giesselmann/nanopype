@@ -18,13 +18,12 @@ The demultiplexing module can create the following file structure relative to th
          |--1.tsv
           ...
       |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.tsv
-   |--albacore.tsv
    |--deepbinner/                                          # Deepbinner neural network
       |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
          |--0.tsv                                          # Demultiplexed batches
          |--1.tsv
           ...
-   |--deepbinner.tsv
+      |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.tsv
 ```
 
 ## Tools

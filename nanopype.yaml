@@ -43,8 +43,9 @@ basecalling_flappie_model: 'r941_5mC'
 basecalling_flappie_flags: ''
 
 
-# alignment
-# command line flags for minimap2
+# alignment flags for samtools e.g. -F 2304 for RNA alignment
+alignment_samtools_flags: ''
+# command line flags for minimap2 DNA alignment
 alignment_minimap2_flags: '-ax map-ont -L'
 # command line flags for graphmap
 alignment_graphmap_flags: '-B 100'
@@ -73,3 +74,7 @@ sv_sniffles_flags: '-s 10 -l 30 -r 2000 --genotype'
 
 # transcriptome
 transcript_use_pychopper: True
+transcript_spliced_bam2gff_flags: ''
+transcript_cluster_gff_flags: '-c 10 -d 10 -e 30'
+transcript_collapse_partials: '-d 5 -f 5000 -e 30'
+transcript_polish_clusters: '-c 10'

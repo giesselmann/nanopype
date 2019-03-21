@@ -73,7 +73,7 @@ rule minimap2:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][minimap2]} {config[alignment_minimap2_flags]} {input.reference} {input.sequence} -t {threads} >> {output}
+        {config[bin_singularity][minimap2]} -t {threads} {config[alignment_minimap2_flags]} {input.reference} {input.sequence} >> {output}
         """
 
 # graphmap alignment
@@ -159,7 +159,7 @@ rule aligner_sam2bam:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        cat {input.sam} | perl -anle 'BEGIN{{$header=1}}; if($header == 1){{ if($_ =~ /^@/) {{print $_}} else {{$header=0; print "\@RG\tID:{wildcards.batch}"}}}} else {{print $_}}' | perl -anle 'if($_ =~ /^@/){{print $_}}else{{print join("\t", @F, "RG:Z:{wildcards.batch}")}}' |  {config[bin_singularity][samtools]} view -b - | {config[bin_singularity][samtools]} sort -m 4G > {output.bam}
+        cat {input.sam} | perl -anle 'BEGIN{{$header=1}}; if($header == 1){{ if($_ =~ /^@/) {{print $_}} else {{$header=0; print "\@RG\tID:{wildcards.batch}"}}}} else {{print $_}}' | perl -anle 'if($_ =~ /^@/){{print $_}}else{{print join("\t", @F, "RG:Z:{wildcards.batch}")}}' |  {config[bin_singularity][samtools]} view -b {config[alignment_samtools_flags]} - | {config[bin_singularity][samtools]} sort -m 4G > {output.bam}
         {config[bin_singularity][samtools]} index {output.bam}
         """
 
