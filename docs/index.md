@@ -15,4 +15,4 @@ The **modules** part covers an in depth description of all available tools and w
 
 Finally for new users the **[tutorial](examples/intro.md)** might be helpful to learn the general concepts and usage of the pipeline. To complete the tutorial the test reads included in the package are sufficient and no separate wet-lab experiemnt is required.
 
-[^1]: Not to be confused with [Nanopipe](https://nanopipe.readthedocs.io/en/latest/) which is an excellent library connecting different message queue systems and written in modern C++. Promised.
+[^1]: Not to be confused with [Nanopipe](https://nanopipe.readthedocs.io/en/latest/) which is a library connecting different message queue systems.

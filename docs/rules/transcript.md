@@ -26,11 +26,10 @@ The transcript module can create the following example file structure relative t
 ```sh
 |--transcript_isoforms
    |--pinfish
-      |--alignments/
-         |--minimap2/                                                 # Minimap2 alignment
-            |--guppy/                                                 # Using guppy basecalling
-               |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.gff
-               |--WA01.hg38.gff
+     |--minimap2/                                                 # Minimap2 alignment
+        |--guppy/                                                 # Using guppy basecalling
+           |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.gff
+           |--WA01.hg38.gff
 
 ```
 
@@ -44,7 +43,7 @@ All transcript module rules share a common set of configuration options. The thr
 
 :   * threads_transcript_batch: 4   
     * threads_transcript: 4
-    
+
 
 #### Minimap2
 
@@ -53,11 +52,11 @@ Minimap2 is currently the only incorporated aligner supporting spliced alignment
 :   * alignment_samtools_flags: '-F 2304'
     * alignment_minimap2_flags: '-ax splice'
     * alignment_minimap2_flags: '-ax splice -uf'    # for stranded data
-    
+
 
 #### Pinfish
 
-Pinfish is an ONT package to generate isoform annotations from nanopore RNA sequencing. 
+Pinfish is an ONT package to generate isoform annotations from nanopore RNA sequencing.
 
 :   * transcript_spliced_bam2gff_flags: ''
     * transcript_cluster_gff_flags: '-c 10 -d 10 -e 30'
