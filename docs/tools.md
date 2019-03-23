@@ -22,6 +22,10 @@ Nanopype integrates a growing number of different tools merged into processing w
 :   * Nanopolish *https://github.com/jts/nanopolish*
     * Flappie *https://github.com/nanoporetech/flappie*
 
+**Transcriptome**
+
+:   * Pinfish *https://github.com/nanoporetech/pinfish*
+
 **Structural variation**
 
 :   * Sniffles *https://github.com/fritzsedlazeck/Sniffles*
@@ -36,5 +40,3 @@ Nanopype integrates a growing number of different tools merged into processing w
     * Bedtools *https://github.com/arq5x/bedtools2*
     * UCSCTools *http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/*
         * bedGraphToBigWig
-
-

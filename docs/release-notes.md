@@ -1,5 +1,14 @@
 # Release notes
 
+#### v0.5.0
+
+Development release:
+
+The output of nanopype >= v0.5.0 is **not** backwards compatible due to major changes in the output filesystem structure.
+
+:   * Rework alignment module to support sequence post-processing
+    * Enable Pinfish package for isoform detection
+
 #### v0.4.1
 
 Development release:

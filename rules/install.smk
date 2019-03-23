@@ -32,7 +32,7 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 # main build rules
-import os
+import os, sys
 
 rule default:
     shell : ""
@@ -52,7 +52,9 @@ rule analysis:
         "bin/nanopolish",
         "bin/bedGraphToBigWig",
         "bin/sniffles",
-        "bin/deepbinner-runner.py"
+        "bin/deepbinner-runner.py",
+        "bin/racon",
+        "bin/cdna_classifier.py"
 
 rule all:
     input:
@@ -73,14 +75,25 @@ rule methylation:
         "bin/bedtools",
         "bin/bedGraphToBigWig"
 
+rule transcript:
+    input:
+        "bin/minimap2",
+        "bin/samtools",
+        "bin/racon",
+        "bin/cluster_gff",
+        "bin/collapse_partials",
+        "bin/polish_clusters",
+        "bin/spliced_bam2gff"
 
 # helper functions
 def find_go():
     for path in os.environ["PATH"].split(os.pathsep):
         exe_file = os.path.join(path, 'go')
         if os.path.isfile(exe_file):
-            return path
+            return exe_file
     return None
+
+config['python'] = sys.executable
 
 # defaults
 if not 'threads_build' in config:
@@ -243,13 +256,13 @@ rule deepbinner:
         else
             cd Deepbinner && git fetch --all --tags --prune && git checkout tags/v0.2.0
         fi
-        pip3 install -r requirements.txt --upgrade
+        {config[python]} -m pip install -r requirements.txt --upgrade
         ln -s $(pwd)/deepbinner-runner.py ../../{output.bin}
         """
 
 rule golang:
     output:
-        src = directory("src/go/bin")
+        go = "src/go/bin/go"
     shell:
         """
         mkdir -p src && cd src
@@ -259,14 +272,14 @@ rule golang:
 
 rule gitlfs:
     input:
-        go = lambda wildcards : find_go() if find_go() is not None else rules.golang.output.src
+        go = lambda wildcards : find_go() if find_go() is not None else rules.golang.output.go
     output:
         bin = "bin/git-lfs"
     shell:
         """
         mkdir -p src/gocode
         export GOPATH=$(pwd)/src/gocode
-        {input.go}/go get github.com/github/git-lfs
+        {input.go} get github.com/github/git-lfs
         cp src/gocode/bin/git-lfs bin/
         """
 
@@ -334,8 +347,80 @@ rule guppy:
         bin = "bin/guppy_basecaller"
     shell:
         """
-        # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.1_linux64.tar.gz && \
+        # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.1_linux64.tar.gz &&
         wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.5_linux64.tar.gz && \
-        tar --skip-old-files -xzf ont-guppy-cpu_2.3.1_linux64.tar.gz -C ./ --strip 1 && \
-        rm ont-guppy-cpu_2.3.1_linux64.tar.gz
+        tar --skip-old-files -xzf ont-guppy-cpu_2.3.5_linux64.tar.gz -C ./ --strip 1 && \
+        rm ont-guppy-cpu_2.3.5_linux64.tar.gz
+        """
+
+rule pychopper:
+    output:
+        bin = "bin/cdna_classifier.py"
+    shell:
+        """
+        mkdir -p src && cd src
+        if [ ! -d pychopper ]; then
+            git clone https://github.com/nanoporetech/pychopper --branch v0.4.0 && cd pychopper
+        else
+            cd pychopper && git fetch --all --tags --prune && git checkout v0.4.0
+        fi
+        # TODO fix for error 'libparasail.so not found'
+        {config[python]} -m pip install --upgrade incremental
+        {config[python]} -m pip install --upgrade certifi
+        {config[python]} -m pip install parasail==1.1.15 --upgrade
+        {config[python]} setup.py install
+        cp $(pwd)/scripts/cdna_classifier.py ../../{output.bin}
+        """
+
+rule racon:
+    output:
+        bin = "bin/racon"
+    shell:
+        """
+        mkdir -p src && cd src
+        if [ ! -d racon ]; then
+            git clone https://github.com/isovic/racon --recursive --branch 1.3.2 && cd racon
+        else
+            cd racon && git fetch --all --tags --prune && git checkout 1.3.2
+        fi
+        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release ..
+        make
+        cp bin/racon ../../../{output.bin}
+        """
+
+rule pinfish:
+    input:
+        "bin/racon",
+        "bin/minimap2",
+        go = lambda wildcards : find_go() if find_go() is not None else rules.golang.output.go
+    output:
+        "bin/cluster_gff",
+        "bin/collapse_partials",
+        "bin/polish_clusters",
+        "bin/spliced_bam2gff"
+    params:
+        go_dir = lambda wildcards, input:  os.path.abspath(os.path.dirname(input.go))
+    shell:
+        """
+        mkdir -p src/gocode
+        export PATH={params.go_dir}:$PATH
+        export GOPATH=$(pwd)/src/gocode
+        {input.go} get github.com/biogo/biogo/...
+        {input.go} get github.com/biogo/hts/...
+        {input.go} get -u gonum.org/v1/gonum/...
+        {input.go} get github.com/google/uuid
+        cd src
+        if [ ! -d pinfish ]; then
+            git clone https://github.com/nanoporetech/pinfish --branch master && cd pinfish
+        else
+            cd pinfish && git fetch --all --tags --prune && git checkout master
+        fi
+        cd cluster_gff && rm -f cluster_gff && make && cd ..
+        cd collapse_partials && rm -f collapse_partials && make && cd ..
+        cd polish_clusters && rm -f polish_clusters && make && cd ..
+        cd spliced_bam2gff && rm -f spliced_bam2gff && make && cd ..
+        cp cluster_gff/cluster_gff ../../bin/
+        cp collapse_partials/collapse_partials ../../bin/
+        cp polish_clusters/polish_clusters ../../bin/
+        cp spliced_bam2gff/spliced_bam2gff ../../bin/
         """

@@ -42,7 +42,7 @@ def get_flowcell(wildcards, config):
     fields = wildcards.runname.split(config['storage_runname']['delimiter'])
     if len(fields) > config['storage_runname']['field_flowcell'] and fields[config['storage_runname']['field_flowcell']] in ['FLO-MIN106', 'FLO-MIN107', 'FLO-PRO001', 'FLO-PRO002']:
         flowcell = fields[config['storage_runname']['field_flowcell']]
-        # TODO fix as soon as albacore supports FLO-PRO002
+        # TODO fix as soon as albacore/guppy supports FLO-PRO002
         if flowcell == 'FLO-PRO002':
             flowcell = 'FLO-PRO001'
         # end
@@ -52,7 +52,7 @@ def get_flowcell(wildcards, config):
 
 def get_kit(wildcards, config):
     fields = wildcards.runname.split(config['storage_runname']['delimiter'])
-    if fields[config['storage_runname']['filed_kit']] in ['SQK-DCS108','SQK-LRK001','SQK-LSK108','SQK-LSK109', 'SQK-LSK308', 'SQK-LWB001','SQK-LWP001','SQK-PBK004','SQK-PCS108','SQK-PSK004','SQK-RAB201','SQK-RAB204','SQK-RAD002','SQK-RAD003','SQK-RAD004','SQK-RAS201','SQK-RBK001','SQK-RBK004','SQK-RLB001','SQK-RLI001','SQK-RNA001','SQK-RPB004','VSK-VBK001','VSK-VMK001','VSK-VSK001']:
-        return fields[config['storage_runname']['filed_kit']]
+    if len(fields) > config['storage_runname']['field_kit']:
+        return fields[config['storage_runname']['field_kit']]
     else:
-        raise ValueError('Could not detect kit from ' + wildcards.runname)
+        raise ValueError('Could not find sequencing kit in {runname}'.format(runname=wildcards.runname))

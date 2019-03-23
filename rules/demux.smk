@@ -2,7 +2,7 @@
 #
 #  CONTENTS      : Snakemake nanopore data pipeline
 #
-#  DESCRIPTION   : nanopore basecalling rules
+#  DESCRIPTION   : nanopore demultiplexing rules
 #
 #  RESTRICTIONS  : none
 #
@@ -32,13 +32,13 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 # imports
-from rules.utils.get_file import get_batches
+from rules.utils.get_file import get_batch_ids_raw
 # local rules
 localrules: demux_merge_run
 
 # get batches
 def get_batches_demux(wildcards):
-    return expand("demux/{wildcards.demultiplexer}/{wildcards.runname}/{{batch}}.tsv".format(wildcards=wildcards), batch=get_batches(wildcards, config=config))
+    return expand("demux/{wildcards.demultiplexer}/{wildcards.runname}/{{batch}}.tsv".format(wildcards=wildcards), batch=get_batch_ids_raw(wildcards, config))
 
 # deepbinner demux
 rule deepbinner:
@@ -52,18 +52,16 @@ rule deepbinner:
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads
-    params:
-        batch_base = lambda wildcards : os.path.join(config['storage_data_raw'], 'reads', wildcards.runname)
     singularity:
         "docker://nanopype/demux:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         mkdir -p raw
-        {config[sbin_singularity][storage_batch2fast5.sh]} {input.signals} {params.batch_base} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
+        {config[sbin_singularity][storage_batch2fast5.sh]} {input.signals} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
         {config[bin_singularity][python]} {config[bin_singularity][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads {threads} --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
         """
 
-# merge and compression
+# merge
 rule demux_merge_run:
     input:
         get_batches_demux

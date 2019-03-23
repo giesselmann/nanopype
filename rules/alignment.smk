@@ -33,16 +33,28 @@
 # ---------------------------------------------------------------------------------
 # imports
 import os, glob
-from rules.utils.get_file import get_batches, get_sequence_batch
+from rules.utils.get_file import get_batch_ids_raw, get_sequence_batch
 from rules.utils.storage import get_ID
 # local rules
-localrules: graphmap_index, ngmlr_index, aligner_merge_run, aligner_merge_runs, aligner_1D2
-#ruleorder: aligner_split_run > aligner_sam2bam
+localrules: graphmap_index, ngmlr_index, aligner_merge_batches_run, aligner_1D2
+#ruleorder: aligner_sam2bam > aligner_merge_batches_run
 
 
 # get batches
 def get_batches_aligner(wildcards, config):
-    return expand("alignments/{wildcards.aligner}/{wildcards.basecaller}/runs/{wildcards.runname}/{{batch}}.{wildcards.reference}.bam".format(wildcards=wildcards), batch=get_batches(wildcards, config))
+    if wildcards.tag in config['runnames']:
+        return expand("alignments/{aligner}/{sequence_workflow}/batches/{runname}/{batch}.{reference}.bam",
+                            aligner=wildcards.aligner,
+                            sequence_workflow=wildcards.sequence_workflow,
+                            runname=wildcards.tag,
+                            batch=get_batch_ids_raw(wildcards.tag, config),
+                            reference=wildcards.reference)
+    else:
+        return expand("alignments/{aligner}/{sequence_workflow}/{runname}.{reference}.bam",
+                            aligner=wildcards.aligner,
+                            sequence_workflow=wildcards.sequence_workflow,
+                            runname=[runname for runname in config['runnames']],
+                            reference=wildcards.reference)
 
 
 # minimap alignment
@@ -51,7 +63,7 @@ rule minimap2:
         sequence = lambda wildcards: get_sequence_batch(wildcards, config),
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     output:
-        pipe("alignments/minimap2/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference}.sam")
+        pipe("alignments/minimap2/{sequence_workflow, ((?!batches).)*}/batches/{batch, [^.]*}.{reference}.sam")
     threads: config['threads_alignment']
     group: "minimap2"
     resources:
@@ -61,7 +73,7 @@ rule minimap2:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][minimap2]} {config[alignment_minimap2_flags]} {input.reference} {input.sequence} -t {threads} >> {output}
+        {config[bin_singularity][minimap2]} -t {threads} {config[alignment_minimap2_flags]} {input.reference} {input.sequence} >> {output}
         """
 
 # graphmap alignment
@@ -71,7 +83,7 @@ rule graphmap:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         index = lambda wildcards: config['references'][wildcards.reference]['genome'] + ".gmidx"
     output:
-        pipe("alignments/graphmap/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference}.sam")
+        pipe("alignments/graphmap/{sequence_workflow, ((?!batches).)*}/batches/{batch, [^.]*}.{reference}.sam")
     threads: config['threads_alignment']
     group: "graphmap"
     resources:
@@ -105,7 +117,7 @@ rule ngmlr:
         index = lambda wildcards : directory(os.path.dirname(config['references'][wildcards.reference]['genome'])),
         index_flag = lambda wildcards: config['references'][wildcards.reference]['genome'] + '.ngm'
     output:
-        pipe("alignments/ngmlr/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference}.sam")
+        pipe("alignments/ngmlr/{sequence_workflow, ((?!batches).)*}/batches/{batch, [^.]*}.{reference}.sam")
     threads: config['threads_alignment']
     group: "ngmlr"
     resources:
@@ -135,60 +147,29 @@ rule ngmlr_index:
 # sam to bam conversion and RG tag
 rule aligner_sam2bam:
     input:
-        "alignments/{aligner}/{basecaller}/runs/{runname}/{batch}.{reference}.sam"
+        sam = "alignments/{aligner}/{sequence_workflow}/batches/{batch}.{reference}.sam"
     output:
-        bam = "alignments/{aligner, [^/.]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference, [^.\/]*}.bam",
-        bai = "alignments/{aligner, [^/.]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}/{batch, [^.\/]*}.{reference, [^.\/]*}.bam.bai"
+        bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{batch, [^.]*}.{reference, [^.]*}.bam",
+        bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{batch, [^.]*}.{reference, [^.]*}.bam.bai"
     shadow: "minimal"
     threads: 1
-    params:
-        ID = lambda wildcards : get_ID(wildcards, config)
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 5000)
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        cat {input} | perl -anle 'BEGIN{{$header=1}}; if($header == 1){{ if($_ =~ /^@/) {{print $_}} else {{$header=0; print "\@RG\tID:{wildcards.runname}/{wildcards.batch}"}}}} else {{print $_}}' | perl -anle 'if($_ =~ /^@/){{print $_}}else{{print join("\t", @F, "RG:Z:{wildcards.runname}/{wildcards.batch}")}}' |  {config[bin_singularity][samtools]} view -b - | {config[bin_singularity][samtools]} sort -m 4G > {output.bam}
+        cat {input.sam} | perl -anle 'BEGIN{{$header=1}}; if($header == 1){{ if($_ =~ /^@/) {{print $_}} else {{$header=0; print "\@RG\tID:{wildcards.batch}"}}}} else {{print $_}}' | perl -anle 'if($_ =~ /^@/){{print $_}}else{{print join("\t", @F, "RG:Z:{wildcards.batch}")}}' |  {config[bin_singularity][samtools]} view -b {config[alignment_samtools_flags]} - | {config[bin_singularity][samtools]} sort -m 4G > {output.bam}
         {config[bin_singularity][samtools]} index {output.bam}
         """
 
 # merge batch files
-rule aligner_merge_run:
+rule aligner_merge_batches_run:
     input:
-        lambda wildcards: get_batches_aligner(wildcards, config)
+        bam = lambda wildcards: get_batches_aligner(wildcards, config)
     output:
-        bam = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.bam",
-        bai = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/runs/{runname, [^.\/]*}.{reference, [^.\/]*}.bam.bai"
-    singularity:
-        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
-    shell:
-        """
-        {config[bin_singularity][samtools]} merge {output.bam} {input} -p
-        {config[bin_singularity][samtools]} index {output.bam}
-        """
-
-# create batches by splitting merged bam files
-# rule aligner_split_run:
-    # input:
-        # bam = ancient("alignments/{runname}.{aligner}.{reference}.bam"),
-        # bai = ancient("alignments/{runname}.{aligner}.{reference}.bam.bai")
-    # output:
-        # batch_bam = "alignments/{runname, [^/.]*}/{batch, [0-9]+}.{aligner, [^/.]*}.{reference, [^.\/]*}.bam",
-        # batch_bai = "alignments/{runname, [^/.]*}/{batch, [0-9]+}.{aligner, [^/.]*}.{reference, [^.\/]*}.bam.bai"
-    # shell:
-        # """
-        # {config[bin][samtools]} view -b -r '{wildcards.runname}/{wildcards.batch}' {input.bam} > {output.batch_bam}
-        # {config[bin][samtools]} index {output.batch_bam}
-        # """
-
-# merge run files
-rule aligner_merge_runs:
-    input:
-        ['alignments/{{aligner}}/{{basecaller}}/runs/{runname}.{{reference}}.bam'.format(runname=runname) for runname in config['runnames']]
-    output:
-        bam = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.bam",
-        bai = "alignments/{aligner, [^.\/]*}/{basecaller, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.bam.bai"
+        bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^.\/]*}.{reference, [^.]*}.bam",
+        bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^.\/]*}.{reference, [^.]*}.bam.bai"
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:

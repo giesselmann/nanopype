@@ -29,7 +29,7 @@ storage_runname:
     delimiter: '_'
     field_ID: 1
     field_flowcell: 2
-    filed_kit: 3
+    field_kit: 3
 ```
 
 Copying the **nanopype.yaml** from the pipeline repository into the processing directory is the first step before further local workflow configuration and processing.
@@ -44,7 +44,7 @@ Nanopype supports merging of multiple flow cells into a single track. A **runnam
 
 Whereas the following command would trigger basecalling of a single flow cell:
 
-    snakemake --snakefile /path/to/nanopype/Snakefile sequences/guppy/runs/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.gz
+    snakemake --snakefile /path/to/nanopype/Snakefile sequences/guppy/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.gz
 
 the next will trigger basecalling for all runs listed in *runnames.txt* and merge the results in the end:
 
@@ -94,15 +94,15 @@ In the processing stage Nanopype can create a significant amount of temporary da
 |--alignments/
    |--minimap2/                                              # Minimap2 alignment
       |--guppy/                                              # Using guppy basecalling
-         |--runs
+         |--batches
             |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
                |--0.hg38.bam
                |--1.hg38.bam
                ...
-            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam
+         |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam
          |--WA01.hg38.bam
 ```
 
-Aside from the final output file *WA01.hg38.bam* the individual .bam files per run and the set of batch alignment files in the *runs* sub folder contain the same information. Depending on the overall processing the intermediate outputs can be deleted.
+Aside from the final output file *WA01.hg38.bam* the individual .bam files per run and the set of batch alignment files in the *batches* sub folder contain the same information. Depending on the overall processing the intermediate outputs can be deleted.
 
 Since other modules of the pipeline might later require the batch alignment output as input files, the deletion of the intermediate results is left to the user.

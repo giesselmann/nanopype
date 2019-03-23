@@ -43,11 +43,12 @@ repo_url: 'https://github.com/giesselmann/nanopype/'
 docs_dir: docs
 
 # plugins:
-    # - pdf-export:
-        # verbose: false
-        # combined: false
-        # media_type: print
-        # enabled_if_env: ENABLE_PDF_EXPORT
+#     - search
+#     - pdf-export:
+#         verbose: true
+#         combined: false
+#         media_type: print
+#         enabled_if_env: ENABLE_PDF_EXPORT
 
 theme:
   name: 'material'
@@ -103,8 +104,9 @@ nav:
     - Basecalling: rules/basecalling.md
     - Alignment: rules/alignment.md
     - Methylation: rules/methylation.md
-    - Demultiplexing: rules/demux.md
+    - Transcriptome: rules/transcript.md
     - Structural Variation: rules/sv.md
+    - Demultiplexing: rules/demux.md
   - Tutorial:
     - Intro : examples/intro.md
     - Data import: examples/import.md
