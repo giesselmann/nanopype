@@ -50,7 +50,7 @@ def get_batches_aligner(wildcards, config):
                         reference=wildcards.reference)
     return r
 
-def get_batches_runname(wildcards, config):
+def get_batches_aligner2(wildcards, config):
     r = expand("alignments/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.bam",
                         aligner=wildcards.aligner,
                         sequence_workflow=wildcards.sequence_workflow,
@@ -183,7 +183,7 @@ rule aligner_merge_batches:
 
 rule aligner_merge_tag:
     input:
-        bam = lambda wildcards: get_batches_runname(wildcards, config)
+        bam = lambda wildcards: get_batches_aligner2(wildcards, config)
     output:
         bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam.bai"

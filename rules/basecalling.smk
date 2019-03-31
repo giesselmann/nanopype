@@ -48,7 +48,7 @@ def get_batches_basecaller(wildcards, config):
                         format=wildcards.format)
     return r
 
-def get_batches_runname(wildcards, config):
+def get_batches_basecaller2(wildcards, config):
     r = expand("sequences/{sequence_workflow}/batches/{tag}/{runname}.{format}.gz",
                         sequence_workflow=wildcards.sequence_workflow,
                         tag=wildcards.tag,
@@ -172,7 +172,7 @@ rule basecaller_merge_batches:
 
 rule basecaller_merge_tag:
     input:
-        lambda wildcards: get_batches_runname(wildcards, config)
+        lambda wildcards: get_batches_basecaller2(wildcards, config)
     output:
         "sequences/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shell:

@@ -51,7 +51,7 @@ def get_batches_methylation(wildcards, config, methylation_caller):
             batch=get_batch_ids_raw(wildcards.runname, config))
     return r
 
-def get_batches_runname(wildcards, config, methylation_caller):
+def get_batches_methylation2(wildcards, config, methylation_caller):
     r = expand("methylation/{methylation_caller}/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.tsv.gz",
                         methylation_caller=methylation_caller,
                         aligner=wildcards.aligner,
@@ -182,7 +182,7 @@ rule methylation_single_read_run:
 # nanopolish methylation probability to frequencies
 rule methylation_nanopolish_frequencies:
     input:
-        lambda wildcards : get_batches_runname(wildcards, config, 'nanopolish')
+        lambda wildcards : get_batches_methylation2(wildcards, config, 'nanopolish')
     output:
         "methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow}/{tag, [^\/]*}.{reference, [^.\/]*}.frequencies.tsv"
     params:
@@ -197,7 +197,7 @@ rule methylation_nanopolish_frequencies:
 # flappie methylation with sequences quality to frequencies
 rule methylation_flappie_frequencies:
     input:
-        lambda wildcards : get_batches_runname(wildcards, config, 'flappie')
+        lambda wildcards : get_batches_methylation2(wildcards, config, 'flappie')
     output:
         "methylation/flappie/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.\/]*}.frequencies.tsv"
     params:
