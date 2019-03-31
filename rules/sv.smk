@@ -65,3 +65,17 @@ rule sv_compress:
         """
         cat {input} | gzip > {output}
         """
+
+rule strique:
+    input:
+        signal = "",
+        bam = ""
+    output:
+        "sv/strique/{aligner, [^.\/]*}/{sequence_workflow, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.tsv"
+    threads: 1
+    singularity:
+        "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
+    shell:
+        """
+
+        """

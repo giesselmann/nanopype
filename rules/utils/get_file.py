@@ -53,9 +53,8 @@ def get_batch_ext(wildcards, config):
         pass
 
 def get_signal_batch(wildcards, config):
-    batch_type, batch = wildcards.batch.split('/', 1)
     raw_dir = config['storage_data_raw']
-    batch_file = os.path.join(raw_dir, batch_type, 'reads', batch)
+    batch_file = os.path.join(raw_dir, wildcards.runname, 'reads', wildcards.batch)
     if os.path.isfile(batch_file + '.tar'):
         return batch_file + '.tar'
     elif os.path.isfile(batch_file + '.fast5'):
@@ -65,52 +64,25 @@ def get_signal_batch(wildcards, config):
 
 # get available batch sequence
 def get_sequence_batch(wildcards, config):
-    base = "sequences/{wildcards.sequence_workflow}/batches/{wildcards.batch}".format(wildcards=wildcards)
+    base = "sequences/{sequence_workflow}/batches/{tag}/{runname}/{batch}".format(
+            sequence_workflow=wildcards.sequence_workflow,
+            tag=wildcards.tag,
+            runname=wildcards.runname,
+            batch=wildcards.batch)
     extensions = ['.fa', '.fasta', '.fq', '.fastq']
     for ext in extensions:
         if os.path.isfile(base + ext + '.gz') or os.path.isfile(base + ext):
             return base + ext + '.gz'
     return base + '.fastq.gz'
 
-# get available merged sequence
-# def get_sequence(wildcards, config, force_basecaller=None):
-    # if force_basecaller:
-        # basecaller = force_basecaller
-    # elif hasattr(wildcards, 'basecaller'):
-        # basecaller = wildcards.basecaller
-    # else:
-        # raise RuntimeError("Unable to determine sequence file with wildcards: {wildcards}".format(
-            # wildcards=', '.join([str(key) + ':' + str(value) for key,value in wildcards])))
-    # if hasattr(wildcards, 'runname') and wildcards.runname:
-        # base = "sequences/{basecaller}/runs/{wildcards.runname}".format(wildcards=wildcards, basecaller=basecaller)
-    # else:
-        # base = "sequences/{basecaller}/{wildcards.tag}".format(wildcards=wildcards, basecaller=basecaller)
-    # extensions = ['.fa', '.fasta', '.fq', '.fastq']
-    # for ext in extensions:
-        # if os.path.isfile(base + ext + '.gz'):
-            # return base + ext + '.gz'
-    # return base + '.fastq.gz'
-
 # get alignment batch with default basecaller and aligner
 def get_alignment_batch(wildcards, config):
-    bam = "alignments/{wildcards.aligner}/{wildcards.sequence_workflow}/batches/{wildcards.batch}.{wildcards.reference}.bam".format(
-            wildcards=wildcards)
+    bam = "alignments/{aligner}/{sequence_workflow}/batches/{tag}/{runname}/{batch}.{reference}.bam".format(
+            aligner=wildcards.aligner,
+            sequence_workflow=wildcards.sequence_workflow,
+            tag=wildcards.tag,
+            runname=wildcards.runname,
+            batch=wildcards.batch,
+            reference=wildcards.reference
+            )
     return bam
-
-# get alignment with default basecaller and aligner
-# def get_alignment(wildcards, config, force_basecaller=None, force_aligner=None):
-    # if force_basecaller:
-        # basecaller = force_basecaller
-    # elif hasattr(wildcards, 'basecaller'):
-        # basecaller = wildcards.basecaller
-    # else:
-        # raise RuntimeError("Unable to determine alignment file with wildcards: {wildcards}".format(
-            # wildcards=', '.join([str(key) + ':' + str(value) for key,value in wildcards])))
-    # if force_aligner:
-        # aligner = force_aligner
-    # elif hasattr(wildcards, 'aligner'):
-        # aligner = wildcards.aligner
-    # else:
-        # aligner = config['alignment_default']
-    # bam = "alignments/{aligner}/{basecaller}/{wildcards.tag}.{wildcards.reference}.bam".format(wildcards=wildcards, basecaller=basecaller, aligner=aligner)
-    # return bam

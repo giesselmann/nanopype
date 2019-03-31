@@ -39,12 +39,17 @@ localrules: storage_index_run, storage_extract
 LOC_RAW = "/Raw/"
 
 def get_batches_indexing(wildcards):
-    return expand("{data_raw}/{wildcards.runname}/reads/{{batch}}.fofn".format(data_raw = config["storage_data_raw"], wildcards=wildcards), batch=get_batch_ids_raw(wildcards, config=config))
+    return expand("{data_raw}/{runname}/reads/{batch}.fofn",
+        data_raw = config["storage_data_raw"],
+        runname=wildcards.runname,
+        batch=get_batch_ids_raw(wildcards, config=config))
 
 # extract read ID from individual fast5 files
 rule storage_index_batch:
     input:
-        "{data_raw}/{{runname}}/reads/{{batch}}.tar".format(data_raw = config["storage_data_raw"])
+        lambda wildcards : "{data_raw}/{{runname}}/reads/{{batch}}.{ext}".format(
+                data_raw = config["storage_data_raw"],
+                ext=get_batch_ext(wildcards, config))
     output:
         temp("{data_raw}/{{runname}}/reads/{{batch}}.fofn".format(data_raw = config["storage_data_raw"]))
     shadow: "minimal"
@@ -52,21 +57,10 @@ rule storage_index_batch:
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 4000),
         time_min = 15
-    run:
-        import os, subprocess, h5py
-        os.mkdir('reads')
-        subprocess.run('tar -C reads/ -xf {input}'.format(input=input), check=True, shell=True, stdout=subprocess.PIPE)
-        f5files = [os.path.join(dirpath, f) for dirpath, _, files in os.walk('reads/') for f in files if f.endswith('.fast5')]
-        with open(output[0], 'w') as fp_out:
-            # scan files
-            for f5file in f5files:
-                try:
-                    with h5py.File(f5file, 'r') as f5:
-                        s = f5[LOC_RAW].visit(lambda name: name if 'Signal' in name else None)
-                        ID = str(f5[LOC_RAW + '/' + s.rpartition('/')[0]].attrs['read_id'], 'utf-8')
-                        print('\t'.join([os.path.join('reads', wildcards.batch + '.tar', os.path.relpath(f5file, start='./reads')), ID]), file=fp_out)
-                except:
-                    pass
+    shell:
+        """
+        {config[bin][python]} {config[sbin][storage_fast5Index.py]} index {input} --out_prefix reads --tmp_prefix $(pwd) > {output}
+        """
 
 # merge batch indices
 rule storage_index_run:
@@ -74,11 +68,10 @@ rule storage_index_run:
         batches = get_batches_indexing
     output:
         fofn = "{data_raw}/{{runname}}/reads.fofn".format(data_raw = config["storage_data_raw"])
-    run:
-        with open(output.fofn, 'w') as fp_out:
-            for f in input.batches:
-                with open(f, 'r') as fp_in:
-                    fp_out.write(fp_in.read())
+    shell:
+        """
+        cat {input} > {output}
+        """
 
  # index multiple runs
 rule storage_index_runs:

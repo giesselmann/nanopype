@@ -34,19 +34,22 @@
 # imports
 from rules.utils.get_file import get_batch_ids_raw
 # local rules
-localrules: demux_merge_run
+localrules: demux_split_barcodes
 
 # get batches
-def get_batches_demux(wildcards):
-    return expand("demux/{wildcards.demultiplexer}/{wildcards.runname}/{{batch}}.tsv".format(wildcards=wildcards), batch=get_batch_ids_raw(wildcards, config))
+def get_batches_demux(wildcards, config):
+    return expand("demux/{demultiplexer}/batches/{runname}/{batch}.tsv",
+        demultiplexer=wildcards.demultiplexer,
+        runname=wildcards.runname,
+        batch=get_batch_ids_raw(wildcards.runname, config))
 
 # deepbinner demux
 rule deepbinner:
     input:
-        signals = lambda wildcards : "{data_raw}/{{runname}}/reads/{{batch}}.{ext}".format(data_raw = config["storage_data_raw"], ext=get_batch_ext(wildcards, config)),
+        signals = lambda wildcards : get_signal_batch(wildcards, config),
         model = lambda wildcards : config["deepbinner_models"][get_kit(wildcards)] if get_kit(wildcards, config) in config["deepbinner_models"] else config["deepbinner_models"]['default']
     output:
-        "demux/deepbinner/{runname, [^.\/]*}/{batch, [^.\/]*}.tsv"
+        "demux/deepbinner/batches/{runname, [^.\/]*}/{batch, [^.\/]*}.tsv"
     shadow: "minimal"
     threads: config['threads_demux']
     resources:
@@ -61,13 +64,30 @@ rule deepbinner:
         {config[bin_singularity][python]} {config[bin_singularity][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads {threads} --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
         """
 
-# merge
-rule demux_merge_run:
+# split into barcode id list per run
+checkpoint demux_split_barcodes:
     input:
-        get_batches_demux
+        batches = lambda wildcards: get_batches_demux(wildcards, config)
     output:
-        "demux/{demultiplexer, [^.\/]*}/{runname, [^.\/]*}.tsv"
+        barcodes = directory("demux/{demultiplexer, [^.\/]*}/barcodes/{runname}")
     singularity:
         "docker://nanopype/demux:{tag}".format(tag=config['version']['tag'])
-    shell:
-        "cat {input} > {output}"
+    run:
+        import os, itertools, collections
+        os.makedirs(output.barcodes)
+        barcode_ids = collections.defaultdict(list)
+        for f in input.batches:
+            read_barcodes = []
+            with open(f, 'r') as fp:
+                read_barcodes = [tuple(line.split('\t')) for line in fp.read().split('\n') if line]
+            read_barcodes.sort(key=lambda x : x[1])
+            for bc, ids in itertools.groupby(read_barcodes, key=lambda x:x[1]):
+                barcode_ids[bc].extend([id for id, barcode in ids])
+        def chunked(l, n):
+            for i in range(0, len(l), n):
+                yield l[i:i + n]
+        for barcode, ids in barcode_ids.items():
+            os.mkdir(os.path.join(output.barcodes, barcode))
+            for i, batch in enumerate(chunked(ids, config['demux_batch_size'])):
+                with open(os.path.join(output.barcodes, barcode, str(i) + '.txt'), 'w') as fp:
+                    print('\n'.join(batch), file=fp)
