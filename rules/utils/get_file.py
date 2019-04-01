@@ -38,15 +38,16 @@ from .storage import get_kit
 
 # check if tag maps to barcode
 def get_tag_barcode(tag, runname, config):
-    if runname in config['barcodes']:
-        bc_batches = [config['barcodes'][runname][bc] for bc in config['barcodes'][runname].keys() if bc in tag]
-    elif '__default__' in config['barcodes']:
-        bc_batches = [config['barcodes']['__default__'][bc] for bc in config['barcodes']['__default__'].keys() if bc in tag]
+    bc_batches = [None]
+    if '__default__' in config['barcodes']:
+        bc_batches.extend([config['barcodes']['__default__'][bc] for bc in config['barcodes']['__default__'].keys() if bc in tag])
+    elif runname in config['barcodes']:
+        bc_batches.extend([config['barcodes'][runname][bc] for bc in config['barcodes'][runname].keys() if bc in tag])
     else:
-        bc_batches = [None]
-    return bc_batches[0]
-    
-    
+        pass
+    return bc_batches[-1]
+
+
 # prefix of raw read batches
 def get_batch_ids_raw(runname, config, tag=None, checkpoints=None):
     tag_barcode = get_tag_barcode(tag, runname, config) if tag else None
@@ -62,7 +63,7 @@ def get_batch_ids_raw(runname, config, tag=None, checkpoints=None):
 
 
 # get batch of reads as IDs or fast5
-def get_signal_batch(wildcards, config, checkpoints=None):
+def get_signal_batch(wildcards, config):
     raw_dir = config['storage_data_raw']
     if hasattr(wildcards, 'tag'):
         tag_barcode = get_tag_barcode(wildcards.tag, wildcards.runname, config)

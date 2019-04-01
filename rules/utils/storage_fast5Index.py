@@ -122,7 +122,7 @@ Available commands are:
                     print("\n".join(['\t'.join((os.path.join(f,group), ID)) for f, (group, ID) in zip([input_relative] * len(reads), reads)]))
                 else:
                     print('\t'.join([input_relative, self.__get_ID_single__(input_relative)]))
-                    
+
     def extract(self, argv):
         parser = argparse.ArgumentParser(description="Fast5 extraction")
         parser.add_argument("batch", help="Input batch")
@@ -165,7 +165,7 @@ Available commands are:
             batch_id_files = [tuple( [id] + re.split('(\.fast5|\.tar)\/', run_index[id]) ) for id in batch_ids if id in run_index]
             batch_id_files.sort(key=lambda x : (x[1], x[2]) if len(x) > 2 else x[1])
             def copy_reads_to(fofns, output):
-                if len(fofns) == 1:
+                if len(fofns) == 1 and len(fofns[0]) == 2:
                     # single read fast5
                     id, src_file = fofns[0]
                     shutil.copy(os.path.join(os.path.dirname(args.index), src_file), output)
@@ -207,7 +207,7 @@ Available commands are:
                         copy_reads_to(list(id_batch_paths), tmpdirname)
                         f5files = [os.path.join(dirpath, f) for dirpath, _, files in os.walk(tmpdirname) for f in files if f.endswith('.fast5')]
                         single_to_multi_fast5.create_multi_read_file(f5files, output_bulk)
-                        
+
         else:
             raise RuntimeError('[ERROR] Raw fast5 batch extension {} not supported.'.format(batch_ext))
 

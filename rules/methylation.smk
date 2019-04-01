@@ -48,7 +48,7 @@ def get_batches_methylation(wildcards, config, methylation_caller):
             tag=wildcards.tag,
             runname=wildcards.runname,
             reference=wildcards.reference,
-            batch=get_batch_ids_raw(wildcards.runname, config))
+            batch=get_batch_ids_raw(wildcards.runname, config=config, tag=wildcards.tag, checkpoints=checkpoints))
     return r
 
 def get_batches_methylation2(wildcards, config, methylation_caller):
@@ -73,7 +73,8 @@ def get_min_coverage(wildcards):
 # nanopolish methylation detection
 rule methylation_nanopolish:
     input:
-        signals = lambda wildcards : get_signal_batch(wildcards, config),
+        batch = lambda wildcards : get_signal_batch(wildcards, config),
+        run = lambda wildcards : os.path.join(config['storage_data_raw'], wildcards.runname),
         sequences = lambda wildcards : get_sequence_batch(wildcards, config),
         bam = lambda wildcards : get_alignment_batch(wildcards, config),
         bai = lambda wildcards : get_alignment_batch(wildcards, config) + '.bai',
@@ -90,7 +91,7 @@ rule methylation_nanopolish:
     shell:
         """
         mkdir -p raw
-        {config[sbin_singularity][storage_batch2fast5.sh]} {input.signals} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
+        {config[bin][python]} {config[sbin][storage_fast5Index.py]} extract {input.batch} raw/ --index {params.index} --output_format single
         zcat {input.sequences} > sequences.fastx
         {config[bin_singularity][nanopolish]} index -d raw/ sequences.fastx
         {config[bin_singularity][nanopolish]} call-methylation -t {threads} -r sequences.fastx -g {input.reference} -b {input.bam} > {output}
