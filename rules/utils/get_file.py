@@ -35,25 +35,38 @@ import os
 from snakemake.io import glob_wildcards
 from .storage import get_kit
 
-# prefix of raw read batches
-def get_batch_ids_raw(runname, config):
-    batches_tar, = glob_wildcards("{datadir}/{runname}/reads/{{id}}.tar".format(datadir=config["storage_data_raw"], runname=runname))
-    batches_fast5, = glob_wildcards("{datadir}/{runname}/reads/{{id}}.fast5".format(datadir=config["storage_data_raw"], runname=runname))
-    return batches_tar + batches_fast5
 
-# get type of fast5 batch from basename
-def get_batch_ext(wildcards, config):
-    raw_prefix = "{datadir}/{wildcards.runname}/reads/{wildcards.batch}".format(datadir=config["storage_data_raw"], wildcards=wildcards)
-    # TODO idx prefix
-    if os.path.isfile(raw_prefix + ".tar"):
-        return "tar"
-    elif os.path.isfile(raw_prefix + ".fast5"):
-        return "fast5"
+# check if tag maps to barcode
+def get_tag_barcode(tag, runname, config):
+    if runname in config['barcodes']:
+        bc_batches = [config['barcodes'][runname][bc] for bc in config['barcodes'][runname].keys() if bc in tag]
+    elif '__default__' in config['barcodes']:
+        bc_batches = [config['barcodes']['__default__'][bc] for bc in config['barcodes']['__default__'].keys() if bc in tag]
     else:
-        pass
+        bc_batches = [None]
+    return bc_batches[0]
+    
+    
+# prefix of raw read batches
+def get_batch_ids_raw(runname, config, tag=None, checkpoints=None):
+    tag_barcode = get_tag_barcode(tag, runname, config) if tag else None
+    if tag_barcode and checkpoints:
+        barcode_batch_dir = checkpoints.demux_split_barcodes.get(demultiplexer=config['demux_default'], runname=runname).output.barcodes
+        barcode_batch = os.path.join(barcode_batch_dir, tag_barcode, '{id}.txt')
+        batches_txt, = glob_wildcards(barcode_batch)
+        return batches_txt
+    else:
+        batches_tar, = glob_wildcards("{datadir}/{runname}/reads/{{id}}.tar".format(datadir=config["storage_data_raw"], runname=runname))
+        batches_fast5, = glob_wildcards("{datadir}/{runname}/reads/{{id}}.fast5".format(datadir=config["storage_data_raw"], runname=runname))
+        return batches_tar + batches_fast5
 
-def get_signal_batch(wildcards, config):
+
+# get batch of reads as IDs or fast5
+def get_signal_batch(wildcards, config, checkpoints=None):
     raw_dir = config['storage_data_raw']
+    if hasattr(wildcards, 'tag'):
+        tag_barcode = get_tag_barcode(wildcards.tag, wildcards.runname, config)
+        return os.path.join('demux/deepbinner/barcodes', wildcards.runname, tag_barcode, wildcards.batch + '.txt')
     batch_file = os.path.join(raw_dir, wildcards.runname, 'reads', wildcards.batch)
     if os.path.isfile(batch_file + '.tar'):
         return batch_file + '.tar'
@@ -61,6 +74,7 @@ def get_signal_batch(wildcards, config):
         return batch_file + '.fast5'
     else:
         return []
+
 
 # get available batch sequence
 def get_sequence_batch(wildcards, config):
@@ -74,6 +88,7 @@ def get_sequence_batch(wildcards, config):
         if os.path.isfile(base + ext + '.gz') or os.path.isfile(base + ext):
             return base + ext + '.gz'
     return base + '.fastq.gz'
+
 
 # get alignment batch with default basecaller and aligner
 def get_alignment_batch(wildcards, config):

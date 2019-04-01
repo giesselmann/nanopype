@@ -37,16 +37,17 @@ from rules.utils.get_file import get_batch_ids_raw
 localrules: demux_split_barcodes
 
 # get batches
-def get_batches_demux(wildcards, config):
+def get_batches_demux(wildcards):
     return expand("demux/{demultiplexer}/batches/{runname}/{batch}.tsv",
         demultiplexer=wildcards.demultiplexer,
         runname=wildcards.runname,
-        batch=get_batch_ids_raw(wildcards.runname, config))
+        batch=get_batch_ids_raw(wildcards.runname, config=config))
+
 
 # deepbinner demux
 rule deepbinner:
     input:
-        signals = lambda wildcards : get_signal_batch(wildcards, config),
+        signal = lambda wildcards : get_signal_batch(wildcards, config),
         model = lambda wildcards : config["deepbinner_models"][get_kit(wildcards)] if get_kit(wildcards, config) in config["deepbinner_models"] else config["deepbinner_models"]['default']
     output:
         "demux/deepbinner/batches/{runname, [^.\/]*}/{batch, [^.\/]*}.tsv"
@@ -60,16 +61,16 @@ rule deepbinner:
     shell:
         """
         mkdir -p raw
-        {config[sbin_singularity][storage_batch2fast5.sh]} {input.signals} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
+        {config[sbin_singularity][storage_batch2fast5.sh]} {input.signal} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
         {config[bin_singularity][python]} {config[bin_singularity][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads {threads} --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
         """
 
 # split into barcode id list per run
 checkpoint demux_split_barcodes:
     input:
-        batches = lambda wildcards: get_batches_demux(wildcards, config)
+        batches = lambda wildcards: get_batches_demux(wildcards)
     output:
-        barcodes = directory("demux/{demultiplexer, [^.\/]*}/barcodes/{runname}")
+        barcodes = directory("demux/{demultiplexer, [^.\/]*}/barcodes/{runname}/")
     singularity:
         "docker://nanopype/demux:{tag}".format(tag=config['version']['tag'])
     run:

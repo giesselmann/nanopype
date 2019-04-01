@@ -38,7 +38,7 @@ from snakemake.utils import min_version
 
 
 # snakemake config
-min_version("5.4.0")
+min_version("5.4.3")
 configfile: "nanopype.yaml"
 
 
@@ -64,7 +64,7 @@ if hasattr(workflow, "shadow_prefix") and workflow.shadow_prefix:
     shadow_prefix = workflow.shadow_prefix
     if not os.environ['USER'] in shadow_prefix:
         shadow_prefix = os.path.join(shadow_prefix, os.environ['USER'])
-        print("Shadow prefix is changed from {p1} to {p2} to be user-specific".format(
+        print("[INFO] Shadow prefix is changed from {p1} to {p2} to be user-specific".format(
             p1=workflow.shadow_prefix, p2=shadow_prefix), file=sys.stderr)
     workflow.shadow_prefix = shadow_prefix
 
@@ -83,11 +83,11 @@ if 'references' in nanopype_env:
         genome = values['genome']
         chr_sizes = values['chr_sizes']
         if not os.path.isfile(genome):
-            print("Genome for {name} not found in {genome}, skipping entry".format(
+            print("[WARNING] Genome for {name} not found in {genome}, skipping entry".format(
                 name=name, genome=genome), file=sys.stderr)
             continue
         if not os.path.isfile(chr_sizes):
-            print("Chromosome sizes for {name} not found in {chr_sizes}, skipping entry".format(
+            print("[WARNING] Chromosome sizes for {name} not found in {chr_sizes}, skipping entry".format(
                 name=name, chr_sizes=chr_sizes), file=sys.stderr)
             continue
         config['references'][name] = {"genome":genome, "chr_sizes":chr_sizes}
@@ -172,6 +172,15 @@ runnames = []
 if os.path.isfile('runnames.txt'):
     runnames = [line.rstrip('\n') for line in open('runnames.txt')]
 config['runnames'] = runnames
+
+
+# barcode mappings
+barcodes = {}
+if os.path.isfile('barcodes.yaml'):
+    with open("barcodes.yaml", 'r') as fp:
+        barcode_map = yaml.load(fp)
+        barcodes = barcode_map
+config['barcodes'] = barcodes
 
 
 # include modules

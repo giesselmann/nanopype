@@ -47,9 +47,7 @@ def get_batches_indexing(wildcards):
 # extract read ID from individual fast5 files
 rule storage_index_batch:
     input:
-        lambda wildcards : "{data_raw}/{{runname}}/reads/{{batch}}.{ext}".format(
-                data_raw = config["storage_data_raw"],
-                ext=get_batch_ext(wildcards, config))
+        unpack(lambda wildcards : get_signal_batch(wildcards, config)),
     output:
         temp("{data_raw}/{{runname}}/reads/{{batch}}.fofn".format(data_raw = config["storage_data_raw"]))
     shadow: "minimal"
@@ -59,7 +57,7 @@ rule storage_index_batch:
         time_min = 15
     shell:
         """
-        {config[bin][python]} {config[sbin][storage_fast5Index.py]} index {input} --out_prefix reads --tmp_prefix $(pwd) > {output}
+        {config[bin][python]} {config[sbin][storage_fast5Index.py]} index {input.signal} --out_prefix reads --tmp_prefix $(pwd) > {output}
         """
 
 # merge batch indices
