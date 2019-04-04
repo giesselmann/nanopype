@@ -424,3 +424,19 @@ rule pinfish:
         cp polish_clusters/polish_clusters ../../bin/
         cp spliced_bam2gff/spliced_bam2gff ../../bin/
         """
+
+rule strique:
+    output:
+        "bin/STRique.py"
+    shell:
+        """
+        mkdir -p src && cd src
+        if [ ! -d STRique ]; then
+            git clone --recursive https://github.com/giesselmann/STRique --branch v0.2.0 && cd STRique
+        else
+            cd STRique && git fetch --all --tags --prune && git checkout v0.2.0
+        fi
+        {config[python]} -m pip install -r requirements.txt --upgrade
+        {config[python]} setup.py install
+        cp scripts/STRique.py ../../bin/
+        """

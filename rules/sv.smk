@@ -32,7 +32,25 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 # imports
-localrules: sv_compress
+localrules: sv_compress, strique_merge_batches, strique_merge_tag
+
+# get batches
+def get_batches_strique(wildcards):
+    return expand("sv/strique/{aligner}/{sequence_workflow}/batches/{tag}/{runname}/{batch}.{reference}.tsv",
+                        aligner=wildcards.aligner,
+                        sequence_workflow=wildcards.sequence_workflow,
+                        tag=wildcards.tag,
+                        runname=wildcards.runname,
+                        batch=get_batch_ids_raw(wildcards.runname, config=config, tag=wildcards.tag, checkpoints=checkpoints),
+                        reference=wildcards.reference)
+
+def get_batches_strique2(wildcards):
+    return expand("sv/strique/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.tsv",
+                        aligner=wildcards.aligner,
+                        sequence_workflow=wildcards.sequence_workflow,
+                        tag=wildcards.tag,
+                        runname=[runname for runname in config['runnames']],
+                        reference=wildcards.reference)
 
 # sniffles sv detection
 rule sniffles:
@@ -68,14 +86,35 @@ rule sv_compress:
 
 rule strique:
     input:
-        signal = "",
-        bam = ""
+        index = lambda wildcards : os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn'),
+        bam = lambda wildcards : get_alignment_batch(wildcards, config),
+        config = lambda wildcards : config['sv_STRique_config']
     output:
-        "sv/strique/{aligner, [^.\/]*}/{sequence_workflow, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.tsv"
+        "sv/strique/{aligner, [^\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^\/]*}/{batch, [^.\/]*}.{reference}.tsv"
     threads: 1
     singularity:
         "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
     shell:
         """
 
+        """
+
+rule strique_merge_batches:
+    input:
+        get_batches_strique
+    output:
+        "sv/strique/{aligner, [^\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference}.tsv"
+    shell:
+        """
+        
+        """
+
+rule strique_merge_tag:
+    input:
+        get_batches_strique2
+    output:
+        "sv/strique/{aligner, [^\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference}.tsv"
+    shell:
+        """
+        
         """

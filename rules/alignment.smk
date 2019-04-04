@@ -46,7 +46,7 @@ def get_batches_aligner(wildcards, config):
                         sequence_workflow=wildcards.sequence_workflow,
                         tag=wildcards.tag,
                         runname=wildcards.runname,
-                        batch=get_batch_ids_raw(wildcards.runname, config),
+                        batch=get_batch_ids_raw(wildcards.runname, config=config, tag=wildcards.tag, checkpoints=checkpoints),
                         reference=wildcards.reference)
     return r
 

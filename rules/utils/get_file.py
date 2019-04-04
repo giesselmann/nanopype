@@ -67,7 +67,8 @@ def get_signal_batch(wildcards, config):
     raw_dir = config['storage_data_raw']
     if hasattr(wildcards, 'tag'):
         tag_barcode = get_tag_barcode(wildcards.tag, wildcards.runname, config)
-        return os.path.join('demux/deepbinner/barcodes', wildcards.runname, tag_barcode, wildcards.batch + '.txt')
+        if tag_barcode:
+            return os.path.join('demux/deepbinner/barcodes', wildcards.runname, tag_barcode, wildcards.batch + '.txt')
     batch_file = os.path.join(raw_dir, wildcards.runname, 'reads', wildcards.batch)
     if os.path.isfile(batch_file + '.tar'):
         return batch_file + '.tar'
@@ -99,6 +100,5 @@ def get_alignment_batch(wildcards, config):
             tag=wildcards.tag,
             runname=wildcards.runname,
             batch=wildcards.batch,
-            reference=wildcards.reference
-            )
+            reference=wildcards.reference)
     return bam
