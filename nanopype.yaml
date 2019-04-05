@@ -72,7 +72,8 @@ deepbinner_models:
 # structural variation
 # command line flags directly passed to the sniffles execution
 sv_sniffles_flags: '-s 10 -l 30 -r 2000 --genotype'
-
+sv_STRique_config: 'STRique.tsv'
+sv_STRique_model: 'template_median68pA6mer.model'
 
 # transcriptome
 transcript_use_pychopper: True

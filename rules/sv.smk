@@ -88,15 +88,19 @@ rule strique:
     input:
         index = lambda wildcards : os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn'),
         bam = lambda wildcards : get_alignment_batch(wildcards, config),
+        model = lambda wildcards : config['sv_STRique_model'],
         config = lambda wildcards : config['sv_STRique_config']
     output:
         "sv/strique/{aligner, [^\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^\/]*}/{batch, [^.\/]*}.{reference}.tsv"
-    threads: 1
+    threads: config['threads_sv']
+    resources:
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1500 * threads)),
+        time_min = lambda wildcards, threads, attempt: int((3840 / threads) * attempt)   # 240 min / 16 threads
     singularity:
         "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-
+        {config[bin_singularity][samtools]} view -F 2308 {input.bam} | {config[bin_singularity][python]} {config[bin_singularity][strique]} count {input.index} {input.model} {input.config} --t {threads} > {output}
         """
 
 rule strique_merge_batches:
@@ -104,17 +108,27 @@ rule strique_merge_batches:
         get_batches_strique
     output:
         "sv/strique/{aligner, [^\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference}.tsv"
-    shell:
-        """
-        
-        """
+    run:
+        with open(output[0], 'w') as fp_out:
+            for i, f in enumerate(input):
+                with open(f, 'r') as fp_in:
+                    if i == 0:
+                        print(fp_in.read(), file=fp_out)
+                    else:
+                        next(fp_in)
+                        print(fp_in.read(), file=fp_out)
 
 rule strique_merge_tag:
     input:
         get_batches_strique2
     output:
         "sv/strique/{aligner, [^\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference}.tsv"
-    shell:
-        """
-        
-        """
+    run:
+        with open(output[0], 'w') as fp_out:
+            for i, f in enumerate(input):
+                with open(f, 'r') as fp_in:
+                    if i == 0:
+                        print(fp_in.read(), file=fp_out)
+                    else:
+                        next(fp_in)
+                        print(fp_in.read(), file=fp_out)

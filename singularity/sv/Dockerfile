@@ -55,7 +55,7 @@ RUN python3 get-pip.py
 RUN mkdir -p /app
 COPY . /app/
 WORKDIR /app
-RUN pip3 install . --upgrade
+RUN python3 -m pip install -r requirements.txt
 
 ## run setup rules
 RUN mkdir /build
@@ -85,6 +85,9 @@ WORKDIR /app
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3 get-pip.py
 RUN python3 -m pip install -r requirements.txt
+
+RUN snakemake --snakefile rules/install.smk --directory /usr strique
+RUN rm -rf /usr/src/STRique
 
 COPY --from=build_stage /build/bin/* /usr/bin/
 
