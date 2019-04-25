@@ -2,7 +2,7 @@
 
 Snakemake allows both, cloud and cluster execution of workflows. As of now only cluster execution is implemented and tested in Nanopype. The [configuration](../installation/configuration.md) section covers multiple scenarios of integrating supported and custom cluster management systems into the Nanopype workflow. For supported cluster engines please also refer to the [Snakemake](https://snakemake.readthedocs.io/en/stable/executable.html#cluster-execution) documentation. 
 
-Following the steps in the [general](general.md) workflow documentation, the usage of a cluster backend requires only a few additional flags and arguments in the Snakemake command. The use of [profiles](../installation/configuration) is therefore recommended. The following command line options of Snakmake are of particular interest:
+Following the steps in the [general](general.md) workflow documentation, the usage of a cluster backend requires only a few additional flags and arguments in the Snakemake command. The use of [profiles](../installation/configuration.md) is therefore recommended. The following command line options of Snakmake are of particular interest:
 
 **--profile**
 :   Path to profile directory with command line arguments and flags. A *config.yaml* is expected to be found in the profile folder
