@@ -56,11 +56,6 @@ rule analysis:
         "bin/racon",
         "bin/cdna_classifier.py"
 
-rule all:
-    input:
-        rules.processing.input,
-        rules.analysis.input
-
 rule alignment:
     input:
         "bin/minimap2",
@@ -77,6 +72,7 @@ rule methylation:
 
 rule transcript:
     input:
+        "bin/cdna_classifier.py",
         "bin/minimap2",
         "bin/samtools",
         "bin/racon",
@@ -84,6 +80,12 @@ rule transcript:
         "bin/collapse_partials",
         "bin/polish_clusters",
         "bin/spliced_bam2gff"
+
+rule all:
+    input:
+        rules.processing.input,
+        rules.analysis.input,
+        rules.transcript.input
 
 # helper functions
 def find_go():
@@ -369,6 +371,7 @@ rule pychopper:
         {config[python]} -m pip install --upgrade incremental
         {config[python]} -m pip install --upgrade certifi
         {config[python]} -m pip install parasail==1.1.15 --upgrade
+        {config[python]} -m pip install "matplotlib<3.1" --upgrade
         {config[python]} setup.py install
         cp $(pwd)/scripts/cdna_classifier.py ../../{output.bin}
         """
