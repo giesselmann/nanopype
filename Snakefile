@@ -59,6 +59,11 @@ nanopype_tag = get_tag()
 config['version'] = {'tag': nanopype_tag}
 
 
+# make raw data directory absolute path
+if os.path.exists(config['storage_data_raw']):
+    config['storage_data_raw'] = os.path.abspath(config['storage_data_raw'])
+
+
 # append username to shadow prefix if not present
 if hasattr(workflow, "shadow_prefix") and workflow.shadow_prefix:
     shadow_prefix = workflow.shadow_prefix
@@ -170,7 +175,7 @@ else:
 # names for multi-run rules
 runnames = []
 if os.path.isfile('runnames.txt'):
-    runnames = [line.rstrip('\n') for line in open('runnames.txt')]
+    runnames = [line.rstrip() for line in open('runnames.txt') if line.rstrip() and not line.startswith('#')]
 config['runnames'] = runnames
 
 
@@ -181,6 +186,15 @@ if os.path.isfile('barcodes.yaml'):
         barcode_map = yaml.load(fp)
         barcodes = barcode_map
 config['barcodes'] = barcodes
+
+
+# region of interest tags
+roi = {}
+if os.path.isfile('roi.yaml'):
+    with open("roi.yaml", 'r') as fp:
+        roi_map = yaml.load(fp)
+        roi = roi_map
+config['roi'] = roi
 
 
 # include modules
