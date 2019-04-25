@@ -74,7 +74,7 @@ def get_min_coverage(wildcards):
 rule methylation_nanopolish:
     input:
         batch = lambda wildcards : get_signal_batch(wildcards, config),
-        run = lambda wildcards : os.path.join(config['storage_data_raw'], wildcards.runname),
+        run = lambda wildcards : [os.path.join(config['storage_data_raw'], wildcards.runname)] + [os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')] if get_signal_batch(wildcards, config).endswith('.txt') else [],
         sequences = lambda wildcards : get_sequence_batch(wildcards, config),
         bam = lambda wildcards : get_alignment_batch(wildcards, config),
         bai = lambda wildcards : get_alignment_batch(wildcards, config) + '.bai',
@@ -86,12 +86,14 @@ rule methylation_nanopolish:
     resources:
         mem_mb = lambda wildcards, input, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 500 * threads)),
         time_min = lambda wildcards, input, threads, attempt: int((960 / threads) * attempt)   # 60 min / 16 threads
+    params:
+        index = lambda wildcards : os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')
     singularity:
         "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         mkdir -p raw
-        {config[bin][python]} {config[sbin][storage_fast5Index.py]} extract {input.batch} raw/ --index {params.index} --output_format single
+        {config[bin][python]} {config[sbin][storage_fast5Index.py]} extract {input.batch} raw/ --index {params.index} --output_format lazy
         zcat {input.sequences} > sequences.fastx
         {config[bin_singularity][nanopolish]} index -d raw/ sequences.fastx
         {config[bin_singularity][nanopolish]} call-methylation -t {threads} -r sequences.fastx -g {input.reference} -b {input.bam} > {output}
@@ -215,7 +217,7 @@ rule methylation_bedGraph:
     input:
         "methylation/{methylation_caller}/{aligner}/{sequence_workflow}/{tag}.{reference}.frequencies.tsv"
     output:
-        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^.\/]*}.{coverage, [^.\/]*}.{reference, [^.\/]*}.bedGraph"
+        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{coverage, [^.\/]*}.{reference, [^.\/]*}.bedGraph"
     params:
         methylation_min_coverage = lambda wildcards : get_min_coverage(wildcards)
     singularity:

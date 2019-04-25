@@ -95,7 +95,7 @@ rule strique:
     shadow: "minimal"
     threads: config['threads_sv']
     params:
-        model = config['sv_STRique_model'],
+        model = config['sv_STRique_model'] if 'sv_STRique_model' in config else '',
         mod_model = '--mod_model {}'.format(config['sv_STRique_mod_model']) if 'sv_STRique_mod_model' in config else ''
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (16000 + 2000 * threads)),
@@ -105,7 +105,7 @@ rule strique:
     shell:
         """
         export TMPDIR=$(pwd)
-        {config[bin_singularity][samtools]} view -F 2308 {input.bam} | {config[bin_singularity][python]} {config[bin_singularity][strique]} count {input.index} {params.model} {input.config} {params.mod_model} --t {threads} --log_level debug > {output}
+        {config[bin_singularity][samtools]} view -F 2308 {input.bam} | {config[bin_singularity][python]} {config[bin_singularity][strique]} count {input.index} {params.model} {input.config} {params.mod_model} --t {threads} > {output}
         """
 
 rule strique_merge_batches:

@@ -66,10 +66,10 @@ rule storage_index_run:
         batches = get_batches_indexing
     output:
         fofn = "{data_raw}/{{runname}}/reads.fofn".format(data_raw = config["storage_data_raw"])
-    shell:
-        """
-        cat {input} > {output}
-        """
+    run:
+        with open(output[0], 'w') as fp:
+            for f in input.batches:
+                print(open(f, 'r').read(), end='', file=fp)
 
  # index multiple runs
 rule storage_index_runs:
