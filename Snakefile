@@ -48,7 +48,7 @@ def get_tag():
     try:
         version = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
     except subprocess.CalledProcessError:
-        raise RuntimeError('Unable to get version number from git tags')
+        raise RuntimeError('[ERROR] Unable to get version number from git tags.')
     if '-' in version:
         return 'latest'
     else:
@@ -62,6 +62,8 @@ config['version'] = {'tag': nanopype_tag}
 # make raw data directory absolute path
 if os.path.exists(config['storage_data_raw']):
     config['storage_data_raw'] = os.path.abspath(config['storage_data_raw'])
+else:
+    raise RuntimeError("[ERROR] Raw data archive not found.")
 
 
 # append username to shadow prefix if not present
@@ -205,3 +207,4 @@ include : "rules/methylation.smk"
 include : "rules/sv.smk"
 include : "rules/demux.smk"
 include : "rules/transcript.smk"
+include : "rules/clean.smk"
