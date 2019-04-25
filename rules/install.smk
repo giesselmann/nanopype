@@ -348,7 +348,8 @@ rule guppy:
     shell:
         """
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.1_linux64.tar.gz &&
-        wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.5_linux64.tar.gz && \
+        # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.5_linux64.tar.gz &&
+        wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.7_linux64.tar.gz && \
         tar --skip-old-files -xzf ont-guppy-cpu_2.3.5_linux64.tar.gz -C ./ --strip 1 && \
         rm ont-guppy-cpu_2.3.5_linux64.tar.gz
         """
@@ -360,9 +361,9 @@ rule pychopper:
         """
         mkdir -p src && cd src
         if [ ! -d pychopper ]; then
-            git clone https://github.com/nanoporetech/pychopper --branch v0.4.0 && cd pychopper
+            git clone https://github.com/nanoporetech/pychopper --branch v0.5.0 && cd pychopper
         else
-            cd pychopper && git fetch --all --tags --prune && git checkout v0.4.0
+            cd pychopper && git fetch --all --tags --prune && git checkout v0.5.0
         fi
         # TODO fix for error 'libparasail.so not found'
         {config[python]} -m pip install --upgrade incremental
@@ -432,9 +433,9 @@ rule strique:
         """
         mkdir -p src && cd src
         if [ ! -d STRique ]; then
-            git clone --recursive https://github.com/giesselmann/STRique --branch v0.2.0 && cd STRique
+            git clone --recursive https://github.com/giesselmann/STRique --branch v0.3.0 && cd STRique
         else
-            cd STRique && git fetch --all --tags --prune && git checkout v0.2.0
+            cd STRique && git fetch --all --tags --prune && git checkout v0.3.0
         fi
         {config[python]} -m pip install -r requirements.txt --upgrade
         {config[python]} setup.py install
