@@ -68,7 +68,7 @@ def get_signal_batch(wildcards, config):
     if hasattr(wildcards, 'tag'):
         tag_barcode = get_tag_barcode(wildcards.tag, wildcards.runname, config)
         if tag_barcode:
-            return os.path.join('demux/deepbinner/barcodes', wildcards.runname, tag_barcode, wildcards.batch + '.txt')
+            return os.path.join('demux', config['demux_default'], 'barcodes', wildcards.runname, tag_barcode, wildcards.batch + '.txt')
     batch_file = os.path.join(raw_dir, wildcards.runname, 'reads', wildcards.batch)
     if os.path.isfile(batch_file + '.tar'):
         return batch_file + '.tar'
