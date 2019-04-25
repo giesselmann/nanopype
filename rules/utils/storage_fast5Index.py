@@ -114,7 +114,6 @@ class fast5_Index():
                     pass
 
     def index(input, recursive=False, output_prefix="", tmp_prefix=None):
-        print(tmp_prefix, file=sys.stderr)
         if tmp_prefix and not os.path.exists(tmp_prefix):
             os.makedirs(tmp_prefix)
         input_files = []
@@ -156,7 +155,7 @@ class fast5_Index():
                     except:
                         print("[ERROR] Failed to open {f5}, skip file for indexing".format(f5=input_file), file=sys.stderr)
                     yield '\t'.join([input_relative, ID])
-        
+
     def extract(self, input, output, format='single'):
         if not os.path.exists(output):
             os.makedirs(output)
@@ -191,8 +190,13 @@ class fast5_Index():
                 with tempfile.TemporaryDirectory(prefix=self.tmp_prefix) as tmpdirname:
                     self.__copy_reads_to__(batch_ids, tmpdirname)
                     f5files = [os.path.join(dirpath, f) for dirpath, _, files in os.walk(tmpdirname) for f in files if f.endswith('.fast5')]
-                    output_bulk_file = os.path.join(output, os.path.basename(batch_name) + '.fast5')
-                    single_to_multi_fast5.create_multi_read_file(f5files, output_bulk_file)
+                    if len(f5files) > 4000:
+                        for i, f5_batch in enumerate(fast5_Index.__chunked__(f5files, 4000)):
+                            output_bulk_file = os.path.join(output, os.path.basename(batch_name) + '_{i}.fast5'.format(i=i))
+                            single_to_multi_fast5.create_multi_read_file(f5_batch, output_bulk_file)
+                    else:
+                        output_bulk_file = os.path.join(output, os.path.basename(batch_name) + '.fast5')
+                        single_to_multi_fast5.create_multi_read_file(f5files, output_bulk_file)
         else:
             raise RuntimeError('[ERROR] Raw fast5 batch extension {} not supported.'.format(batch_ext))
 
