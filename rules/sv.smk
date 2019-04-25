@@ -88,19 +88,24 @@ rule strique:
     input:
         index = lambda wildcards : os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn'),
         bam = lambda wildcards : get_alignment_batch(wildcards, config),
-        model = lambda wildcards : config['sv_STRique_model'],
-        config = lambda wildcards : config['sv_STRique_config']
+        config = lambda wildcards : config['sv_STRique_config'],
+        models = lambda wildcards : [config['sv_STRique_model']] + [config['sv_STRique_mod_model']] if os.path.exists(config['sv_STRique_mod_model']) else []
     output:
         "sv/strique/{aligner, [^\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^\/]*}/{batch, [^.\/]*}.{reference}.tsv"
+    shadow: "minimal"
     threads: config['threads_sv']
+    params:
+        model = config['sv_STRique_model'],
+        mod_model = '--mod_model {}'.format(config['sv_STRique_mod_model']) if 'sv_STRique_mod_model' in config else ''
     resources:
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1500 * threads)),
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (16000 + 2000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((3840 / threads) * attempt)   # 240 min / 16 threads
     singularity:
         "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][samtools]} view -F 2308 {input.bam} | {config[bin_singularity][python]} {config[bin_singularity][strique]} count {input.index} {input.model} {input.config} --t {threads} > {output}
+        export TMPDIR=$(pwd)
+        {config[bin_singularity][samtools]} view -F 2308 {input.bam} | {config[bin_singularity][python]} {config[bin_singularity][strique]} count {input.index} {params.model} {input.config} {params.mod_model} --t {threads} --log_level debug > {output}
         """
 
 rule strique_merge_batches:
@@ -113,10 +118,10 @@ rule strique_merge_batches:
             for i, f in enumerate(input):
                 with open(f, 'r') as fp_in:
                     if i == 0:
-                        print(fp_in.read(), file=fp_out)
+                        print(fp_in.read(), file=fp_out, end='')
                     else:
                         next(fp_in)
-                        print(fp_in.read(), file=fp_out)
+                        print(fp_in.read(), file=fp_out, end='')
 
 rule strique_merge_tag:
     input:
@@ -128,7 +133,7 @@ rule strique_merge_tag:
             for i, f in enumerate(input):
                 with open(f, 'r') as fp_in:
                     if i == 0:
-                        print(fp_in.read(), file=fp_out)
+                        print(fp_in.read(), file=fp_out, end='')
                     else:
                         next(fp_in)
-                        print(fp_in.read(), file=fp_out)
+                        print(fp_in.read(), file=fp_out, end='')
