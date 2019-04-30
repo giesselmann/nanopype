@@ -61,7 +61,7 @@ class CustomInstallCmd(install):
 
 setup(
     name='nanopype',
-    version='0.4.1',
+    version='0.6.0',
     author='Pay Giesselmann',
     author_email='giesselmann@molgen.mpg.de',
     description='Nanopore data processing workflows',
@@ -69,7 +69,7 @@ setup(
     url='https://github.com/giesselmann/nanopype',
     license='LICENSE',
     python_requires='>=3.4',
-    install_requires=['snakemake>=5.3.0', 'numpy', 'h5py>=2.7.1', 'watchdog'],
+    install_requires=['snakemake>=5.4.3', 'numpy', 'h5py>=2.7.1', 'watchdog'],
     include_package_data=True,
     scripts=['scripts/nanopype_import.py',],
     zip_safe=False,

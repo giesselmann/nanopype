@@ -88,15 +88,16 @@ if 'references' in nanopype_env:
         config['references'] = {}
     for name, values in nanopype_env['references'].items():
         genome = values['genome']
-        chr_sizes = values['chr_sizes']
+        chr_sizes = values['chr_sizes'] if 'chr_sizes' in values else ''
         if not os.path.isfile(genome):
             print("[WARNING] Genome for {name} not found in {genome}, skipping entry".format(
                 name=name, genome=genome), file=sys.stderr)
             continue
-        if not os.path.isfile(chr_sizes):
+        if chr_sizes and not os.path.isfile(chr_sizes):
             print("[WARNING] Chromosome sizes for {name} not found in {chr_sizes}, skipping entry".format(
                 name=name, chr_sizes=chr_sizes), file=sys.stderr)
             continue
+        print('add ', name)
         config['references'][name] = {"genome":genome, "chr_sizes":chr_sizes}
 
 
@@ -155,7 +156,7 @@ for s in [s for s in os.listdir(os.path.join(os.path.dirname(workflow.snakefile)
     else:
         config['sbin_singularity'][s] = config['sbin'][s]
 
-		
+
 # helper of submodules are called relative to the pipeline base directory
 config['sbin']['base'] = os.path.join(os.path.dirname(workflow.snakefile))
 if hasattr(workflow, 'use_singularity') and workflow.use_singularity:

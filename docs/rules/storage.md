@@ -26,6 +26,8 @@ For bulk-fast5 output from recent MinKNOW versions, the batches can be directly 
          |--reads.fofn                                # Index file
 ```
 
+Nanopype expects all batches to be found in the *reads* folder of a run. Restarting an experiment in MinKNOW results in a new raw output folder with batch numbers starting from zero. In current versions of MinKNOW a unique run-ID is part of the batch name, therefore bulk-fast5 files from multiple restarts can be copied into the same directory. After updating MinKNOW the output naming should be verified to avoid overwriting batches with equal names.
+
 
 ## Import
 
@@ -51,6 +53,9 @@ Together with the import, this is the only rule requiring **write access** to th
     chmod 444 /data/raw/$run/reads.fofn
     chmod 555 /data/raw/$run/reads
     chmod 555 /data/raw/$run
+
+??? tip "Tip"
+    Internally we use an isolated unix-user and group *mduser* and *mdgrp* owning the raw data. Setting permissions to e.g. 744 for the batch files and 755 for folders allows any analyst to securely read the raw data without accidentally compromising it.
 
 ## Extraction
 

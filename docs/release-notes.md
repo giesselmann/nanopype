@@ -1,6 +1,6 @@
 # Release notes
 
-#### v0.6.0 - 2019-04-26
+#### v0.6.0 - 2019-04-30
 Development release:
 
 The output of nanopype >= v0.6.0 is **not** backwards compatible due to major changes in the output filesystem structure.
@@ -12,7 +12,7 @@ The output of nanopype >= v0.6.0 is **not** backwards compatible due to major ch
     * Include STRique version v0.3.0
     * Update Pychopper to version v0.5.0
     * Update guppy_basecaller to version v2.3.7
-    
+
 
 #### v0.5.0 - 2019-03-26
 Development release:

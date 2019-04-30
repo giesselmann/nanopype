@@ -1,6 +1,6 @@
 # Singularity
 
-In order to use the Singularity driven version of Nanopype a working python3 with Snakemake and the pipeline repository itself are sufficient. At least python version 3.4 is required and we recommend to use a virtual environment. Additionally Singularity needs to be installed system wide. On Ubuntu the package is called *singularity-container*. The installation requires root privileges and might require help of your IT department.
+In order to use the Singularity driven version of Nanopype a working python3 with Snakemake and the pipeline repository itself are sufficient. At least python version 3.4 is required and we recommend to use a virtual environment. Additionally Singularity needs to be installed system wide. On Ubuntu the package is called *singularity-container*. The installation requires root privileges and might require help of your IT department. We currently test workflows with Singularity version 2.4.2.
 
 Start with creating a virtual environment:
 

@@ -16,6 +16,24 @@ The structural variation module can create the following file structure relative
             |--WA01.hg38.vcf/
 ```
 
+## Cleanup
+
+The structural variation module requires a merged alignment file of one or multiple flow cells. Since most of the pipeline is working with batches of reads, the merged files can be deleted to save disk space:
+
+```sh
+|--alignments/
+   |--ngmlr/                                                 # NGMLR alignment
+      |--guppy/                                              # Using guppy basecalling
+         |--batches/
+            |--WA01/
+               |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/             # keep
+                  |--0.hg38.bam                                             # keep
+                  |--1.hg38.bam                                             # keep
+                  ...
+               |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam     # delete
+         |--WA01.hg38.bam                                                   # delete
+```
+
 ## Tools
 The SV module includes the following tools:
 

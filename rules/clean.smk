@@ -34,7 +34,7 @@
 # imports
 import os, sys, glob
 # local rules
-localrules: basecaller_merge_batches, basecaller_merge_tag, basecaller_qc, basecalling_clean
+localrules: sequences_clean, alignment_clean, methylation_clean, sv_clean, demux_clean, transcript_isoforms_clean, clean
 
 
 # remove flag files to force re-run of cleanup
@@ -43,7 +43,7 @@ for f in glob.glob('.*.done'):
 
 
 # clean up compute batches basecalling
-rule basecalling_clean:
+rule sequences_clean:
     input:
         [dirpath for dirpath, _, files in os.walk('sequences') if dirpath.endswith('batches')]
     output:
@@ -68,7 +68,7 @@ rule methylation_clean:
         touch('.methylation_clean.done')
     shell:
         "rm -r {input}"
-        
+
 # clean up compute batches sv
 rule sv_clean:
     input:
@@ -99,7 +99,7 @@ rule transcript_isoforms_clean:
 # clean up everything
 rule clean:
     input:
-        rules.basecalling_clean.output,
+        rules.sequences_clean.output,
         rules.alignment_clean.output,
         rules.methylation_clean.output,
         rules.sv_clean.output,

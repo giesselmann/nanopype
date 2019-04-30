@@ -4,7 +4,7 @@ The basecaller translates the raw electrical signal from the sequencer into a nu
 
 In order to process the output of one flow cell with the basecaller *albacore* run from within your processing directory:
 
-    snakemake --snakefile /path/to/nanopype/Snakefile sequences/albacore/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.gz
+    snakemake --snakefile /path/to/nanopype/Snakefile sequences/albacore/WA01/batches/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.gz
 
 Valid file extensions are fasta/fa, fastq/fq in gzipped form. Providing a *runnames.txt* with one run name per line it is possible to process multiple flow cells at once and merge the output into a single file e.g.:
 
@@ -24,20 +24,29 @@ The basecalling module can create the following file structure relative to the w
 |--sequences/
    |--albacore/                                                 # Albacore basecaller
       |--batches/
-         |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
-            |--0.fastq.gz                                       # Sequence batches
-            |--1.fastq.gz
-             ...
-      |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.gz
-      |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.pdf
+         |--WA01/
+            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
+               |--0.fastq.gz                                       # Sequence batches
+               |--1.fastq.gz
+                ...
+            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.gz
+            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.pdf
       |--WA01.fastq.gz
       |--WA01.fastq.pdf
    |--guppy/                                                    # Guppy basecaller
       |--...
 ```
 
+## Cleanup
+
+The batch processing output of the basecalling module can be cleaned up by running:
+
+    snakemake --snakefile /path/to/nanopype/Snakefile sequences_clean
+
+This will delete all files and folders inside of any **batches** directory and should only be used at the very end of an analysis workflow. The alignment module for instance relies on the single batch sequence files.
+
 ## Tools
-Depending on the application you can choose from one of the following basecallers, listed with their associated configuration options. Downstream applications making use of the basecalling module can either enforce a specific basecaller or used the default configuration:
+Depending on the application you can choose from one of the following basecallers, listed with their associated configuration options.
 
 :   * threads_basecalling: 4
 

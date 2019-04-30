@@ -1,10 +1,28 @@
 # Demultiplexing
 
-With barcoded libraries nanopore sequencing allows to pool multiple samples on a single flow cell. Demultiplexing describes the classification of barcodes per read and the assignment of read groups. The output of the demultiplexing module is a tsv file of read ID and detected barcode. In order to process a barcoded flow cell with e.g. Deepbinner run:
+With barcoded libraries nanopore sequencing allows to pool multiple samples on a single flow cell. Demultiplexing describes the classification of barcodes per read and the assignment of read groups. The output of the demultiplexing module is batches of read IDs belonging to a detected barcode. In order to process a barcoded flow cell with Deepbinner run:
 
     snakemake --snakefile /path/to/nanopype/Snakefile demux/deepbinner/20180101_FAH12345_FLO-MIN106_SQK-RBK004_WA01.tsv
 
-Note the different sequencing kit *SQK-RBK004* used in this example.
+Note the different sequencing kit *SQK-RBK004* used in this example. Aside from explicit demultiplexing the module supports mapping of previously introduced tags to barcodes. A **barcodes.yaml** in the working directory is detected by Nanopype and can map raw demux output to tags:
+
+??? info "example barcodes.yaml"
+    ```
+    __default__:
+        NB01 : '1'
+        NB02 : '2'
+    20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01:
+        NB01 : '3'
+        NB02 : '4'
+    ```
+
+The file may contain a `__default__` mapping, applied to any not listed run as well as run specific mappings. Each mapping is a key:value pair of tag and barcode. For different runs, the same tag can map to different barcodes allowing the efficient usage of available barcodes in the sequencing kit. Without running the demultiplexing explicitly, an alignment of only one barcode can be obtained by running:
+
+    snakemake --snakefile /path/to/nanopype/Snakefile alignments/minimap2/guppy/NB01.hg38.bam
+
+Nanopype will detect *NB01* to be a special tag listed in *barcodes.yaml*, start demultiplexing, create batches of read IDs with barcode 1 and run basecalling and alignment only for this subset of reads.
+
+
 
 ## Folder structure
 
@@ -12,35 +30,32 @@ The demultiplexing module can create the following file structure relative to th
 
 ```sh
 |--demux/
-   |--albacore/                                            # Albacore basecaller
-      |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
-         |--0.tsv                                          # Demultiplexed batches
-         |--1.tsv
-          ...
-      |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.tsv
    |--deepbinner/                                          # Deepbinner neural network
-      |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
-         |--0.tsv                                          # Demultiplexed batches
-         |--1.tsv
+      |--batches/
+         |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
+            |--0.tsv                                       # classified batches
+            |--1.tsv
           ...
-      |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.tsv
+      |--barcodes/
+         |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
+            |--1/                                          # raw barcode for tag:barcode mapping
+               |--0.tsv                                    # 4k reads of barcode 1
+               |--1.tsv
+            |--2/
 ```
 
 ## Tools
 
-The demultiplexing module includes the following tools and their respective configuration:
+The demultiplexing module includes the following tools and their respective configuration, shared config variables are:
 
-### Albacore
-
-The ONT basecaller directly supports demultiplexing in sequence space.
-
-    basecalling_albacore_barcoding: true
+    threads_demux: 4
+    demux_batch_size: 4000
+    demux_default: 'deepbinner'
 
 ### Deepbinner
 
-Deepbinner: Demultiplexing barcoded Oxford Nanopore Technologies reads with deep convolutional neural networks (CNN). The network is trained to classify barcodes based on the raw nanopore signal. The model for the CNN needs to be copied from the Deepbinner repository to the working directory and depends on the used sequencing kit. The kit is parsed from the run name as described in the [configuration](../installation/configuration.md).
+Deepbinner: Demultiplexing barcoded Oxford Nanopore Technologies reads with deep convolutional neural networks (CNN). The network is trained to classify barcodes based on the raw nanopore signal. The model for the CNN needs to be copied from the Deepbinner repository to the working directory and depends on the used sequencing kit. The kit is parsed from the run name as described in the [configuration](../installation/configuration.md), alternatively the *default* mapping can be used to override the kit of the runname.
 
-    threads_demux: 4
     deepbinner_models:
         default: SQK-RBK004_read_starts
         EXP-NBD103: EXP-NBD103_read_starts

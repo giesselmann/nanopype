@@ -84,35 +84,11 @@ rule storage_extract:
         names = "subset/{tag}.txt"
     output:
         directory("subset/{tag, [^.\/]*}/{runname, [^.\/]*}")
-    run:
-        import os, itertools, tarfile
-        # read target names
-        ids = []
-        with open(input.names, 'r') as fp:
-            for line in fp:
-                ids.append(line.strip())
-        # read index
-        records = {}
-        with open(input.index, 'r') as fp:
-            records = {read_ID:filename for filename, read_ID in [line.rstrip().split('\t')[0:2] for line in fp]}
-        # lookup file locations per ID
-        batches = [file.rpartition(".tar/") for file in [records[id] for id in ids if id in records]]
-        batches.sort(key = lambda x : x[0])
-        # group and extract per batch
-        for archive, batch in itertools.groupby(batches, key= lambda x : x[0]):
-            tarFiles = [os.path.basename(x[2]) for x in batch]
-            try:
-                with tarfile.open(os.path.join(config["storage_data_raw"], wildcards.runname, archive + ".tar")) as tar:
-                    tar_members = tar.getmembers()
-                    for tar_member in tar_members:
-                        if any(s in tar_member.name for s in tarFiles):
-                            try:
-                                tar_member.name = os.path.basename(tar_member.name)
-                                tar.extract(tar_member, path=output[0])
-                            except:
-                                print("Failed to extract " + tar_member.name + 'from batch' + archive)
-            except:
-                print("Failed to open batch " + archive)
+    shell:
+        """
+        mkdir -p {output}
+        {config[bin][python]} {config[sbin][storage_fast5Index.py]} extract {input.names} {output} --index {input.index} --output_format bulk
+        """
 
 
 # extract reads from indexed runs
