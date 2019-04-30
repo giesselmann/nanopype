@@ -61,6 +61,8 @@ methylation_flappie_qval_threshold: 3
 
 
 # demux
+demux_batch_size: 4000
+demux_default: 'deepbinner'
 deepbinner_models:
     default: SQK-RBK004_read_starts
     EXP-NBD103: EXP-NBD103_read_starts
@@ -70,7 +72,9 @@ deepbinner_models:
 # structural variation
 # command line flags directly passed to the sniffles execution
 sv_sniffles_flags: '-s 10 -l 30 -r 2000 --genotype'
-
+sv_STRique_config: 'STRique.tsv'
+sv_STRique_model: 'r9_4_450bps.mpi.model'
+sv_STRique_mod_model: 'r9_4_450bps_mCpG.mpi.model'
 
 # transcriptome
 transcript_use_pychopper: True

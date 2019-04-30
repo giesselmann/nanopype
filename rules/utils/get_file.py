@@ -35,27 +35,41 @@ import os
 from snakemake.io import glob_wildcards
 from .storage import get_kit
 
-# prefix of raw read batches
-def get_batch_ids_raw(runname, config):
-    batches_tar, = glob_wildcards("{datadir}/{runname}/reads/{{id}}.tar".format(datadir=config["storage_data_raw"], runname=runname))
-    batches_fast5, = glob_wildcards("{datadir}/{runname}/reads/{{id}}.fast5".format(datadir=config["storage_data_raw"], runname=runname))
-    return batches_tar + batches_fast5
 
-# get type of fast5 batch from basename
-def get_batch_ext(wildcards, config):
-    raw_prefix = "{datadir}/{wildcards.runname}/reads/{wildcards.batch}".format(datadir=config["storage_data_raw"], wildcards=wildcards)
-    # TODO idx prefix
-    if os.path.isfile(raw_prefix + ".tar"):
-        return "tar"
-    elif os.path.isfile(raw_prefix + ".fast5"):
-        return "fast5"
+# check if tag maps to barcode
+def get_tag_barcode(tag, runname, config):
+    bc_batches = [None]
+    if '__default__' in config['barcodes']:
+        bc_batches.extend([config['barcodes']['__default__'][bc] for bc in config['barcodes']['__default__'].keys() if bc in tag])
+    elif runname in config['barcodes']:
+        bc_batches.extend([config['barcodes'][runname][bc] for bc in config['barcodes'][runname].keys() if bc in tag])
     else:
         pass
+    return bc_batches[-1]
 
+
+# prefix of raw read batches
+def get_batch_ids_raw(runname, config, tag=None, checkpoints=None):
+    tag_barcode = get_tag_barcode(tag, runname, config) if tag else None
+    if tag_barcode and checkpoints:
+        barcode_batch_dir = checkpoints.demux_split_barcodes.get(demultiplexer=config['demux_default'], runname=runname).output.barcodes
+        barcode_batch = os.path.join(barcode_batch_dir, tag_barcode, '{id}.txt')
+        batches_txt, = glob_wildcards(barcode_batch)
+        return batches_txt
+    else:
+        batches_tar, = glob_wildcards("{datadir}/{runname}/reads/{{id}}.tar".format(datadir=config["storage_data_raw"], runname=runname))
+        batches_fast5, = glob_wildcards("{datadir}/{runname}/reads/{{id}}.fast5".format(datadir=config["storage_data_raw"], runname=runname))
+        return batches_tar + batches_fast5
+
+
+# get batch of reads as IDs or fast5
 def get_signal_batch(wildcards, config):
-    batch_type, batch = wildcards.batch.split('/', 1)
     raw_dir = config['storage_data_raw']
-    batch_file = os.path.join(raw_dir, batch_type, 'reads', batch)
+    if hasattr(wildcards, 'tag'):
+        tag_barcode = get_tag_barcode(wildcards.tag, wildcards.runname, config)
+        if tag_barcode:
+            return os.path.join('demux', config['demux_default'], 'barcodes', wildcards.runname, tag_barcode, wildcards.batch + '.txt')
+    batch_file = os.path.join(raw_dir, wildcards.runname, 'reads', wildcards.batch)
     if os.path.isfile(batch_file + '.tar'):
         return batch_file + '.tar'
     elif os.path.isfile(batch_file + '.fast5'):
@@ -63,54 +77,28 @@ def get_signal_batch(wildcards, config):
     else:
         return []
 
+
 # get available batch sequence
 def get_sequence_batch(wildcards, config):
-    base = "sequences/{wildcards.sequence_workflow}/batches/{wildcards.batch}".format(wildcards=wildcards)
+    base = "sequences/{sequence_workflow}/batches/{tag}/{runname}/{batch}".format(
+            sequence_workflow=wildcards.sequence_workflow,
+            tag=wildcards.tag,
+            runname=wildcards.runname,
+            batch=wildcards.batch)
     extensions = ['.fa', '.fasta', '.fq', '.fastq']
     for ext in extensions:
         if os.path.isfile(base + ext + '.gz') or os.path.isfile(base + ext):
             return base + ext + '.gz'
     return base + '.fastq.gz'
 
-# get available merged sequence
-# def get_sequence(wildcards, config, force_basecaller=None):
-    # if force_basecaller:
-        # basecaller = force_basecaller
-    # elif hasattr(wildcards, 'basecaller'):
-        # basecaller = wildcards.basecaller
-    # else:
-        # raise RuntimeError("Unable to determine sequence file with wildcards: {wildcards}".format(
-            # wildcards=', '.join([str(key) + ':' + str(value) for key,value in wildcards])))
-    # if hasattr(wildcards, 'runname') and wildcards.runname:
-        # base = "sequences/{basecaller}/runs/{wildcards.runname}".format(wildcards=wildcards, basecaller=basecaller)
-    # else:
-        # base = "sequences/{basecaller}/{wildcards.tag}".format(wildcards=wildcards, basecaller=basecaller)
-    # extensions = ['.fa', '.fasta', '.fq', '.fastq']
-    # for ext in extensions:
-        # if os.path.isfile(base + ext + '.gz'):
-            # return base + ext + '.gz'
-    # return base + '.fastq.gz'
 
 # get alignment batch with default basecaller and aligner
 def get_alignment_batch(wildcards, config):
-    bam = "alignments/{wildcards.aligner}/{wildcards.sequence_workflow}/batches/{wildcards.batch}.{wildcards.reference}.bam".format(
-            wildcards=wildcards)
+    bam = "alignments/{aligner}/{sequence_workflow}/batches/{tag}/{runname}/{batch}.{reference}.bam".format(
+            aligner=wildcards.aligner,
+            sequence_workflow=wildcards.sequence_workflow,
+            tag=wildcards.tag,
+            runname=wildcards.runname,
+            batch=wildcards.batch,
+            reference=wildcards.reference)
     return bam
-
-# get alignment with default basecaller and aligner
-# def get_alignment(wildcards, config, force_basecaller=None, force_aligner=None):
-    # if force_basecaller:
-        # basecaller = force_basecaller
-    # elif hasattr(wildcards, 'basecaller'):
-        # basecaller = wildcards.basecaller
-    # else:
-        # raise RuntimeError("Unable to determine alignment file with wildcards: {wildcards}".format(
-            # wildcards=', '.join([str(key) + ':' + str(value) for key,value in wildcards])))
-    # if force_aligner:
-        # aligner = force_aligner
-    # elif hasattr(wildcards, 'aligner'):
-        # aligner = wildcards.aligner
-    # else:
-        # aligner = config['alignment_default']
-    # bam = "alignments/{aligner}/{basecaller}/{wildcards.tag}.{wildcards.reference}.bam".format(wildcards=wildcards, basecaller=basecaller, aligner=aligner)
-    # return bam

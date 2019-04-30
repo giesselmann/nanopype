@@ -6,7 +6,7 @@ Another application of the long-read nanopore technology is sequencing of cDNA a
 
 The isoform detection in Nanopype is oriented to meet the implementation of the [pinfish-pipeline](https://github.com/nanoporetech/pipeline-pinfish-analysis) from ONT, extended by the basecalling and alignment back-end of Nanopype. To align the reads of one flow cell against reference genome hg38 with *guppy* basecalling and aligner *minimap2* and detect isoforms using pinfish run from within your processing directory:
 
-    snakemake --snakefile /path/to/nanopype/Snakefile transcript_isoforms/pinfish/minimap2/guppy/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.gff
+    snakemake --snakefile /path/to/nanopype/Snakefile transcript_isoforms/pinfish/minimap2/guppy/batches/WA01/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.gff
 
 This requires an entry *hg38* in your **env.yaml** in the Nanopype installation directory:
 
@@ -28,7 +28,9 @@ The transcript module can create the following example file structure relative t
    |--pinfish
      |--minimap2/                                                 # Minimap2 alignment
         |--guppy/                                                 # Using guppy basecalling
-           |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.gff
+           |--batches/
+              |--WA01/
+                 |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.gff
            |--WA01.hg38.gff
 
 ```

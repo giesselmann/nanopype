@@ -46,7 +46,7 @@ def get_flowcell(wildcards, config):
         if flowcell == 'FLO-PRO002':
             flowcell = 'FLO-PRO001'
         # end
-        return fields[config['storage_runname']['field_flowcell']]
+        return flowcell
     else:
         raise ValueError('Could not detect flowcell from ' + wildcards.runname)
 

@@ -38,7 +38,7 @@ from snakemake.utils import min_version
 
 
 # snakemake config
-min_version("5.4.0")
+min_version("5.4.3")
 configfile: "nanopype.yaml"
 
 
@@ -48,7 +48,7 @@ def get_tag():
     try:
         version = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
     except subprocess.CalledProcessError:
-        raise RuntimeError('Unable to get version number from git tags')
+        raise RuntimeError('[ERROR] Unable to get version number from git tags.')
     if '-' in version:
         return 'latest'
     else:
@@ -59,12 +59,19 @@ nanopype_tag = get_tag()
 config['version'] = {'tag': nanopype_tag}
 
 
+# make raw data directory absolute path
+if os.path.exists(config['storage_data_raw']):
+    config['storage_data_raw'] = os.path.abspath(config['storage_data_raw'])
+else:
+    raise RuntimeError("[ERROR] Raw data archive not found.")
+
+
 # append username to shadow prefix if not present
 if hasattr(workflow, "shadow_prefix") and workflow.shadow_prefix:
     shadow_prefix = workflow.shadow_prefix
     if not os.environ['USER'] in shadow_prefix:
         shadow_prefix = os.path.join(shadow_prefix, os.environ['USER'])
-        print("Shadow prefix is changed from {p1} to {p2} to be user-specific".format(
+        print("[INFO] Shadow prefix is changed from {p1} to {p2} to be user-specific".format(
             p1=workflow.shadow_prefix, p2=shadow_prefix), file=sys.stderr)
     workflow.shadow_prefix = shadow_prefix
 
@@ -81,15 +88,16 @@ if 'references' in nanopype_env:
         config['references'] = {}
     for name, values in nanopype_env['references'].items():
         genome = values['genome']
-        chr_sizes = values['chr_sizes']
+        chr_sizes = values['chr_sizes'] if 'chr_sizes' in values else ''
         if not os.path.isfile(genome):
-            print("Genome for {name} not found in {genome}, skipping entry".format(
+            print("[WARNING] Genome for {name} not found in {genome}, skipping entry".format(
                 name=name, genome=genome), file=sys.stderr)
             continue
-        if not os.path.isfile(chr_sizes):
-            print("Chromosome sizes for {name} not found in {chr_sizes}, skipping entry".format(
+        if chr_sizes and not os.path.isfile(chr_sizes):
+            print("[WARNING] Chromosome sizes for {name} not found in {chr_sizes}, skipping entry".format(
                 name=name, chr_sizes=chr_sizes), file=sys.stderr)
             continue
+        print('add ', name)
         config['references'][name] = {"genome":genome, "chr_sizes":chr_sizes}
 
 
@@ -148,7 +156,7 @@ for s in [s for s in os.listdir(os.path.join(os.path.dirname(workflow.snakefile)
     else:
         config['sbin_singularity'][s] = config['sbin'][s]
 
-		
+
 # helper of submodules are called relative to the pipeline base directory
 config['sbin']['base'] = os.path.join(os.path.dirname(workflow.snakefile))
 if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
@@ -170,8 +178,26 @@ else:
 # names for multi-run rules
 runnames = []
 if os.path.isfile('runnames.txt'):
-    runnames = [line.rstrip('\n') for line in open('runnames.txt')]
+    runnames = [line.rstrip() for line in open('runnames.txt') if line.rstrip() and not line.startswith('#')]
 config['runnames'] = runnames
+
+
+# barcode mappings
+barcodes = {}
+if os.path.isfile('barcodes.yaml'):
+    with open("barcodes.yaml", 'r') as fp:
+        barcode_map = yaml.load(fp)
+        barcodes = barcode_map
+config['barcodes'] = barcodes
+
+
+# region of interest tags
+roi = {}
+if os.path.isfile('roi.yaml'):
+    with open("roi.yaml", 'r') as fp:
+        roi_map = yaml.load(fp)
+        roi = roi_map
+config['roi'] = roi
 
 
 # include modules
@@ -182,3 +208,4 @@ include : "rules/methylation.smk"
 include : "rules/sv.smk"
 include : "rules/demux.smk"
 include : "rules/transcript.smk"
+include : "rules/clean.smk"

@@ -55,11 +55,12 @@ RUN python3 get-pip.py
 RUN mkdir -p /app
 COPY . /app/
 WORKDIR /app
-RUN pip3 install . --upgrade
+RUN python3 -m pip install -r requirements.txt
 
 ## run setup rules
 RUN mkdir /build
-RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory /build sniffles
+RUN snakemake --snakefile rules/install.smk --directory /build sniffles
+RUN snakemake --snakefile rules/install.smk --directory /build strique
 
 # PACKAGE STAGE
 FROM ubuntu:16.04
@@ -77,6 +78,8 @@ RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
+
+COPY --from=build_stage /usr/local/lib/python3.5/dist-packages /usr/local/lib/python3.5/dist-packages
 
 RUN mkdir -p /app
 COPY . /app/

@@ -18,31 +18,40 @@ If not already present, this will trigger basecalling and alignment of the raw d
       |--ngmlr/                                                   # NGMLR alignment
          |--guppy/                                                # Guppy sequences
             |--batches/
-               |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
-                  |--0.hg38.tsv                                   # Single read batches
-                  |--1.hg38.tsv
-                   ...
-            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
+               |--WA01/
+                  |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
+                     |--0.hg38.tsv                                # Single read batches
+                     |--1.hg38.tsv
+                      ...
+                  |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
             |--WA01.1x.hg38.bedGraph                              # Mean methylation level
             |--WA01.1x.hg38.bw
    |--flappie/                                                    # Flappie
       |--ngmlr/
          |--flappie/
             |--batches/
-               |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
-                  |--0.hg38.tsv                                   # Single read batches
-                  |--1.hg38.tsv
-            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
+               |--WA01/
+                  |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
+                     |--0.hg38.tsv                                # Single read batches
+                     |--1.hg38.tsv
+                  |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
             |--WA01.1x.hg38.bedGraph
             |--WA01.1x.hg38.bw
 ```
 
+## Cleanup
+
+The batch processing output of the methylation module can be cleaned up by running:
+
+    snakemake --snakefile /path/to/nanopype/Snakefile methylation_clean
+
+This will delete all files and folders inside of any **batches** directory and should only be used at the very end of an analysis workflow.
 
 ## Tools
 
 The output of nanopore methylation calling tools on a lower level is not consistent. Here we provide the description of the intermediate results, enabling more advanced analysis. All methylation rules share a set of global config variables:
 
-:   * threads_methylation: 3
+:   * threads_methylation: 4
 
 ### Nanopolish
 
@@ -54,7 +63,7 @@ A log-likelihood ratio greater 2.5 is considered a methylated CpG, a ratio less 
 
 To directly get the single read methylation levels of a single flow cell you can run:
 
-    snakemake --snakefile /path/to/nanopype/Snakefile methylation/nanopolish/ngmlr/guppy/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
+    snakemake --snakefile /path/to/nanopype/Snakefile methylation/nanopolish/ngmlr/guppy/batches/WA01/20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
 
 Nanopolish specific configuration parameters are:
 

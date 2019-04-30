@@ -21,7 +21,7 @@ The *env.yaml* in the original repository already contains an entry for this tut
 The easiest way to obtain an alignment is to directly request the output file with:
 
 ```
-snakemake --snakefile ~/src/nanopype/Snakefile -j 4 alignments/minimap2/guppy/20170725_FAH14126_FLO-MIN107_SQK-LSK308_human_Hues64.test.bam
+snakemake --snakefile ~/src/nanopype/Snakefile -j 4 alignments/minimap2/guppy/batches/tutorial/20170725_FAH14126_FLO-MIN107_SQK-LSK308_human_Hues64.test.bam
 ```
 
 This will trigger base calling using guppy and an alignment against our test genome with minimap2. In order to process multiple runs in parallel and merge the results into a single output file, a runnames.txt in the working directory is used:
@@ -49,5 +49,3 @@ Note that the second command only contains jobs running minimap2.
 ## Batch processing
 
 Browsing the working directory after this tutorial you will notice the batch output in form of e.g. *0.fastq.gz* or *0.test.bam* in a specific batches folder. These files are temporary and can be deleted after the processing. They are however required as input for the processing, thus if you delete the sequence batches a subsequent alignment run will include base calling to get the batch-wise input.
-
-We will target this issue in a future release of Nanopype. The merged fastx filex can be split according to the read name and merged bam files already contain a RG tag with the source batch.
