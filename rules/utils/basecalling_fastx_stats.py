@@ -69,7 +69,7 @@ def fastqIter(iterable):
                 quality = next(it).decode('utf-8').strip()
                 yield name, sequence, comment, quality, attrs
                 line = next(it).decode('utf-8').strip()
-            if line[0] == '>':      # fasta
+            elif line[0] == '>':      # fasta
                 name, attrs = parse_name(line)
                 sequence = next(it).decode('utf-8').strip()
                 try:
