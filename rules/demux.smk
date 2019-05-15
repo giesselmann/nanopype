@@ -61,7 +61,7 @@ rule deepbinner:
     shell:
         """
         mkdir -p raw
-        {config[sbin_singularity][storage_batch2fast5.sh]} {input.signal} raw/ {config[sbin_singularity][base]} {config[bin_singularity][python]}
+        {config[bin][python]} {config[sbin][storage_fast5Index.py]} extract {input.signal} raw/ --output_format single
         {config[bin_singularity][python]} {config[bin_singularity][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads {threads} --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
         """
 
@@ -75,7 +75,7 @@ checkpoint demux_split_barcodes:
         "docker://nanopype/demux:{tag}".format(tag=config['version']['tag'])
     run:
         import os, itertools, collections
-        os.makedirs(output.barcodes)
+        os.makedirs(output.barcodes, exist_ok=True)
         barcode_ids = collections.defaultdict(list)
         for f in input.batches:
             read_barcodes = []
