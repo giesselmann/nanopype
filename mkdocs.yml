@@ -96,6 +96,7 @@ nav:
     - Docker: installation/docker.md
     - Configuration: installation/configuration.md
     - Tests: installation/test.md
+  - Update: update.md
   - Workflow:
     - General: usage/general.md
     - Cluster computing: usage/cluster.md

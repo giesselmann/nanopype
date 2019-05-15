@@ -51,6 +51,17 @@ cd nanopype
 pip3 install -r requirements.txt
 cd ..
 ```
+
+It is recommended to install a tagged version of Nanopype. Using the 'latest' from master will always pull the most recent Singularity images. If the remaining pipeline is then not regularly updated via ``` git pull ```, pipeline code and container code can diverge. To install a specific version modify the above commands to:
+
+```
+git clone --recursive https://github.com/giesselmann/nanopype
+cd nanopype
+git fetch --tags && git checkout v0.6.0
+pip3 install -r requirements.txt
+cd ..
+```
+
 To deactivate a virtual python environment after installation or usage of the pipeline just type:
 
 ```
