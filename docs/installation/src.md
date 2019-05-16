@@ -129,3 +129,6 @@ There are some common errors that could arise during the installation process. I
 
 **terminated by signal 4**
 :   Nanopype is mostly compiling integrated tools from source. In heterogeneous cluster environments this can lead to errors if the compilation takes place on a machine supporting modern vector instructions (SSE, AVX, etc.) but execution also uses less recent computers. The error message *terminated by signal 4* indicates an instruction in the software not supported by the underlying hardware. Please re-compile and install the tools from a machine with a common subset of vector instructions in this case.
+
+**The TensorFlow library was compiled to use AVX instructions, but these aren't available on your machine**
+:   This error can occur while running tools which are using tensorflow in the backend (e.g. Deepbinner). The PyPl version of tensorflow installed with Nanopype is pre-compiled to use AVX (Advanced Vector Extensions). Either run the pipeline for these workflows on a different node with AVX (Intel since Haswell, AMD since Excavator) or build tensorflow from source on a computer without AVX. Install tensorflow afterwards into the same python as Nanopype.

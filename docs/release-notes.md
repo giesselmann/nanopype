@@ -1,5 +1,14 @@
 # Release notes
 
+#### v0.7.0 - 2019-05-16
+Development release:
+
+:   * Update guppy_basecaller to version v3.0.3
+    * Move guppy installation into separate directory
+    * Fix demultiplexing rule raw data fetching
+    * Add doc section on updating the pipeline
+    * Minor documentation edits
+
 #### v0.6.0 - 2019-04-30
 Development release:
 

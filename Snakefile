@@ -50,6 +50,8 @@ def get_tag():
     except subprocess.CalledProcessError:
         raise RuntimeError('[ERROR] Unable to get version number from git tags.')
     if '-' in version:
+        if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
+            print("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container.", file=sys.stderr)
         return 'latest'
     else:
         return version
@@ -90,14 +92,13 @@ if 'references' in nanopype_env:
         genome = values['genome']
         chr_sizes = values['chr_sizes'] if 'chr_sizes' in values else ''
         if not os.path.isfile(genome):
-            print("[WARNING] Genome for {name} not found in {genome}, skipping entry".format(
+            print("[WARNING] Genome for {name} not found in {genome}, skipping entry.".format(
                 name=name, genome=genome), file=sys.stderr)
             continue
         if chr_sizes and not os.path.isfile(chr_sizes):
-            print("[WARNING] Chromosome sizes for {name} not found in {chr_sizes}, skipping entry".format(
+            print("[WARNING] Chromosome sizes for {name} not found in {chr_sizes}, skipping entry.".format(
                 name=name, chr_sizes=chr_sizes), file=sys.stderr)
             continue
-        print('add ', name)
         config['references'][name] = {"genome":genome, "chr_sizes":chr_sizes}
 
 

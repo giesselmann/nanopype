@@ -98,7 +98,7 @@ rule strique:
         model = config['sv_STRique_model'] if 'sv_STRique_model' in config else '',
         mod_model = '--mod_model {}'.format(config['sv_STRique_mod_model']) if 'sv_STRique_mod_model' in config else ''
     resources:
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (16000 + 2000 * threads)),
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (32000 + 4000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((3840 / threads) * attempt)   # 240 min / 16 threads
     singularity:
         "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
