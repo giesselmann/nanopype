@@ -57,7 +57,7 @@ RUN pip3 install --upgrade pip
 RUN mkdir -p /app
 WORKDIR /app
 COPY . /app/
-RUN pip3 install . --upgrade
+RUN pip3 install -r requirements.txt
 
 # run setup rules
 RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory / all
@@ -89,10 +89,16 @@ COPY --from=build_stage /lib/* /lib/
 # copy and configure nanopype
 WORKDIR /app
 COPY . /app/
+RUN pip3 install -r requirements.txt
 
-RUN pip3 install . --upgrade
+## GUPPY
+RUN wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.7_linux64.tar.gz && \
+        tar --skip-old-files -xzf ont-guppy-cpu_2.3.7_linux64.tar.gz -C /usr/ --strip 1 && \
+        rm ont-guppy-cpu_2.3.7_linux64.tar.gz
+
 # re-run python module installer
 RUN snakemake --snakefile rules/install.smk --directory / deepbinner
+RUN snakemake --snakefile rules/install.smk --directory / pychopper
 RUN pip3 install . --upgrade --install-option="--tools=/bin"
 
 # create working directories
