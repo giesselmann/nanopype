@@ -100,7 +100,8 @@ if 'references' in nanopype_env:
                 name=name, chr_sizes=chr_sizes), file=sys.stderr)
             continue
         config['references'][name] = {"genome":genome, "chr_sizes":chr_sizes}
-
+else:
+    print("[WARNING] No references in env.yaml. The alignment and downstream tools will not work.", file=sys.stderr)
 
 # verify given binaries
 if 'bin' in nanopype_env:
@@ -140,6 +141,26 @@ if 'bin' in nanopype_env:
             else:
                 print("[WARNING] {name} not found as {loc} and is not available in the workflow.".format(
                     name=name, loc=loc), file=sys.stderr)
+else:
+    raise RuntimeError("[ERROR] No binaries in environment configuration.")
+
+
+# Runtime scaling of data depending tools
+if 'runtime' in nanopype_env:
+    config['runtime'] = {}
+    for key, value in nanopype_env['runtime'].items():
+        config['runtime'][key] = value
+else:
+    raise RuntimeError("[ERROR] No runtime scalings in environment configuration.")
+
+
+# memory scaling of data depending tools
+if 'memory' in nanopype_env:
+    config['memory'] = {}
+    for key, value in nanopype_env['memory'].items():
+        config['memory'][key] = tuple(value)
+else:
+    raise RuntimeError("[ERROR] No memory scalings in environment configuration.")
 
 
 # locations of helper scripts in rules/utils

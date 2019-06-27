@@ -64,8 +64,8 @@ rule albacore:
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 1000 * threads)),
-        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt) # 60 min / 16 threads
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['albacore'][0] + config['memory']['albacore'][1] * threads)),
+        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['albacore']) # 60 min / 16 threads
     params:
         flowcell = lambda wildcards: get_flowcell(wildcards, config),
         kit = lambda wildcards: get_kit(wildcards, config),
@@ -99,12 +99,11 @@ rule guppy:
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 4000 * threads)),
-        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 90 min / 16 threads
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['guppy'][0] + config['memory']['guppy'][1] * threads)),
+        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['guppy']) # 90 min / 16 threads
     params:
         flowcell = lambda wildcards: get_flowcell(wildcards, config),
         kit = lambda wildcards: get_kit(wildcards, config),
-        #barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
         filtering = lambda wildcards : '--qscore_filtering --min_qscore {score}'.format(score = config['basecalling_guppy_qscore_filter']) if config['basecalling_guppy_qscore_filter'] > 0 else '',
         index = lambda wildcards : '--index ' + os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn') if get_signal_batch(wildcards, config).endswith('.txt') else ''
     singularity:
@@ -137,8 +136,8 @@ rule flappie:
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (4000 + 5000 * threads)),
-        time_min = lambda wildcards, threads, attempt: int((5760 / threads) * attempt) # 360 min / 16 threads
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['flappie'][0] + config['memory']['flappie'][1] * threads)),
+        time_min = lambda wildcards, threads, attempt: int((5760 / threads) * attempt * config['runtime']['flappie']) # 360 min / 16 threads
     params:
         index = lambda wildcards : '--index ' + os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn') if get_signal_batch(wildcards, config).endswith('.txt') else ''
     singularity:
