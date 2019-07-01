@@ -76,9 +76,9 @@ apt-get install -y --no-install-recommends wget \
 RUN update-ca-certificates
 
 ## GUPPY
-RUN wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.7_linux64.tar.gz && \
-        tar --skip-old-files -xzf ont-guppy-cpu_2.3.7_linux64.tar.gz -C /usr/ --strip 1 && \
-        rm ont-guppy-cpu_2.3.7_linux64.tar.gz
+RUN wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.1.5_linux64.tar.gz && \
+        tar --skip-old-files -xzf ont-guppy-cpu_3.1.5_linux64.tar.gz -C /usr/ --strip 1 && \
+        rm ont-guppy-cpu_3.1.5_linux64.tar.gz
 
 RUN mkdir -p /app
 COPY . /app/
