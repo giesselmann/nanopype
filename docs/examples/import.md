@@ -52,7 +52,7 @@ Re-running the archive script will detect already existing data and create new b
 
 ```
 run=20180221_FAH48596_FLO-MIN107_SQK-LSK108_human_Hues64
-python3 ~/src/nanopype/scripts/nanopype_import.py data/raw2/$run data/import/$run\
+python3 ~/src/nanopype/scripts/nanopype_import.py data/raw2/$run data/import/$run \
  --recursive --batch_size 4;
 ```
 

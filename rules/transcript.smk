@@ -66,8 +66,8 @@ rule pinfish:
     threads: config['threads_transcript']
     shadow: 'minimal'
     resources:
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 1000 * threads)),
-        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 90 min / 16 threads
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['pinfish'][0] + config['memory']['pinfish'][1] * threads)),
+        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['pinfish']) # 90 min / 16 threads
     singularity:
         "docker://nanopype/transcript:{tag}".format(tag=config['version']['tag'])
     shell:

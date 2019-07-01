@@ -2,11 +2,11 @@
 
 Nanopype integrates a growing number of nanopore sequencing related tools. If you use nanopype in your project please cite our pipeline. Furthermore please verify the set of tools your analysis made use of and also cite the according publications.
 
-<!--
+
 ## Nanopype
 
-####**Nanopype pipeline**
--->
+>Pay Giesselmann, Sara Hetzel, Franz-Josef Müller, Alexander Meissner, Helene Kretzmer, Nanopype: a modular and scalable nanopore data processing pipeline. Bioinformatics, doi: 10.1093/bioinformatics/btz461 (2019).
+
 ## Snakemake
 
 >J. Köster and S. Rahmann; Snakemake - A scalable bioinformatics workflow engine, Bioinformatics (2012).

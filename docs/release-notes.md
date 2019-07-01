@@ -1,5 +1,14 @@
 # Release notes
 
+#### v0.8.0 - 2019-07-01
+Development release:
+
+:   * Allow customization of runtime and memory requirements for cluster computing (env.yaml)
+    * Update guppy_basecaller to version 3.1.5
+    * Change guppy config from flow-cell/kit to cfg file
+    * Fix guppy installation in Docker
+    * Improve Docker installation and tutorial documentation
+
 #### v0.7.0 - 2019-05-16
 Development release:
 

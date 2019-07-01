@@ -51,16 +51,17 @@ Depending on the application you can choose from one of the following basecaller
 :   * threads_basecalling: 4
 
 ### Albacore
-The ONT closed source software based on a deep neural network. The installer is accessible after login to the community board.
+The ONT closed source software based on a deep neural network. The installer is accessible after login to the community board. Albacore is deprecated!
 
 :   * basecalling_albacore_barcoding: false
     * basecalling_albacore_disable_filtering: true
     * basecalling_albacore_flags: ''
 
 ### Guppy
-Pre-Release within ONT-community.
+Current state of the art basecaller.
 
-:   * basecalling_guppy_qscore_filter: 0
+:   * basecalling_guppy_config: 'dna_r9.4.1_450bps_fast.cfg'
+    * basecalling_guppy_qscore_filter: 0
     * basecalling_guppy_flags: ''
 
 ### Flappie
