@@ -38,7 +38,7 @@ from snakemake.utils import min_version
 
 
 # snakemake config
-min_version("5.4.3")
+min_version("5.5.2")
 configfile: "nanopype.yaml"
 
 
