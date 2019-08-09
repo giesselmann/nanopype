@@ -164,16 +164,26 @@ rule basecaller_merge_batches:
         lambda wildcards: get_batches_basecaller(wildcards)
     output:
         "sequences/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
-    shell:
-        "cat {input} > {output}"
+    #shell:
+    #    "cat {input} > {output}"
+    run:
+        with open(output[0], 'wb') as fp_out:
+            for f in input:
+                with open(f, 'rb') as fp_in:
+                    fp_out.write(fp_in.read())
 
 rule basecaller_merge_tag:
     input:
         lambda wildcards: get_batches_basecaller2(wildcards)
     output:
         "sequences/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
-    shell:
-        "cat {input} > {output}"
+    #shell:
+    #    "cat {input} > {output}"
+    run:
+        with open(output[0], 'wb') as fp_out:
+            for f in input:
+                with open(f, 'rb') as fp_in:
+                    fp_out.write(fp_in.read())
 
 # basecalling QC
 rule fastx_stats:
