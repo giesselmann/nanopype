@@ -1,6 +1,6 @@
 # Nanopype
 
-[![Latest GitHub release](https://img.shields.io/github/release-pre/giesselmann/nanopype.svg)](https://github.com/giesselmann/nanopype/releases/latest) [![Docker Automated build](https://img.shields.io/docker/automated/giesselmann/nanopype.svg)](https://hub.docker.com/r/giesselmann/nanopype/) [![Read the Docs (version)](https://img.shields.io/readthedocs/nanopype/stable.svg)](https://nanopype.readthedocs.io/en/stable/)
+[![Latest GitHub release](https://img.shields.io/github/release/giesselmann/nanopype.svg)](https://github.com/giesselmann/nanopype/releases/latest) [![Docker Automated build](https://img.shields.io/docker/automated/giesselmann/nanopype.svg)](https://hub.docker.com/r/giesselmann/nanopype/) [![Read the Docs (version)](https://img.shields.io/readthedocs/nanopype/stable.svg)](https://nanopype.readthedocs.io/en/stable/)
 
 ## Documentation
 
