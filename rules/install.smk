@@ -346,7 +346,8 @@ rule flappie:
 
 rule guppy:
     output:
-        bin = "bin/guppy_basecaller"
+        basecaller = "bin/guppy_basecaller",
+        barcoder = "bin/guppy_barcoder"
     shell:
         """
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.1_linux64.tar.gz &&
@@ -358,6 +359,7 @@ rule guppy:
         tar -xzf ont-guppy-cpu_3.1.5_linux64.tar.gz -C ./ --strip 1 && \
         rm ont-guppy-cpu_3.1.5_linux64.tar.gz
         ln -s $(pwd)/bin/guppy_basecaller ../../bin/guppy_basecaller
+        ln -s $(pwd)/bin/guppy_barcoder ../../bin/guppy_barcoder
         """
 
 rule pychopper:

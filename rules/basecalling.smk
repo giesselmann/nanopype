@@ -99,8 +99,8 @@ rule guppy:
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['guppy'][0] + config['memory']['guppy'][1] * threads)),
-        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['guppy']) # 90 min / 16 threads
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['guppy_basecaller'][0] + config['memory']['guppy_basecaller'][1] * threads)),
+        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['guppy_basecaller']) # 90 min / 16 threads
     params:
         guppy_config = lambda wildcard : '-c {kit}'.format(kit=config['basecalling_guppy_config'] if 'basecalling_guppy_config' in config else '-c dna_r9.4.1_450bps_fast.cfg'),
         filtering = lambda wildcards : '--qscore_filtering --min_qscore {score}'.format(score = config['basecalling_guppy_qscore_filter']) if config['basecalling_guppy_qscore_filter'] > 0 else '',
@@ -111,7 +111,7 @@ rule guppy:
         """
         mkdir -p raw
         {config[bin_singularity][python]} {config[sbin_singularity][storage_fast5Index.py]} extract {input.batch} raw/ {params.index} --output_format lazy
-        {config[bin_singularity][guppy]} -i raw/ --recursive --num_callers 1 --cpu_threads_per_caller {threads} -s workspace/ {params.guppy_config}  {params.filtering} {config[basecalling_guppy_flags]}
+        {config[bin_singularity][guppy_basecaller]} -i raw/ --recursive --num_callers 1 --cpu_threads_per_caller {threads} -s workspace/ {params.guppy_config}  {params.filtering} {config[basecalling_guppy_flags]}
         FASTQ_DIR='workspace/pass'
         if [ \'{params.filtering}\' = '' ]; then
             FASTQ_DIR='workspace'
@@ -164,8 +164,6 @@ rule basecaller_merge_batches:
         lambda wildcards: get_batches_basecaller(wildcards)
     output:
         "sequences/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
-    #shell:
-    #    "cat {input} > {output}"
     run:
         with open(output[0], 'wb') as fp_out:
             for f in input:
@@ -177,8 +175,6 @@ rule basecaller_merge_tag:
         lambda wildcards: get_batches_basecaller2(wildcards)
     output:
         "sequences/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
-    #shell:
-    #    "cat {input} > {output}"
     run:
         with open(output[0], 'wb') as fp_out:
             for f in input:
