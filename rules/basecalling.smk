@@ -58,7 +58,7 @@ def get_batches_basecaller2(wildcards):
 rule albacore:
     input:
         batch = lambda wildcards : get_signal_batch(wildcards, config),
-        run = lambda wildcards : [os.path.join(config['storage_data_raw'], wildcards.runname)] + [os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')] if get_signal_batch(wildcards, config).endswith('.txt') else []
+        run = lambda wildcards : [os.path.join(config['storage_data_raw'], wildcards.runname)] + ([os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')] if get_signal_batch(wildcards, config).endswith('.txt') else [])
     output:
         "sequences/albacore/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shadow: "minimal"
@@ -93,7 +93,7 @@ rule albacore:
 rule guppy:
     input:
         batch = lambda wildcards : get_signal_batch(wildcards, config),
-        run = lambda wildcards : [os.path.join(config['storage_data_raw'], wildcards.runname)] + [os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')] if get_signal_batch(wildcards, config).endswith('.txt') else []
+        run = lambda wildcards : [os.path.join(config['storage_data_raw'], wildcards.runname)] + ([os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')] if get_signal_batch(wildcards, config).endswith('.txt') else [])
     output:
         "sequences/guppy/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
     shadow: "minimal"
@@ -128,7 +128,7 @@ rule guppy:
 rule flappie:
     input:
         batch = lambda wildcards : get_signal_batch(wildcards, config),
-        run = lambda wildcards : [os.path.join(config['storage_data_raw'], wildcards.runname)] + [os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')] if get_signal_batch(wildcards, config).endswith('.txt') else []
+        run = lambda wildcards : [os.path.join(config['storage_data_raw'], wildcards.runname)] + ([os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')] if get_signal_batch(wildcards, config).endswith('.txt') else [])
     output:
         sequence = "sequences/flappie/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz",
         methyl_marks = "sequences/flappie/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.tsv.gz"

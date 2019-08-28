@@ -66,11 +66,12 @@ methylation_flappie_qval_threshold: 3
 demux_batch_size: 4000
 demux_default: 'deepbinner'
 deepbinner_models:
-    default: SQK-RBK004_read_starts
-    EXP-NBD103: EXP-NBD103_read_starts
-    SQK-RBK004: SQK-RBK004_read_starts
-demux_src_caller : 'guppy'
-demux_src_tag : ''
+    default: 'SQK-RBK004_read_starts'
+    EXP-NBD103: 'EXP-NBD103_read_starts'
+    SQK-RBK004: 'SQK-RBK004_read_starts'
+demux_seq_workflow : 'guppy'
+demux_seq_tag : 'default'
+demux_guppy_kits : 'EXP-NBD104'
 
 
 # structural variation

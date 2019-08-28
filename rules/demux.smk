@@ -68,7 +68,7 @@ rule deepbinner:
     shell:
         """
         mkdir -p raw
-        {config[bin][python]} {config[sbin][storage_fast5Index.py]} extract {input.signal} raw/ --output_format single
+        {config[bin_singularity][python]} {config[sbin_singularity][storage_fast5Index.py]} extract {input.signal} raw/ --output_format single
         {config[bin_singularity][python]} {config[bin_singularity][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads {threads} --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
         """
 
@@ -83,11 +83,12 @@ checkpoint guppy_barcode_batches:
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['guppy_barcoder']) # 60 min / 16 threads
     params:
         seq_dir = lambda wildcards, input : os.path.dirname(input.sequences[0])
+        kits = lambda wildcards: '--barcode_kits "{}"'.format(config['demux_guppy_kits'].strip('"')) if 'demux_guppy_kits' in config else ''
     singularity:
         "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][guppy_barcoder]} -i {params.seq_dir} -s {output.batches} -t {threads} -q {config[demux_batch_size]} --compress_fastq --barcode_kits {config[demux_guppy_kits]}
+        {config[bin_singularity][guppy_barcoder]} -i {params.seq_dir} -s {output.batches} -t {threads} -q {config[demux_batch_size]} --compress_fastq --{params.kits}
         """
 
 checkpoint guppy_barcode:

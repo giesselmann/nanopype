@@ -1,7 +1,16 @@
 # Release notes
 
+#### v0.9.0 - 2019-08-30
+Main release:
+
+:   * Add guppy_barcoder to workflows for sequence based demultiplexing
+    * Improve singularity handling by auto-mounting raw data and reference folders
+    * Document singularity user installation
+    * Fix bug in demultiplexing rules when using singularity (issue [#5](https://github.com/giesselmann/nanopype/issues/5))
+    * Fix wrong singularity paths in methylation module
+
 #### v0.8.0 - 2019-07-01
-Development release:
+Main release:
 
 :   * Allow customization of runtime and memory requirements for cluster computing (env.yaml)
     * Update guppy_basecaller to version 3.1.5
