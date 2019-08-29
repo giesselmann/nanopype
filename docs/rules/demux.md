@@ -22,7 +22,7 @@ snakemake --snakefile /path/to/nanopype/Snakefile alignments/minimap2/guppy/WA01
 
 Nanopype will detect *NB01* in the tag to be listed in *barcodes.yaml*, start demultiplexing, create batches of read IDs with barcode 1 and run basecalling and alignment only for this subset of reads.
 
-Please note that the different tools name the barcodes differently, from deepbinner barcode NB01 is named '1' while guppy produces 'barcode01'. To verify the naming and the present barcodes in a specific run use e.g.:
+Please note that the different tools name the barcodes differently, from deepbinner barcode NB01 is named '1' while guppy produces 'barcode01'. To verify the naming and the present barcodes in a specific run use and inspect the dynamic content of the output folder:
 
 ```
 snakemake --snakefile /path/to/nanopype/Snakefile demux/guppy/barcodes/20180101_FAH12345_FLO-MIN106_SQK-RBK004_WA01
@@ -52,7 +52,7 @@ The demultiplexing module can create the following file structure relative to th
       |--barcodes/
          |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
             |--barcode01/
-               |--0.tsv
+               |--0.txt
 ```
 
 ## Tools
