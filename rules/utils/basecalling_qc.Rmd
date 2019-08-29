@@ -55,7 +55,7 @@ if (length(args) != 1) stop("Error: Wrong number of arguments supplied.")
 calculateN <- function(read_lengths, percentage)
 {
     sorted_read_lengths <- sort(read_lengths, decreasing = TRUE)
-    mean_nucleotides <- sum(sorted_read_lengths) * percentage
+    mean_nucleotides <- sum(as.numeric(sorted_read_lengths)) * percentage
     current_sum = 0
     index = 1
     while (current_sum < mean_nucleotides)

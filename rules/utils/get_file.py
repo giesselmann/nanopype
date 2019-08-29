@@ -52,7 +52,10 @@ def get_tag_barcode(tag, runname, config):
 def get_batch_ids_raw(runname, config, tag=None, checkpoints=None):
     tag_barcode = get_tag_barcode(tag, runname, config) if tag else None
     if tag_barcode and checkpoints:
-        barcode_batch_dir = checkpoints.demux_split_barcodes.get(demultiplexer=config['demux_default'], runname=runname).output.barcodes
+        if hasattr(checkpoints, config['demux_default'] + '_barcode'):
+            barcode_batch_dir = getattr(checkpoints, config['demux_default'] + '_barcode').get(runname=runname).output.barcodes
+        else:
+            raise NotImplementedError("Demultiplexing with {} is not implemented.".format(config['demux_default']))
         barcode_batch = os.path.join(barcode_batch_dir, tag_barcode, '{id}.txt')
         batches_txt, = glob_wildcards(barcode_batch)
         return batches_txt

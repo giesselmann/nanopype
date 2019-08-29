@@ -33,6 +33,7 @@
 # ---------------------------------------------------------------------------------
 # imports
 import os, sys, collections
+import itertools
 import yaml, subprocess
 from snakemake.utils import min_version
 
@@ -61,13 +62,6 @@ nanopype_tag = get_tag()
 config['version'] = {'tag': nanopype_tag}
 
 
-# make raw data directory absolute path
-if os.path.exists(config['storage_data_raw']):
-    config['storage_data_raw'] = os.path.abspath(config['storage_data_raw'])
-else:
-    raise RuntimeError("[ERROR] Raw data archive not found.")
-
-
 # append username to shadow prefix if not present
 if hasattr(workflow, "shadow_prefix") and workflow.shadow_prefix:
     shadow_prefix = workflow.shadow_prefix
@@ -85,9 +79,9 @@ with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as
 
 
 # verify given references
+if not 'references' in config:
+    config['references'] = {}
 if 'references' in nanopype_env:
-    if not 'references' in config:
-        config['references'] = {}
     for name, values in nanopype_env['references'].items():
         genome = values['genome']
         chr_sizes = values['chr_sizes'] if 'chr_sizes' in values else ''
@@ -102,6 +96,7 @@ if 'references' in nanopype_env:
         config['references'][name] = {"genome":genome, "chr_sizes":chr_sizes}
 else:
     print("[WARNING] No references in env.yaml. The alignment and downstream tools will not work.", file=sys.stderr)
+
 
 # verify given binaries
 if 'bin' in nanopype_env:
@@ -202,6 +197,37 @@ runnames = []
 if os.path.isfile('runnames.txt'):
     runnames = [line.rstrip() for line in open('runnames.txt') if line.rstrip() and not line.startswith('#')]
 config['runnames'] = runnames
+
+
+# check raw data archive
+if not os.path.exists(config['storage_data_raw']):
+    raise RuntimeError("[ERROR] Raw data archive not found.")
+else:
+    for runname in config['runnames']:
+        loc = os.path.join(config['storage_data_raw'], runname)
+        if not os.path.exists(loc):
+            print("[WARNING] {runname} not found at {loc} and is not available in the workflow.".format(
+                runname=runname, loc=loc), file=sys.stderr)
+        elif not os.path.exists(os.path.join(loc, 'reads')) or not os.listdir(os.path.join(loc, 'reads')):
+            print("[WARNING] {runname} configured but with missing/empty reads directory.".format(
+                runname=runname), file=sys.stderr)
+
+
+# mount raw storage and references if using singularity
+if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
+    if os.path.isabs(config['storage_data_raw']):
+        workflow.singularity_args += " -B {}".format(config['storage_data_raw'])
+    abs_paths = []
+    # search for absolute paths, relative ones are below the working directory
+    # and anyway mounted
+    for name, ref in config['references'].items():
+        genome = ref['genome']
+        chr_sizes = ref['chr_sizes']
+        abs_paths += [genome] if os.path.isabs(genome) else []
+        abs_paths += [chr_sizes] if os.path.isabs(chr_sizes) else []
+    # append paths to singularity mounts
+    for mnt, paths in itertools.groupby(abs_paths, key=lambda x : x.split(os.path.sep)[0]):
+        workflow.singularity_args += " -B {}".format(os.path.commonpath(list(paths)))
 
 
 # barcode mappings

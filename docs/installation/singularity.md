@@ -1,6 +1,6 @@
 # Singularity
 
-In order to use the Singularity driven version of Nanopype a working python3 with Snakemake and the pipeline repository itself are sufficient. At least python version 3.4 is required and we recommend to use a virtual environment. Additionally Singularity needs to be installed system wide. On Ubuntu the package is called *singularity-container*. The installation requires root privileges and might require help of your IT department. We currently test workflows with Singularity version 2.4.2.
+In order to use the Singularity driven version of Nanopype a working python3 with Snakemake and the pipeline repository itself are sufficient. At least python version 3.4 is required and we recommend to use a virtual environment. Additionally Singularity needs to be installed system wide. On Ubuntu the package is called *singularity-container*. The full installation requires root privileges and might require help of your IT department. Under [Local Singularity](#local-singularity) we describe a workaround for a limited functionality local Singularity installation.  We currently test workflows with Singularity version 3.3.0.
 
 Start with creating a virtual environment:
 
@@ -15,7 +15,6 @@ Or using conda:
 ```
 conda create -n nanopype python=3.4 anaconda
 source activate nanopype
-
 ```
 
 ## Snakemake
@@ -76,6 +75,54 @@ source deactivate
 
 for conda virtual environments.
 
+## Local Singularity
+
+If a system wide singularity installation is not available and can not be set up, you can try to install singularity as a user.
+The following steps clone the repository and build singularity without the setuid functionality, relying on kernel namespaces at runtime.
+The *--prefix* is the installation prefix and must be a writeable path. The *localstatedir* will be created by the make script on the current server. In a cluster environment *localstatedir* needs to be available on a local hard drive on each node!
+
+```
+git clone https://github.com/sylabs/singularity.git
+cd singularity && git checkout v3.3.0
+./mconfig --without-suid --prefix=/path/to/prefix --localstatedir="/scratch/nanopype_singularity"
+make -C ./builddir
+make -C ./builddir install
+```
+
+Singularity requires mksquasfs from squashfs-tools. If not available build and install it using:
+
+```
+git clone https://github.com/plougher/squashfs-tools
+cd squashfs-tools/squashfs-tools
+make
+cp *squashfs /path/to/prefix/bin/
+```
+
+**Note:** Singularity and mksquasfs must be visible to Snakemake e.g. through the users PATH variable. In a cluster setup this must hold true on every compute node. If your .bashrc becomes sourced on the compute nodes you can simply:
+
+```
+echo 'export PATH=/path/to/prefix/bin:${PATH}' >> ~/.bashrc
+```
+
+Alternatively if you installed Nanopype and Snakemake to a virtual python environment any executable in the environments bin folder will work. You could therefore create softlinks to the actual installation e.g.:
+
+```
+ln -s /path/to/prefix/bin/singularity /path/to/your/environment/bin/singularity
+ln -s /path/to/prefix/bin/mksquasfs /path/to/your/environment/bin/mksquasfs
+ln -s /path/to/prefix/bin/unsquashfs /path/to/your/environment/bin/unsquashfs
+```
+
+The exact approach depends on the local setup and might differ in details.
+
+Finally you need to configure Singularity to only use namespaces when executing the container. Snakemake has a command line argument **--singularity-args** to pass parameters to Singularity. When executing Snakemake with Nanopype use:
+
+```
+snakemake --snakefile ~/nanopype/Snakefile --use-singularity --singularity-args=" -u" /some/output_file
+```
+
+The leading whitespace is important. Alternatively specify the flag in a user [profile](configuration.md#profiles).
+
+## Configuration
 Mission accomplished! Everything else is solved at run time by Snakemake and Nanopype.
 
 !!! warning "Configuration"
