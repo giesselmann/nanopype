@@ -82,7 +82,7 @@ checkpoint guppy_barcode_batches:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['guppy_barcoder'][0] + config['memory']['guppy_barcoder'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['guppy_barcoder']) # 60 min / 16 threads
     params:
-        seq_dir = lambda wildcards, input : os.path.dirname(input.sequences[0])
+        seq_dir = lambda wildcards, input : os.path.dirname(input.sequences[0]),
         kits = lambda wildcards: '--barcode_kits "{}"'.format(config['demux_guppy_kits'].strip('"')) if 'demux_guppy_kits' in config else ''
     singularity:
         "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
