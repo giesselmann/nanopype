@@ -228,6 +228,9 @@ if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
     # append paths to singularity mounts
     for mnt, paths in itertools.groupby(abs_paths, key=lambda x : x.split(os.path.sep)[0]):
         workflow.singularity_args += " -B {}".format(os.path.commonpath(list(paths)))
+    # mount hosts tmpdir if declared
+    if 'TMPDIR' in os.environ:
+        workflow.singularity_args += " -B {}".format(os.environ["TMPDIR"])
 
 
 # barcode mappings
