@@ -37,6 +37,7 @@ from rules.utils.get_file import get_batch_ids_raw, get_sequence_batch
 from rules.utils.storage import get_ID
 # local rules
 localrules: graphmap_index, ngmlr_index, aligner_merge_batches, aligner_merge_tag, aligner_1D2
+localrules: aligner_merge_batches_names, aligner_merge_tag_names
 #ruleorder: aligner_sam2bam > aligner_merge_batches_run
 
 # get batches
@@ -166,10 +167,19 @@ rule aligner_sam2bam:
         {config[bin_singularity][samtools]} index {output.bam}
         """
 
+rule aligner_merge_batches_names:
+    input:
+        bam = lambda wildcards: get_batches_aligner(wildcards, config)
+    output:
+        txt = temp("alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.txt")
+    run:
+        with open(output.txt, 'w') as fp:
+            fp.write('\n'.join(input.bam))
+
 # merge batch files
 rule aligner_merge_batches:
     input:
-        bam = lambda wildcards: get_batches_aligner(wildcards, config)
+        bam = "alignments/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.txt"
     output:
         bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.bam.bai"
@@ -177,13 +187,22 @@ rule aligner_merge_batches:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][samtools]} merge {output.bam} {input} -p
+        {config[bin_singularity][samtools]} merge {output.bam} -b {input} -p
         {config[bin_singularity][samtools]} index {output.bam}
         """
 
-rule aligner_merge_tag:
+rule aligner_merge_tag_names:
     input:
         bam = lambda wildcards: get_batches_aligner2(wildcards, config)
+    output:
+        txt = temp("alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.txt")
+    run:
+        with open(output.txt, 'w') as fp:
+            fp.write('\n'.join(input.bam))
+
+rule aligner_merge_tag:
+    input:
+        bam = "alignments/{aligner}/{sequence_workflow}/{tag}.{reference}.txt"
     output:
         bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam.bai"
@@ -191,7 +210,7 @@ rule aligner_merge_tag:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][samtools]} merge {output.bam} {input} -p
+        {config[bin_singularity][samtools]} merge {output.bam} -b {input} -p
         {config[bin_singularity][samtools]} index {output.bam}
         """
 
