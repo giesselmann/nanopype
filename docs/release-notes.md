@@ -7,6 +7,7 @@ Main release:
     * Improve singularity handling by auto-mounting raw data and reference folders
     * Document singularity user installation
     * Fix bug in demultiplexing rules when using singularity (issue [#5](https://github.com/giesselmann/nanopype/issues/5))
+    * Fix merge of bam batches for many files
     * Fix wrong singularity paths in methylation module
 
 #### v0.8.0 - 2019-07-01
