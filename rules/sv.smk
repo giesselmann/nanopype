@@ -57,7 +57,7 @@ rule sniffles:
     input:
         "alignments/{aligner}/{sequence_workflow}/{tag}.{reference}.bam"
     output:
-        temp("sv/sniffles/{aligner, [^.\/]*}/{sequence_workflow}/{tag, [^.\/]*}.{reference, [^.\/]*}.vcf")
+        temp("sv/sniffles/{aligner, [^.\/]*}/{sequence_workflow}/{tag, [^\/]*}.{reference, [^.\/]*}.vcf")
     shadow: "minimal"
     threads: config['threads_sv']
     resources:
@@ -75,7 +75,7 @@ rule sv_compress:
     input:
         "sv/sniffles/{aligner}/{sequence_workflow}/{tag}.{reference}.vcf"
     output:
-        "sv/sniffles/{aligner, [^.\/]*}/{sequence_workflow, [^.\/]*}/{tag, [^.\/]*}.{reference, [^.\/]*}.vcf.gz"
+        "sv/sniffles/{aligner, [^.\/]*}/{sequence_workflow, [^.\/]*}/{tag, [^\/]*}.{reference, [^.\/]*}.vcf.gz"
     threads: 1
     singularity:
         "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
