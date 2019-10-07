@@ -68,7 +68,7 @@ class fasta_index(object):
                 name = title[1:].decode('utf-8')
                 self.records[name] = (o, idx[i+1] - o)
                 self.record_names.append(name)
-                
+
     def get_record_names(self):
         return self.record_names
 
@@ -95,7 +95,7 @@ class fasta_index(object):
 class tsv_parser():
     def __init__(self):
         pass
-        
+
     def get_record(self, ID, chr, begin, end, strand):
         raise NotImplementedError()
 
@@ -148,13 +148,13 @@ class seq_scramble():
         self.mode = mode
         self.polish = polish
         self.scrambles = {'IGV':
-                            {'+':{'11':'CG', '00':'TG', '--':'AG'}, 
-                             '-':{'11':'CG', '00':'CA', '--':'AG'}}, 
+                            {'+':{'11':'CG', '00':'TG', '--':'AG'},
+                             '-':{'11':'CG', '00':'CA', '--':'AG'}},
                           'GViz':
-                            {'+':{'11':'AG', '00':'TG', '--':'CG'}, 
+                            {'+':{'11':'AG', '00':'TG', '--':'CG'},
                              '-':{'11':'AG', '00':'TG', '--':'CG'}}}
         self.ref_regex = re.compile('CG')
-        
+
     def __groupby__(self, a):
         # source:
         # https://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
@@ -175,13 +175,13 @@ class seq_scramble():
     def __opsLength__(self, ops, recOps='MIS=X'):
         n = [op[0] for op in ops if op[1] in recOps]
         return sum(n)
-        
+
     # bool mask of cigar operations
     def __cigar_ops_mask__(self, cigar, include='M=X', exclude='DN'):
         flatten = lambda l: [item for sublist in l for item in sublist]
         dec_cigar = self.__decodeCigar__(cigar)
-        return np.array(flatten([[True]*l if op in include 
-                                                else [False]*l if op in exclude 
+        return np.array(flatten([[True]*l if op in include
+                                                else [False]*l if op in exclude
                                                 else [] for l, op in dec_cigar]))
 
     # decode MD tag
@@ -196,7 +196,7 @@ class seq_scramble():
         seq_masked = np.fromstring(seq, dtype=np.uint8)[self.__cigar_ops_mask__(cigar, include='M=X', exclude='SI')]
         ref_seq[ref_mask] = seq_masked[seq_mask]
         return ref_seq.tostring().decode('utf-8')
-        
+
     # encode MD tag
     def __encode_md__(self, ref_slice, seq, cigar):
         ref_mask = self.__cigar_ops_mask__(cigar, include='M=X', exclude='DN')
@@ -216,10 +216,10 @@ class seq_scramble():
                     md += '0'.join(list(ref_slice[state_offset:state_offset+state_len]))
             elif state == 2:    # deletion
                 md += '^' + ref_slice[state_offset : state_offset + state_len]
-            if state != 0 and i < len(seq_state_groups) and seq_state_groups[i+1][0] != 0:
+            if state != 0 and i < len(seq_state_groups) - 1 and seq_state_groups[i+1][0] != 0:
                 md += '0'
         return md
-        
+
     # scramble seq content on CG sites and fix other mismatches
     def scramble(self, ID, flags, chr, pos, cigar, seq, md=''):
         if not chr in self.ref_names:

@@ -178,7 +178,7 @@ rule methylation_single_read_run:
         "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][samtools]} view -hF 4 {input.bam} | {config[bin_singularity][python]} {config[bin_singularity][methylation_sr]} {params.reference} {input.tsv} --threshold {params.threshold} --method {wildcards.methylation_caller} --mode IGV --polish | {config[bin_singularity][samtools]} view -b > {output.bam}
+        {config[bin_singularity][samtools]} view -hF 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][methylation_sr.py]} {params.reference} {input.tsv} --threshold {params.threshold} --method {wildcards.methylation_caller} --mode IGV --polish | {config[bin_singularity][samtools]} view -b > {output.bam}
         {config[bin_singularity][samtools]} index {output.bam}
         """
 
