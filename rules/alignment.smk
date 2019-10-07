@@ -174,7 +174,7 @@ rule aligner_merge_batches_names:
         txt = temp("alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.txt")
     run:
         with open(output.txt, 'w') as fp:
-            fp.write('\n'.join(input.bam))
+            print('\n'.join(input.bam), file=fp)
 
 # merge batch files
 rule aligner_merge_batches:
@@ -183,22 +183,31 @@ rule aligner_merge_batches:
     output:
         bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.bam.bai"
+    threads: config.get('threads_samtools') or 1
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][samtools]} merge {output.bam} -b {input} -p
-        {config[bin_singularity][samtools]} index {output.bam}
+        ulimit -n $((`cat {input.bam} | wc -l` + 10))
+        {config[bin_singularity][samtools]} merge {output.bam} -b {input} -p -@ {threads}
+        {config[bin_singularity][samtools]} index {output.bam} -@ {threads}
         """
 
 rule aligner_merge_tag_names:
     input:
-        bam = lambda wildcards: get_batches_aligner2(wildcards, config)
+        txt = lambda wildcards: expand("alignments/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.txt",
+                aligner=wildcards.aligner,
+                sequence_workflow=wildcards.sequence_workflow,
+                tag=wildcards.tag,
+                runname=[runname for runname in config['runnames']],
+                reference=wildcards.reference)
     output:
         txt = temp("alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.txt")
     run:
-        with open(output.txt, 'w') as fp:
-            fp.write('\n'.join(input.bam))
+        with open(output.txt, 'w') as fp_out:
+            for f in input.txt:
+                with open(f, 'r') as fp_in:
+                    fp_out.write(fp_in.read())
 
 rule aligner_merge_tag:
     input:
@@ -206,12 +215,14 @@ rule aligner_merge_tag:
     output:
         bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam.bai"
+    threads: config.get('threads_samtools') or 1
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][samtools]} merge {output.bam} -b {input} -p
-        {config[bin_singularity][samtools]} index {output.bam}
+        ulimit -n $((`cat {input.bam} | wc -l` + 10))
+        {config[bin_singularity][samtools]} merge {output.bam} -b {input} -p -@ {threads}
+        {config[bin_singularity][samtools]} index {output.bam} -@ {threads}
         """
 
 # match 1D2 read pairs
