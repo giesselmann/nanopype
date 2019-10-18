@@ -184,13 +184,18 @@ rule aligner_merge_batches:
         bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.bam.bai"
     threads: config.get('threads_samtools') or 1
+    params:
+        input_prefix = lambda wildcards, input : input.bam[:-4]
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        ulimit -n $((`cat {input.bam} | wc -l` + 10))
-        {config[bin_singularity][samtools]} merge {output.bam} -b {input} -p -@ {threads}
+        split -l $((`ulimit -n` -10)) {input.bam} {params.input_prefix}.part_
+        for f in {params.input_prefix}.part_*; do {config[bin_singularity][samtools]} merge ${{f}}.bam -b ${{f}} -p -@ {threads}; done
+        for f in {params.input_prefix}.part_*.bam; do {config[bin_singularity][samtools]} index ${{f}} -@ {threads}; done
+        {config[bin_singularity][samtools]} merge {output.bam} *.bam -p -@ {threads}
         {config[bin_singularity][samtools]} index {output.bam} -@ {threads}
+        rm {params.input_prefix}.part_*
         """
 
 rule aligner_merge_tag_names:
@@ -216,13 +221,18 @@ rule aligner_merge_tag:
         bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam.bai"
     threads: config.get('threads_samtools') or 1
+    params:
+        input_prefix = lambda wildcards, input : input.bam[:-4]
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        ulimit -n $((`cat {input.bam} | wc -l` + 10))
-        {config[bin_singularity][samtools]} merge {output.bam} -b {input} -p -@ {threads}
+        split -l $((`ulimit -n` -10)) {input.bam} {params.input_prefix}.part_
+        for f in {params.input_prefix}.part_*; do {config[bin_singularity][samtools]} merge ${{f}}.bam -b ${{f}} -p -@ {threads}; done
+        for f in {params.input_prefix}.part_*.bam; do {config[bin_singularity][samtools]} index ${{f}} -@ {threads}; done
+        {config[bin_singularity][samtools]} merge {output.bam} {params.input_prefix}.part_*.bam -p -@ {threads}
         {config[bin_singularity][samtools]} index {output.bam} -@ {threads}
+        rm {params.input_prefix}.part_*
         """
 
 # match 1D2 read pairs
