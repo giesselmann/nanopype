@@ -78,6 +78,7 @@ RUN mkdir -p /src
 WORKDIR /src
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3 get-pip.py
+RUN pip3 install --upgrade pip
 
 ## copy binaries from build stage
 RUN mkdir -p /bin
