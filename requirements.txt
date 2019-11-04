@@ -1,4 +1,4 @@
-snakemake>=5.4.3
+snakemake>=5.5.2
 h5py>=2.7.1
 numpy
 watchdog
