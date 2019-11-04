@@ -40,12 +40,12 @@ RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
     git gcc g++ ninja-build ca-certificates \
     binutils autoconf make cmake zlib1g-dev \
     apt-transport-https \
-    python3.5 python3.5-dev
+    python3.6 python3.6-dev
 
 RUN update-ca-certificates
 
 ## set up python 3
-RUN ln -s /usr/bin/python3.5 /usr/bin/python3
+RUN ln -s /usr/bin/python3.6 /usr/bin/python3
 RUN mkdir -p /src
 WORKDIR /src
 RUN wget https://bootstrap.pypa.io/get-pip.py
@@ -70,7 +70,7 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 ## packages
 RUN apt-get --yes update && \
     apt-get install -y --no-install-recommends wget locales \
-    gcc python3-dev \
+    gcc python3.6-dev \
     ca-certificates apt-transport-https \
     && rm -rf /var/lib/apt/lists/*
 
@@ -80,7 +80,7 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-COPY --from=build_stage /usr/local/lib/python3.5/dist-packages /usr/local/lib/python3.5/dist-packages
+COPY --from=build_stage /usr/local/lib/python3.6/dist-packages /usr/local/lib/python3.6/dist-packages
 
 RUN mkdir -p /app
 COPY . /app/
