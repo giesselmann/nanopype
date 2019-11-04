@@ -36,7 +36,7 @@ import os, sys
 from rules.utils.get_file import get_batch_ids_raw, get_signal_batch
 from rules.utils.storage import get_flowcell, get_kit
 # local rules
-localrules: basecaller_merge_batches, basecaller_merge_tag, basecaller_qc
+localrules: basecaller_merge_batches, basecaller_merge_tag, fastx_stats, basecaller_qc
 
 # get batches
 def get_batches_basecaller(wildcards):
@@ -48,11 +48,19 @@ def get_batches_basecaller(wildcards):
                         format=wildcards.format)
 
 def get_batches_basecaller2(wildcards):
-    return expand("sequences/{sequence_workflow}/batches/{tag}/{runname}.{format}.gz",
-                        sequence_workflow=wildcards.sequence_workflow,
-                        tag=wildcards.tag,
-                        runname=[runname for runname in config['runnames']],
-                        format=wildcards.format)
+    batches = []
+    for runname in config['runnames']:
+        batches.extend(
+            expand("sequences/{sequence_workflow}/batches/{tag}/{runname}/{batch}.{format}.gz",
+                                sequence_workflow=wildcards.sequence_workflow,
+                                tag=wildcards.tag,
+                                runname=runname,
+                                batch=get_batch_ids_raw(runname, config=config, tag=wildcards.tag, checkpoints=checkpoints),
+                                format=wildcards.format)
+        )
+    print(len(batches))
+    return batches
+
 
 # albacore basecalling
 rule albacore:
@@ -186,7 +194,7 @@ rule fastx_stats:
     input:
         "{file}.{format}.gz"
     output:
-        temp("{file}.{format, (fasta|fastq|fa|fq)}.qc.tsv")
+        "{file}.{format, (fasta|fastq|fa|fq)}.qc.tsv"
     resources:
         time_min = lambda wildcards, threads, attempt: int(60 * attempt) # 60 min / 1 thread
     run:
