@@ -41,7 +41,7 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 ## packages
 RUN apt-get --yes update && \
     apt-get install -y --no-install-recommends wget locales \
-    git gcc g++ python3.6-dev \
+    git gcc g++ python3.5-dev \
     zlib1g-dev bzip2 libbz2-dev \
     ca-certificates apt-transport-https \
     && rm -rf /var/lib/apt/lists/*

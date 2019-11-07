@@ -42,11 +42,11 @@ RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
     git gcc g++ ninja-build ca-certificates \
     binutils autoconf make cmake zlib1g-dev bzip2 libbz2-dev \
     liblzma-dev libncurses5-dev libcunit1-dev \
-    python python3.6 python3.6-dev
+    python python3.5 python3.5-dev
 
 RUN update-ca-certificates
 ## set up python 3
-RUN ln -s /usr/bin/python3.6 /usr/bin/python3
+RUN ln -s /usr/bin/python3.5 /usr/bin/python3
 RUN mkdir -p /src
 WORKDIR /src
 RUN wget https://bootstrap.pypa.io/get-pip.py
@@ -69,7 +69,7 @@ apt-get install -y --no-install-recommends wget git gcc g++ \
     zlib1g-dev bzip2 libbz2-dev \
     liblzma-dev libncurses5-dev libcunit1 \
     ca-certificates \
-    python python3.6 python3.6-dev
+    python python3.5 python3.5-dev
 
 RUN update-ca-certificates
 ## set up python 3

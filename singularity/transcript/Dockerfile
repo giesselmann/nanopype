@@ -42,12 +42,12 @@ RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
     liblzma-dev zlib1g-dev libbz2-dev \
     libncurses5-dev \
     apt-transport-https \
-    python3.6 python3.6-dev
+    python3.5 python3.5-dev
 
 RUN update-ca-certificates
 
 ## set up python 3
-RUN ln -s /usr/bin/python3.6 /usr/bin/python3
+RUN ln -s /usr/bin/python3.5 /usr/bin/python3
 RUN mkdir -p /src
 WORKDIR /src
 RUN wget https://bootstrap.pypa.io/get-pip.py
@@ -71,7 +71,7 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 ## packages
 RUN apt-get --yes update && \
     apt-get install -y --no-install-recommends wget locales \
-    git gcc g++ make python3.6-dev \
+    git gcc g++ make python3.5-dev \
     ca-certificates apt-transport-https \
     && rm -rf /var/lib/apt/lists/*
 
