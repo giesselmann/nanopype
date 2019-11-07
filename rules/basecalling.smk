@@ -58,7 +58,6 @@ def get_batches_basecaller2(wildcards):
                                 batch=get_batch_ids_raw(runname, config=config, tag=wildcards.tag, checkpoints=checkpoints),
                                 format=wildcards.format)
         )
-    print(len(batches))
     return batches
 
 
