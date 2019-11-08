@@ -86,6 +86,7 @@ COPY . /app/
 WORKDIR /app
 
 RUN wget https://bootstrap.pypa.io/get-pip.py
+RUN ln -s /usr/bin/python3.5 /usr/bin/python3
 RUN python3 get-pip.py
 RUN pip3 install --upgrade pip
 RUN python3 -m pip install -r requirements.txt
