@@ -61,7 +61,9 @@ rule alignment:
         "bin/minimap2",
         "bin/graphmap",
         "bin/ngmlr",
-        "bin/samtools"
+        "bin/samtools",
+        "bin/bedtools",
+        "bin/bedGraphToBigWig"
 
 rule methylation:
     input:

@@ -250,3 +250,20 @@ rule aligner_1D2:
         """
         {config[bin_singularity][samtools]} view -F 4 {input} | {config[bin_singularity][python]} {config[sbin_singularity][alignment_1D2.py]} --buffer {params.buffer} --tolerance {params.tolerance} > {output}
         """
+
+# coverage
+rule aligner_coverage:
+    input:
+        bam = "alignments/{aligner}/{sequence_workflow}/{tag}.{reference}.txt",
+        chr_sizes = lambda wildcards : config["references"][wildcards.reference]["chr_sizes"]
+    output:
+        bedGraph = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bedGraph",
+        bw = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bw"
+    threads: 1
+    singularity:
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
+    shell:
+        """
+        while IFS= read -r bam_file; do {config[bin_singularity][samtools]} view -bF 4 ${{bam_file}} | {config[bin_singularity][bedtools]} bamtobed -i stdin; done < {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][alignment_cov.py]} {input.chr_sizes} > {output.bedGraph}
+        {config[bin_singularity][bedGraphToBigWig]} {output.bedGraph} {input.chr_sizes} {output.bw}
+        """
