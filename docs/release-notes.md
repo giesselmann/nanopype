@@ -1,5 +1,14 @@
 # Release notes
 
+#### v0.9.1 - 2019-11-13
+Maintenance release:
+
+:   * Add rule for coverage track in bigWig format (alignment module)
+    * Merge basecall files (fastx) from list of filenames to avoid temporary files
+    * Merge alignment files (bam) from list of filenames, handle systems ulimit with partial merges
+    * Pin snakemake to version 5.5.2
+    * Upgrade go in transcript container to 1.13.4
+
 #### v0.9.0 - 2019-08-30
 Main release:
 

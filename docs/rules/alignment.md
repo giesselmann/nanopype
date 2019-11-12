@@ -34,7 +34,8 @@ The alignment module can create the following file structure relative to the wor
                   |--1.hg38.bam
                   ...
                |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam
-         |--WA01.hg38.bam
+         |--WA01.hg38.bam                                       # Merged flow-cells
+         |--WA01.hg38.bw                                        # Coverage track
    |--graphmap/                                                 # GraphMap alignment
       |--guppy/                                                 # Using guppy basecalling
          |--batches/
@@ -44,6 +45,7 @@ The alignment module can create the following file structure relative to the wor
                   ...
                |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg19.bam
          |--WA01.hg19.bam
+         |--WA01.hg19.bw
 ```
 
 ## Cleanup
