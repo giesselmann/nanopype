@@ -61,7 +61,9 @@ rule alignment:
         "bin/minimap2",
         "bin/graphmap",
         "bin/ngmlr",
-        "bin/samtools"
+        "bin/samtools",
+        "bin/bedtools",
+        "bin/bedGraphToBigWig"
 
 rule methylation:
     input:
@@ -268,8 +270,8 @@ rule golang:
     shell:
         """
         mkdir -p src && cd src
-        wget -nc https://dl.google.com/go/go1.11.2.linux-amd64.tar.gz
-        tar -xzf go1.11.2.linux-amd64.tar.gz
+        wget -nc https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz
+        tar -xzf go1.13.4.linux-amd64.tar.gz
         """
 
 rule gitlfs:

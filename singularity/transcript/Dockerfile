@@ -52,6 +52,7 @@ RUN mkdir -p /src
 WORKDIR /src
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3 get-pip.py
+RUN pip3 install --upgrade pip
 
 ## copy and configure nanopype
 RUN mkdir -p /app
@@ -70,7 +71,7 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 ## packages
 RUN apt-get --yes update && \
     apt-get install -y --no-install-recommends wget locales \
-    git gcc g++ make python3-dev \
+    git gcc g++ make python3.5-dev \
     ca-certificates apt-transport-https \
     && rm -rf /var/lib/apt/lists/*
 
@@ -85,7 +86,9 @@ COPY . /app/
 WORKDIR /app
 
 RUN wget https://bootstrap.pypa.io/get-pip.py
+RUN ln -s /usr/bin/python3.5 /usr/bin/python3
 RUN python3 get-pip.py
+RUN pip3 install --upgrade pip
 RUN python3 -m pip install -r requirements.txt
 
 RUN snakemake --snakefile rules/install.smk --directory /usr pychopper

@@ -19,6 +19,7 @@ storage_runname:
 # conversion.
 threads_basecalling: 4
 threads_alignment: 3
+threads_samtools : 1
 threads_methylation: 4
 threads_sv: 4
 threads_demux: 4

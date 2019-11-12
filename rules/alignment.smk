@@ -174,7 +174,7 @@ rule aligner_merge_batches_names:
         txt = temp("alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.txt")
     run:
         with open(output.txt, 'w') as fp:
-            fp.write('\n'.join(input.bam))
+            print('\n'.join(input.bam), file=fp)
 
 # merge batch files
 rule aligner_merge_batches:
@@ -183,22 +183,36 @@ rule aligner_merge_batches:
     output:
         bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.bam.bai"
+    threads: config.get('threads_samtools') or 1
+    params:
+        input_prefix = lambda wildcards, input : input.bam[:-4]
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][samtools]} merge {output.bam} -b {input} -p
-        {config[bin_singularity][samtools]} index {output.bam}
+        split -l $((`ulimit -n` -10)) {input.bam} {params.input_prefix}.part_
+        for f in {params.input_prefix}.part_*; do {config[bin_singularity][samtools]} merge ${{f}}.bam -b ${{f}} -p -@ {threads}; done
+        for f in {params.input_prefix}.part_*.bam; do {config[bin_singularity][samtools]} index ${{f}} -@ {threads}; done
+        {config[bin_singularity][samtools]} merge {output.bam} *.bam -p -@ {threads}
+        {config[bin_singularity][samtools]} index {output.bam} -@ {threads}
+        rm {params.input_prefix}.part_*
         """
 
 rule aligner_merge_tag_names:
     input:
-        bam = lambda wildcards: get_batches_aligner2(wildcards, config)
+        txt = lambda wildcards: expand("alignments/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.txt",
+                aligner=wildcards.aligner,
+                sequence_workflow=wildcards.sequence_workflow,
+                tag=wildcards.tag,
+                runname=[runname for runname in config['runnames']],
+                reference=wildcards.reference)
     output:
         txt = temp("alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.txt")
     run:
-        with open(output.txt, 'w') as fp:
-            fp.write('\n'.join(input.bam))
+        with open(output.txt, 'w') as fp_out:
+            for f in input.txt:
+                with open(f, 'r') as fp_in:
+                    fp_out.write(fp_in.read())
 
 rule aligner_merge_tag:
     input:
@@ -206,12 +220,19 @@ rule aligner_merge_tag:
     output:
         bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam.bai"
+    threads: config.get('threads_samtools') or 1
+    params:
+        input_prefix = lambda wildcards, input : input.bam[:-4]
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][samtools]} merge {output.bam} -b {input} -p
-        {config[bin_singularity][samtools]} index {output.bam}
+        split -l $((`ulimit -n` -10)) {input.bam} {params.input_prefix}.part_
+        for f in {params.input_prefix}.part_*; do {config[bin_singularity][samtools]} merge ${{f}}.bam -b ${{f}} -p -@ {threads}; done
+        for f in {params.input_prefix}.part_*.bam; do {config[bin_singularity][samtools]} index ${{f}} -@ {threads}; done
+        {config[bin_singularity][samtools]} merge {output.bam} {params.input_prefix}.part_*.bam -p -@ {threads}
+        {config[bin_singularity][samtools]} index {output.bam} -@ {threads}
+        rm {params.input_prefix}.part_*
         """
 
 # match 1D2 read pairs
@@ -228,4 +249,21 @@ rule aligner_1D2:
     shell:
         """
         {config[bin_singularity][samtools]} view -F 4 {input} | {config[bin_singularity][python]} {config[sbin_singularity][alignment_1D2.py]} --buffer {params.buffer} --tolerance {params.tolerance} > {output}
+        """
+
+# coverage
+rule aligner_coverage:
+    input:
+        bam = "alignments/{aligner}/{sequence_workflow}/{tag}.{reference}.txt",
+        chr_sizes = lambda wildcards : config["references"][wildcards.reference]["chr_sizes"]
+    output:
+        bedGraph = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bedGraph",
+        bw = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bw"
+    threads: 1
+    singularity:
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
+    shell:
+        """
+        while IFS= read -r bam_file; do {config[bin_singularity][samtools]} view -bF 4 ${{bam_file}} | {config[bin_singularity][bedtools]} bamtobed -i stdin; done < {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][alignment_cov.py]} {input.chr_sizes} > {output.bedGraph}
+        {config[bin_singularity][bedGraphToBigWig]} {output.bedGraph} {input.chr_sizes} {output.bw}
         """

@@ -73,11 +73,12 @@ apt-get install -y --no-install-recommends wget git gcc g++ \
 
 RUN update-ca-certificates
 ## set up python 3
-RUN ln -s /usr/bin/python3.5 /usr/bin/python3
+RUN ln -s /usr/bin/python3.6 /usr/bin/python3
 RUN mkdir -p /src
 WORKDIR /src
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3 get-pip.py
+RUN pip3 install --upgrade pip
 
 ## copy binaries from build stage
 RUN mkdir -p /bin

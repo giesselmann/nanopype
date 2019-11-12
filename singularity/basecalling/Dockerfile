@@ -50,6 +50,7 @@ RUN mkdir -p /src
 WORKDIR /src
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3 get-pip.py
+RUN pip3 install --upgrade pip
 
 ## copy and configure nanopype
 RUN mkdir -p /app
@@ -68,7 +69,7 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 ## packages
 RUN apt-get --yes update && \
 apt-get install -y --no-install-recommends wget \
-    gcc python3-dev \
+    gcc python3.5-dev \
     ca-certificates lsb-release apt-transport-https \
     libcunit1 libhdf5-10 libopenblas-base \
     && rm -rf /var/lib/apt/lists/*
@@ -86,6 +87,7 @@ WORKDIR /app
 
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3 get-pip.py
+RUN pip3 install --upgrade pip
 RUN python3 -m pip install -r requirements.txt
 
 COPY --from=build_stage /build/bin/* /usr/bin/

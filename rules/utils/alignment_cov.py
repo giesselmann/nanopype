@@ -1,14 +1,14 @@
-# \BUILD\---------------------------------------------------------------
+# \HEADER\-------------------------------------------------------------------------
 #
-#  CONTENTS      : Nanopype singularity demux
+#  CONTENTS      : 1D2 read matching
 #
-#  DESCRIPTION   : Dockerfile
+#  DESCRIPTION   : none
 #
 #  RESTRICTIONS  : none
 #
 #  REQUIRES      : none
 #
-# -----------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
 # Copyright (c) 2018-2019, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -31,38 +31,37 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
+import os, sys, re
+import argparse
+import numpy as np
+from itertools import groupby
+from tqdm import tqdm
+from signal import signal, SIGPIPE, SIG_DFL
 
-# Nanopype Dockerfile Demultiplexing
 
-# PACKAGE STAGE
-FROM ubuntu:16.04
-MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
-## packages
-RUN apt-get --yes update && \
-    apt-get install -y --no-install-recommends wget locales \
-    git gcc g++ python3.5 python3.5-dev \
-    zlib1g-dev bzip2 libbz2-dev \
-    ca-certificates apt-transport-https \
-    && rm -rf /var/lib/apt/lists/*
 
-RUN update-ca-certificates
-RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+# main
+if __name__ == '__main__':
+    signal(SIGPIPE, SIG_DFL)
+    # cmd arguments
+    parser = argparse.ArgumentParser(description="Compute genome wide coverage")
+    parser.add_argument("chr_sizes", help="chromosome sizes")
+    args = parser.parse_args()
+    chr_dict = {}
 
-RUN mkdir -p /app
-COPY . /app/
-WORKDIR /app
+    with open(args.chr_sizes, 'r') as fp:
+        for line in fp:
+            chr, len_str = line.strip().split('\t')
+            chr_dict[chr] = np.zeros(int(len_str), dtype=np.int32)
 
-RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN ln -s /usr/bin/python3.5 /usr/bin/python3
-RUN python3 get-pip.py
-RUN pip3 install --upgrade pip
-RUN python3 -m pip install -r requirements.txt
+    for line in tqdm(sys.stdin):
+        chr, begin, end, _ = line.split('\t', 3)
+        chr_dict[chr][int(begin):int(end)] += 1
 
-RUN snakemake --snakefile rules/install.smk --directory /usr deepbinner
-
-WORKDIR /
-# default entrypoint is /bin/sh
+    for key in sorted(chr_dict.keys()):
+        offset = 0
+        for k, g in groupby(chr_dict[key]):
+            l = len(list(g))
+            print("\t".join([key, str(offset), str(offset+l), str(k)]))
+            offset += l
