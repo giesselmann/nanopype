@@ -40,7 +40,7 @@ RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
     binutils autoconf make cmake zlib1g-dev bzip2 libbz2-dev \
     liblzma-dev libncurses5-dev \
     apt-transport-https \
-    python3.5 python3.5-dev
+    python python3.5 python3.5-dev
 
 RUN update-ca-certificates
 
