@@ -10,6 +10,6 @@ jobs: 2048
 restart-times: 3
 immediate-submit: false
 # singularity
-use-singularity: true
-singularity-prefix: "/project/minion/singularity/"
-singularity-args: " -u"
+#use-singularity: false
+#singularity-prefix: "/project/minion/singularity/"
+#singularity-args: " -u"
