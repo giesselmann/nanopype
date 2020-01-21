@@ -25,6 +25,7 @@ threads_sv: 4
 threads_demux: 4
 threads_transcript: 4
 threads_transcript_batch: 4
+threads_asm: 80
 
 
 # basecalling
@@ -88,3 +89,9 @@ transcript_spliced_bam2gff_flags: ''
 transcript_cluster_gff_flags: '-c 10 -d 10 -e 30'
 transcript_collapse_partials: '-d 5 -f 5000 -e 30'
 transcript_polish_clusters: '-c 10'
+
+
+# Assembly
+asm_genome_size : '3.0g'
+asm_flye_preset : '--nano-raw'
+asm_flye_flags : '--asm-coverage 35'

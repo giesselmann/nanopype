@@ -90,9 +90,37 @@ def get_sequence_batch(wildcards, config):
             batch=wildcards.batch)
     extensions = ['.fa', '.fasta', '.fq', '.fastq']
     for ext in extensions:
-        if os.path.isfile(base + ext + '.gz') or os.path.isfile(base + ext):
+        if os.path.isfile(base + ext + '.gz'):
             return base + ext + '.gz'
     return base + '.fastq.gz'
+
+
+def get_sequence_run(wildcards, config):
+    base = "sequences/{sequence_workflow}/batches/{tag}/{runname}".format(
+            sequence_workflow=wildcards.sequence_workflow,
+            tag=wildcards.tag,
+            runname=wildcards.runname)
+    extensions = ['.fa', '.fasta', '.fq', '.fastq']
+    for ext in extensions:
+        if os.path.isfile(base + ext + '.gz'):
+            return base + ext + '.gz'
+    return base + '.fastq.gz'
+
+
+def get_sequence_runs(wildcards, config):
+    extensions = ['.fa', '.fasta', '.fq', '.fastq']
+    sequences = []
+    for run in config['runnames']:
+        base = "sequences/{sequence_workflow}/batches/{tag}/{runname}".format(
+                sequence_workflow=wildcards.sequence_workflow,
+                tag=wildcards.tag,
+                runname=run)
+        file = None
+        for ext in extensions:
+            if os.path.isfile(base + ext + '.gz'):
+                file = base + ext + '.gz'
+        sequences.append(file or (base + '.fastq.gz'))
+    return sequences
 
 
 # get alignment batch with default basecaller and aligner

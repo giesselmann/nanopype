@@ -31,3 +31,28 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
+import os, sys
+from snakemake.io import glob_wildcards
+from rules.utils.get_file import  get_sequence_runs
+
+
+
+
+rule flye:
+    input:
+        seq = lambda wildcards : get_sequence_runs(wildcards, config)
+    output:
+        fa = "asm/flye/{sequence_workflow}/{tag}.fasta"
+    threads : config.get('threads_asm') or 1
+    resources:
+        mem_mb = config['memory'].get('flye')[0] or 1000000,
+        time_min = 7200
+    params:
+        out_prefix = lambda wildcards : "asm/flye/{sequence_workflow}/{tag}".format(sequence_workflow=wildcards.sequence_workflow, tag=wildcards.tag),
+        flye_flags = config.get('asm_flye_flags') or '',
+        flye_preset = config.get('asm_flye_preset') or '--nano-raw'
+    shell:
+        """
+        {config[bin][flye]} {params.flye_flags} -g {config[asm_genome_size]} -t {threads} {params.flye_preset} {input.seq} -o {params.out_prefix}
+        mv {params.out_prefix}/assembly.fa {output.fa}
+        """
