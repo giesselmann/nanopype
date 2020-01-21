@@ -1,5 +1,13 @@
 # Release notes
 
+#### v0.10.0 - 2020
+Main release:
+
+:   * Introduce assembly module with flye and wtdbg2
+    * Flye version
+    * Wtdbg2 version
+    * Update guppy_basecaller and guppy_barcoder to version v3.4.4
+
 #### v0.9.1 - 2019-11-13
 Maintenance release:
 

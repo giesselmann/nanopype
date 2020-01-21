@@ -356,10 +356,11 @@ rule guppy:
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.5_linux64.tar.gz &&
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.7_linux64.tar.gz &&
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.0.3_linux64.tar.gz &&
+        # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.1.5_linux64.tar.gz &&
         mkdir -p src/guppy && cd src/guppy
-        wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.1.5_linux64.tar.gz && \
-        tar -xzf ont-guppy-cpu_3.1.5_linux64.tar.gz -C ./ --strip 1 && \
-        rm ont-guppy-cpu_3.1.5_linux64.tar.gz
+        wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz && \
+        tar -xzf ont-guppy-cpu_3.4.4_linux64.tar.gz -C ./ --strip 1 && \
+        rm ont-guppy-cpu_3.4.4_linux64.tar.gz
         ln -s $(pwd)/bin/guppy_basecaller ../../bin/guppy_basecaller
         ln -s $(pwd)/bin/guppy_barcoder ../../bin/guppy_barcoder
         """

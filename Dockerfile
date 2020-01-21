@@ -93,9 +93,9 @@ COPY . /app/
 RUN pip3 install -r requirements.txt
 
 ## GUPPY
-RUN wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.1.5_linux64.tar.gz && \
-        tar --skip-old-files -xzf ont-guppy-cpu_3.1.5_linux64.tar.gz -C /usr/ --strip 1 && \
-        rm ont-guppy-cpu_3.1.5_linux64.tar.gz
+RUN wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz && \
+        tar --skip-old-files -xzf ont-guppy-cpu_3.4.4_linux64.tar.gz -C /usr/ --strip 1 && \
+        rm ont-guppy-cpu_3.4.4_linux64.tar.gz
 
 # re-run python module installer
 RUN snakemake --snakefile rules/install.smk --directory / deepbinner
