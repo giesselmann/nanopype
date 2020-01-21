@@ -33,7 +33,7 @@
 # ---------------------------------------------------------------------------------
 
 # BUILD STAGE
-FROM ubuntu:16.04 as build_stage
+FROM ubuntu:18.04 as build_stage
 
 ## system packages
 RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
@@ -64,7 +64,7 @@ RUN snakemake --snakefile rules/install.smk --directory /build sniffles
 RUN snakemake --snakefile rules/install.smk --directory /build strique
 
 # PACKAGE STAGE
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages

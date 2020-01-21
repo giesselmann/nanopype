@@ -33,7 +33,7 @@
 # ---------------------------------------------------------------------------------
 
 # BUILD STAGE
-FROM ubuntu:16.04 as build_stage
+FROM ubuntu:18.04 as build_stage
 
 ## system packages
 RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
@@ -42,16 +42,16 @@ RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
     liblzma-dev zlib1g-dev libbz2-dev \
     libncurses5-dev \
     apt-transport-https \
-    python3.5 python3.5-dev
+    python3 python3-dev python3-pip
 
 RUN update-ca-certificates
 
 ## set up python 3
-RUN ln -s /usr/bin/python3.5 /usr/bin/python3
-RUN mkdir -p /src
-WORKDIR /src
-RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN python3 get-pip.py
+# RUN ln -s /usr/bin/python3.5 /usr/bin/python3
+# RUN mkdir -p /src
+# WORKDIR /src
+# RUN wget https://bootstrap.pypa.io/get-pip.py
+# RUN python3 get-pip.py
 RUN pip3 install --upgrade pip
 
 ## copy and configure nanopype
@@ -65,13 +65,13 @@ RUN mkdir /build
 RUN snakemake --snakefile rules/install.smk --directory /build transcript
 
 # PACKAGE STAGE
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
 RUN apt-get --yes update && \
     apt-get install -y --no-install-recommends wget locales \
-    git gcc g++ make python3.5-dev \
+    git gcc g++ make python3-dev python3-pip \
     ca-certificates apt-transport-https \
     && rm -rf /var/lib/apt/lists/*
 
@@ -85,10 +85,10 @@ RUN mkdir -p /app
 COPY . /app/
 WORKDIR /app
 
-RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN ln -s /usr/bin/python3.5 /usr/bin/python3
-RUN python3 get-pip.py
-RUN pip3 install --upgrade pip
+# RUN wget https://bootstrap.pypa.io/get-pip.py
+# RUN ln -s /usr/bin/python3.5 /usr/bin/python3
+# RUN python3 get-pip.py
+# RUN pip3 install --upgrade pip
 RUN python3 -m pip install -r requirements.txt
 
 RUN snakemake --snakefile rules/install.smk --directory /usr pychopper

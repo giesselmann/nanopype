@@ -33,7 +33,7 @@
 # ---------------------------------------------------------------------------------
 
 # BUILD STAGE
-FROM ubuntu:16.04 as build_stage
+FROM ubuntu:18.04 as build_stage
 
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
@@ -42,15 +42,15 @@ RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
     git gcc g++ ninja-build ca-certificates \
     binutils autoconf make cmake zlib1g-dev bzip2 libbz2-dev \
     liblzma-dev libncurses5-dev libcunit1-dev \
-    python python3.5 python3.5-dev
+    python python3 python3-dev python3-pip
 
 RUN update-ca-certificates
 ## set up python 3
-RUN ln -s /usr/bin/python3.5 /usr/bin/python3
-RUN mkdir -p /src
-WORKDIR /src
-RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN python3 get-pip.py
+# RUN ln -s /usr/bin/python3.5 /usr/bin/python3
+# RUN mkdir -p /src
+# WORKDIR /src
+# RUN wget https://bootstrap.pypa.io/get-pip.py
+# RUN python3 get-pip.py
 RUN pip3 install --upgrade pip
 
 # copy and configure nanopype
@@ -63,21 +63,21 @@ RUN pip3 install -r requirements.txt
 RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory / all
 
 # PACKAGE STAGE
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 RUN apt-get --yes update && \
 apt-get install -y --no-install-recommends wget git gcc g++ \
     zlib1g-dev bzip2 libbz2-dev \
     liblzma-dev libncurses5-dev libcunit1 \
     ca-certificates \
-    python python3.5 python3.5-dev
+    python python3 python3-dev python3-pip
 
 RUN update-ca-certificates
 ## set up python 3
-RUN ln -s /usr/bin/python3.5 /usr/bin/python3
-RUN mkdir -p /src
-WORKDIR /src
-RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN python3 get-pip.py
+# RUN ln -s /usr/bin/python3.5 /usr/bin/python3
+# RUN mkdir -p /src
+# WORKDIR /src
+# RUN wget https://bootstrap.pypa.io/get-pip.py
+# RUN python3 get-pip.py
 RUN pip3 install --upgrade pip
 
 ## copy binaries from build stage

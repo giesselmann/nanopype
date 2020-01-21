@@ -33,7 +33,7 @@
 # ---------------------------------------------------------------------------------
 
 # BUILD STAGE
-FROM ubuntu:16.04 as build_stage
+FROM ubuntu:18.04 as build_stage
 
 ## system packages
 RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
@@ -63,7 +63,7 @@ RUN mkdir /build
 RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory /build flappie --config flappie_src=False
 
 # PACKAGE STAGE
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages

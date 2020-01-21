@@ -32,7 +32,7 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 # BUILD STAGE
-FROM ubuntu:16.04 as build_stage
+FROM ubuntu:18.04 as build_stage
 
 ## system packages
 RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
@@ -40,16 +40,16 @@ RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
     binutils autoconf make cmake zlib1g-dev bzip2 libbz2-dev \
     liblzma-dev libncurses5-dev \
     apt-transport-https \
-    python python3.5 python3.5-dev
+    python python3 python3-dev python3-pip
 
 RUN update-ca-certificates
 
 ## set up python 3
-RUN ln -s /usr/bin/python3.5 /usr/bin/python3
-RUN mkdir -p /src
-WORKDIR /src
-RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN python3 get-pip.py
+# RUN ln -s /usr/bin/python3.5 /usr/bin/python3
+# RUN mkdir -p /src
+# WORKDIR /src
+# RUN wget https://bootstrap.pypa.io/get-pip.py
+# RUN python3 get-pip.py
 RUN pip3 install --upgrade pip
 
 ## copy and configure nanopype
@@ -63,13 +63,13 @@ RUN mkdir /build
 RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory /build alignment
 
 # PACKAGE STAGE
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
 RUN apt-get --yes update && \
 apt-get install -y --no-install-recommends wget locales \
-    gcc python3.5-dev \
+    gcc python3-dev python3-pip \
     ca-certificates lsb-release apt-transport-https \
     libcunit1 libhdf5-10 libopenblas-base \
     && rm -rf /var/lib/apt/lists/*
@@ -84,8 +84,8 @@ RUN mkdir -p /app
 COPY . /app/
 WORKDIR /app
 
-RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN python3 get-pip.py
+# RUN wget https://bootstrap.pypa.io/get-pip.py
+# RUN python3 get-pip.py
 RUN pip3 install --upgrade pip
 RUN python3 -m pip install -r requirements.txt
 
