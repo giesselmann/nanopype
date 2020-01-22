@@ -51,13 +51,13 @@ RUN update-ca-certificates
 # WORKDIR /src
 # RUN wget https://bootstrap.pypa.io/get-pip.py
 # RUN python3 get-pip.py
-RUN pip3 install --upgrade pip
+RUN python3 -m pip install --upgrade pip
 
 # copy and configure nanopype
 RUN mkdir -p /app
 WORKDIR /app
 COPY . /app/
-RUN pip3 install -r requirements.txt
+RUN python3 -m pip install -r requirements.txt
 
 # run setup rules
 RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory / all
@@ -78,7 +78,7 @@ RUN update-ca-certificates
 # WORKDIR /src
 # RUN wget https://bootstrap.pypa.io/get-pip.py
 # RUN python3 get-pip.py
-RUN pip3 install --upgrade pip
+RUN python3 -m pip install --upgrade pip
 
 ## copy binaries from build stage
 RUN mkdir -p /bin
@@ -90,7 +90,7 @@ COPY --from=build_stage /lib/* /lib/
 # copy and configure nanopype
 WORKDIR /app
 COPY . /app/
-RUN pip3 install -r requirements.txt
+RUN python3 -m pip install -r requirements.txt
 
 ## GUPPY
 RUN wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz && \
@@ -100,7 +100,7 @@ RUN wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4
 # re-run python module installer
 RUN snakemake --snakefile rules/install.smk --directory / deepbinner
 RUN snakemake --snakefile rules/install.smk --directory / pychopper
-RUN pip3 install . --upgrade --install-option="--tools=/bin"
+RUN python3 -m pip install . --upgrade --install-option="--tools=/bin"
 
 # create working directories
 RUN mkdir -p /data/raw

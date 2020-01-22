@@ -22,7 +22,7 @@ source activate nanopype
 Nanopype is based on the Snakemake pipeline engine. With python3.4 onward pip is already installed and you get Snakemake by executing:
 
 ```
-pip3 install --upgrade snakemake
+python3 -m pip install --upgrade snakemake
 ```
 
 Alternatively you might use the conda package manager:
@@ -37,7 +37,7 @@ Nanopype relies on latest Snakemake features, please consider updating your Snak
 mkdir -p src && cd src
 git clone https://bitbucket.org/snakemake/snakemake.git
 cd snakemake
-pip3 install . --upgrade
+python3 -m pip install . --upgrade
 cd ..
 ```
 
@@ -47,7 +47,7 @@ Finally install Nanopype from [github.com/giesselmann](https://github.com/giesse
 ```
 git clone --recursive https://github.com/giesselmann/nanopype
 cd nanopype
-pip3 install -r requirements.txt
+python3 -m pip install -r requirements.txt
 cd ..
 ```
 
@@ -57,7 +57,7 @@ It is recommended to install a tagged version of Nanopype. Using the 'latest' fr
 git clone --recursive https://github.com/giesselmann/nanopype
 cd nanopype
 git fetch --tags && git checkout v0.6.0
-pip3 install -r requirements.txt
+python3 -m pip install -r requirements.txt
 cd ..
 ```
 
