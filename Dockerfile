@@ -51,12 +51,14 @@ RUN update-ca-certificates
 # WORKDIR /src
 # RUN wget https://bootstrap.pypa.io/get-pip.py
 # RUN python3 get-pip.py
-RUN python3 -m pip install --upgrade pip
+
 
 # copy and configure nanopype
 RUN mkdir -p /app
 WORKDIR /app
 COPY . /app/
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install setuptools wheel
 RUN python3 -m pip install -r requirements.txt
 
 # run setup rules
@@ -78,7 +80,6 @@ RUN update-ca-certificates
 # WORKDIR /src
 # RUN wget https://bootstrap.pypa.io/get-pip.py
 # RUN python3 get-pip.py
-RUN python3 -m pip install --upgrade pip
 
 ## copy binaries from build stage
 RUN mkdir -p /bin
@@ -90,6 +91,8 @@ COPY --from=build_stage /lib/* /lib/
 # copy and configure nanopype
 WORKDIR /app
 COPY . /app/
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install setuptools wheel
 RUN python3 -m pip install -r requirements.txt
 
 ## GUPPY
