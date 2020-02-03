@@ -54,5 +54,5 @@ rule flye:
     shell:
         """
         {config[bin][flye]} {params.flye_flags} -g {config[asm_genome_size]} -t {threads} {params.flye_preset} {input.seq} -o {params.out_prefix}
-        mv {params.out_prefix}/assembly.fa {output.fa}
+        mv {params.out_prefix}/assembly.fasta {output.fa}
         """

@@ -193,7 +193,7 @@ rule aligner_merge_batches:
         split -l $((`ulimit -n` -10)) {input.bam} {params.input_prefix}.part_
         for f in {params.input_prefix}.part_*; do {config[bin_singularity][samtools]} merge ${{f}}.bam -b ${{f}} -p -@ {threads}; done
         for f in {params.input_prefix}.part_*.bam; do {config[bin_singularity][samtools]} index ${{f}} -@ {threads}; done
-        {config[bin_singularity][samtools]} merge {output.bam} *.bam -p -@ {threads}
+        {config[bin_singularity][samtools]} merge {output.bam} {params.input_prefix}.part_*.bam -p -@ {threads}
         {config[bin_singularity][samtools]} index {output.bam} -@ {threads}
         rm {params.input_prefix}.part_*
         """

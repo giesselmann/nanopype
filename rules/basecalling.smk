@@ -40,23 +40,21 @@ localrules: basecaller_merge_batches, basecaller_merge_tag, fastx_stats, basecal
 
 # get batches
 def get_batches_basecaller(wildcards):
-    return expand("sequences/{sequence_workflow}/batches/{tag}/{runname}/{batch}.{format}.gz",
+    return expand("sequences/{sequence_workflow}/batches/{tag}/{runname}/{batch}.fastq.gz",
                         sequence_workflow=wildcards.sequence_workflow,
                         tag=wildcards.tag,
                         runname=wildcards.runname,
-                        batch=get_batch_ids_raw(wildcards.runname, config=config, tag=wildcards.tag, checkpoints=checkpoints),
-                        format=wildcards.format)
+                        batch=get_batch_ids_raw(wildcards.runname, config=config, tag=wildcards.tag, checkpoints=checkpoints))
 
 def get_batches_basecaller2(wildcards):
     batches = []
     for runname in config['runnames']:
         batches.extend(
-            expand("sequences/{sequence_workflow}/batches/{tag}/{runname}/{batch}.{format}.gz",
+            expand("sequences/{sequence_workflow}/batches/{tag}/{runname}/{batch}.fastq.gz",
                                 sequence_workflow=wildcards.sequence_workflow,
                                 tag=wildcards.tag,
                                 runname=runname,
-                                batch=get_batch_ids_raw(runname, config=config, tag=wildcards.tag, checkpoints=checkpoints),
-                                format=wildcards.format)
+                                batch=get_batch_ids_raw(runname, config=config, tag=wildcards.tag, checkpoints=checkpoints))
         )
     return batches
 
@@ -67,7 +65,7 @@ rule albacore:
         batch = lambda wildcards : get_signal_batch(wildcards, config),
         run = lambda wildcards : [os.path.join(config['storage_data_raw'], wildcards.runname)] + ([os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')] if get_signal_batch(wildcards, config).endswith('.txt') else [])
     output:
-        "sequences/albacore/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
+        "sequences/albacore/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.fastq.gz"
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
@@ -88,12 +86,7 @@ rule albacore:
         if [ \'{params.filtering}\' = '' ]; then
             FASTQ_DIR='raw/workspace/pass'
         fi
-        find ${{FASTQ_DIR}} -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; > {wildcards.batch}.fq
-        if [[ \'{wildcards.format}\' == *'q'* ]]; then
-            cat {wildcards.batch}.fq | gzip > {output}
-        else
-            cat {wildcards.batch}.fq | tr '\t' ' ' | paste - - - - | cut -d '\t' -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
-        fi
+        find ${{FASTQ_DIR}} -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; | gzip > {output}
         """
 
 # guppy basecalling
@@ -102,32 +95,35 @@ rule guppy:
         batch = lambda wildcards : get_signal_batch(wildcards, config),
         run = lambda wildcards : [os.path.join(config['storage_data_raw'], wildcards.runname)] + ([os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')] if get_signal_batch(wildcards, config).endswith('.txt') else [])
     output:
-        "sequences/guppy/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz"
+        ["sequences/guppy/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.fastq.gz"] +
+        (["sequences/guppy/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.hdf5"] if config.get('basecalling_guppy_config') and 'modbases' in config['basecalling_guppy_config'] else [])
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['guppy_basecaller'][0] + config['memory']['guppy_basecaller'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['guppy_basecaller']) # 90 min / 16 threads
     params:
-        guppy_config = lambda wildcard : '-c {kit}'.format(kit=config['basecalling_guppy_config'] if 'basecalling_guppy_config' in config else '-c dna_r9.4.1_450bps_fast.cfg'),
+        guppy_config = lambda wildcards : '-c {cfg}{flags}'.format(
+                            cfg = config.get('basecalling_guppy_config') or 'dna_r9.4.1_450bps_fast.cfg',
+                            flags = ' --fast5_out' if config.get('basecalling_guppy_config') and 'modbases' in config['basecalling_guppy_config'] else ''),
         filtering = lambda wildcards : '--qscore_filtering --min_qscore {score}'.format(score = config['basecalling_guppy_qscore_filter']) if config['basecalling_guppy_qscore_filter'] > 0 else '',
-        index = lambda wildcards : '--index ' + os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn') if get_signal_batch(wildcards, config).endswith('.txt') else ''
+        index = lambda wildcards : '--index ' + os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn') if get_signal_batch(wildcards, config).endswith('.txt') else '',
+        mod_table = lambda wildcards, input, output : output[1] if len(output) == 2 else ''
     singularity:
         "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         mkdir -p raw
-        {config[bin_singularity][python]} {config[sbin_singularity][storage_fast5Index.py]} extract {input.batch} raw/ {params.index} --output_format lazy
+        {config[bin_singularity][python]} {config[sbin_singularity][storage_fast5Index.py]} extract {input.batch} raw/ {params.index} --output_format bulk
         {config[bin_singularity][guppy_basecaller]} -i raw/ --recursive --num_callers 1 --cpu_threads_per_caller {threads} -s workspace/ {params.guppy_config}  {params.filtering} {config[basecalling_guppy_flags]}
         FASTQ_DIR='workspace/pass'
         if [ \'{params.filtering}\' = '' ]; then
             FASTQ_DIR='workspace'
         fi
-        find ${{FASTQ_DIR}} -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; > {wildcards.batch}.fq
-        if [[ \'{wildcards.format}\' == *'q'* ]]; then
-            cat {wildcards.batch}.fq | gzip > {output}
-        else
-            cat {wildcards.batch}.fq | tr '\t' ' ' | paste - - - - | cut -d '\t' -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output}
+        find ${{FASTQ_DIR}} -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; | gzip > {output[0]}
+        if [ \'{params.mod_table}\' != '' ]; then
+            echo `find workspace/ -name '*.fast5'`
+            {config[bin_singularity][python]} {config[sbin_singularity][basecalling_guppy_mod.py]} extract `find workspace/ -name '*.fast5'` {params.mod_table}
         fi
         """
 
@@ -137,8 +133,8 @@ rule flappie:
         batch = lambda wildcards : get_signal_batch(wildcards, config),
         run = lambda wildcards : [os.path.join(config['storage_data_raw'], wildcards.runname)] + ([os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')] if get_signal_batch(wildcards, config).endswith('.txt') else [])
     output:
-        sequence = "sequences/flappie/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.gz",
-        methyl_marks = "sequences/flappie/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{format, (fasta|fastq|fa|fq)}.tsv.gz"
+        sequence = "sequences/flappie/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.fastq.gz",
+        methyl_marks = "sequences/flappie/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.tsv.gz"
     shadow: "minimal"
     threads: config['threads_basecalling']
     resources:
@@ -156,12 +152,7 @@ rule flappie:
         find raw/ -regextype posix-extended -regex '^.*fast5' -type f -exec du -h {{}} + | sort -r -h | cut -f2 > raw.fofn
         split -e -n r/{threads} raw.fofn raw.fofn.part.
         ls raw.fofn.part.* | xargs -n 1 -P {threads} -I {{}} $SHELL -c 'cat {{}} | shuf | xargs -n 1 {config[bin_singularity][flappie]} --model {config[basecalling_flappie_model]} {config[basecalling_flappie_flags]} > raw/{{}}.fastq'
-        find ./raw -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; > {wildcards.batch}.fq
-        if [[ \'{wildcards.format}\' == *'q'* ]]; then
-            cat {wildcards.batch}.fq | {config[bin_singularity][python]} {config[sbin_singularity][methylation_flappie.py]} split methyl_marks.tsv | gzip > {output.sequence}
-        else
-            cat {wildcards.batch}.fq | {config[bin_singularity][python]} {config[sbin_singularity][methylation_flappie.py]} split methyl_marks.tsv | tr '\t' ' ' | paste - - - - | cut -d '\t' -f1,2 | tr '@' '>' | tr '\t' '\n' | gzip > {output.sequence}
-        fi
+        find ./raw -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; | gzip > {output.sequence}
         cat methyl_marks.tsv | gzip > {output.methyl_marks}
         """
 
@@ -170,7 +161,7 @@ rule basecaller_merge_batches:
     input:
         lambda wildcards: get_batches_basecaller(wildcards)
     output:
-        "sequences/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
+        "sequences/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.fastq.gz"
     run:
         with open(output[0], 'wb') as fp_out:
             for f in input:
@@ -181,7 +172,7 @@ rule basecaller_merge_tag:
     input:
         lambda wildcards: get_batches_basecaller2(wildcards)
     output:
-        "sequences/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{format, (fasta|fastq|fa|fq)}.gz"
+        "sequences/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.fastq.gz"
     run:
         with open(output[0], 'wb') as fp_out:
             for f in input:
@@ -191,9 +182,9 @@ rule basecaller_merge_tag:
 # basecalling QC
 rule fastx_stats:
     input:
-        "{file}.{format}.gz"
+        "{file}.fastq.gz"
     output:
-        "{file}.{format, (fasta|fastq|fa|fq)}.qc.tsv"
+        "{file}.fastq.qc.tsv"
     resources:
         time_min = lambda wildcards, threads, attempt: int(60 * attempt) # 60 min / 1 thread
     run:
@@ -203,9 +194,9 @@ rule fastx_stats:
 # report from basecalling
 rule basecaller_qc:
     input:
-        tsv = "{file}.{format}.qc.tsv"
+        tsv = "{file}.fastq.qc.tsv"
     output:
-        pdf = "{file}.{format, (fasta|fastq|fa|fq)}.pdf"
+        pdf = "{file}.fastq.pdf"
     singularity:
         "docker://nanopype/analysis:{tag}".format(tag=config['version']['tag'])
     shell:
