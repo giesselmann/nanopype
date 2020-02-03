@@ -125,7 +125,7 @@ Mission accomplished! Everything else is solved at run time by Snakemake and Nan
 There are some common errors that could arise during the installation process. If you encounter one of the following error messages, please consider the respective solution attempts.
 
 **not a supported wheel on this platform**
-:   Nanopype requires at least python3.4 (The Docker image uses python3.5). If you install additional packages (e.g. albacore) from python wheels, make sure the downloaded binary packages matches the local python version.
+:   Nanopype requires at least python3.4 (The Docker image uses python3.6). If you install additional packages (e.g. albacore) from python wheels, make sure the downloaded binary packages matches the local python version.
 
 **terminated by signal 4**
 :   Nanopype is mostly compiling integrated tools from source. In heterogeneous cluster environments this can lead to errors if the compilation takes place on a machine supporting modern vector instructions (SSE, AVX, etc.) but execution also uses less recent computers. The error message *terminated by signal 4* indicates an instruction in the software not supported by the underlying hardware. Please re-compile and install the tools from a machine with a common subset of vector instructions in this case.
