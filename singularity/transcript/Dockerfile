@@ -32,26 +32,19 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 
-# BUILD STAGE
-FROM ubuntu:18.04 as build_stage
+# BASE STAGE
+FROM ubuntu:18.04 as base_stage
 
 ## system packages
-RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
-    git gcc g++ ninja-build ca-certificates \
-    binutils autoconf make cmake \
-    liblzma-dev zlib1g-dev libbz2-dev \
-    libncurses5-dev \
-    apt-transport-https \
-    python3 python3-dev python3-pip
+RUN apt-get --yes update && apt-get install -y --no-install-recommends \
+    wget gcc python3-dev python3-pip locales \
+    ca-certificates lsb-release apt-transport-https
 
 RUN update-ca-certificates
-
-## set up python 3
-# RUN ln -s /usr/bin/python3.5 /usr/bin/python3
-# RUN mkdir -p /src
-# WORKDIR /src
-# RUN wget https://bootstrap.pypa.io/get-pip.py
-# RUN python3 get-pip.py
+RUN locale-gen en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
 ## copy and configure nanopype
 RUN mkdir -p /app
@@ -61,37 +54,35 @@ RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install setuptools wheel
 RUN python3 -m pip install -r requirements.txt
 
+
+
+
+# BUILD STAGE
+FROM base_stage as build_stage
+
+## system packages
+RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
+    git gcc g++ ninja-build ca-certificates \
+    binutils autoconf make cmake \
+    liblzma-dev zlib1g-dev libbz2-dev \
+    libncurses5-dev
+
 ## run setup rules
 RUN mkdir /build
-RUN snakemake --snakefile rules/install.smk --directory /build transcript
+RUN snakemake --snakefile rules/install.smk --directory /build transcript_core
+
+
+
 
 # PACKAGE STAGE
-FROM ubuntu:18.04
+FROM base_stage
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
 RUN apt-get --yes update && \
     apt-get install -y --no-install-recommends wget locales \
     git gcc g++ make python3-dev python3-pip \
-    ca-certificates apt-transport-https \
     && rm -rf /var/lib/apt/lists/*
-
-RUN update-ca-certificates
-RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
-
-RUN mkdir -p /app
-COPY . /app/
-WORKDIR /app
-
-# RUN wget https://bootstrap.pypa.io/get-pip.py
-# RUN ln -s /usr/bin/python3.5 /usr/bin/python3
-# RUN python3 get-pip.py
-RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install setuptools wheel
-RUN python3 -m pip install -r requirements.txt
 
 RUN snakemake --snakefile rules/install.smk --directory /usr pychopper
 

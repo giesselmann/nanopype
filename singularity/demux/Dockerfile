@@ -56,9 +56,6 @@ RUN mkdir -p /app
 COPY . /app/
 WORKDIR /app
 
-# RUN wget https://bootstrap.pypa.io/get-pip.py
-# RUN ln -s /usr/bin/python3.5 /usr/bin/python3
-# RUN python3 get-pip.py
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install setuptools wheel
 RUN python3 -m pip install -r requirements.txt
