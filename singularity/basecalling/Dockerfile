@@ -72,7 +72,7 @@ RUN apt-get --yes update && \
 apt-get install -y --no-install-recommends wget \
     gcc python3-dev python3-pip \
     ca-certificates lsb-release apt-transport-https \
-    libcunit1 libhdf5-10 libopenblas-base \
+    libcunit1 libhdf5-100 libopenblas-base \
     && rm -rf /var/lib/apt/lists/*
 
 RUN update-ca-certificates

@@ -81,7 +81,7 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-COPY --from=build_stage /usr/local/lib/python3.5/dist-packages /usr/local/lib/python3.5/dist-packages
+COPY --from=build_stage /usr/local/lib/python3.6/dist-packages /usr/local/lib/python3.6/dist-packages
 
 RUN mkdir -p /app
 COPY . /app/
