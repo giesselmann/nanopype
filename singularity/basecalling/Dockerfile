@@ -81,7 +81,7 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 ## packages
 RUN apt-get install -y --no-install-recommends wget \
     gcc python3-dev \
-    libcunit1 libhdf5-100 libopenblas-base \
+    libcunit1 libhdf5-100 libidn11 libopenblas-base \
     && rm -rf /var/lib/apt/lists/*
 
 ## GUPPY
