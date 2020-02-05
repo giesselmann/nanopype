@@ -39,6 +39,9 @@ basecalling_albacore_flags: ''
 basecalling_guppy_config: 'dna_r9.4.1_450bps_fast.cfg'
 # quality qscore filter for guppy. 0 means all reads are written to the output
 basecalling_guppy_qscore_filter: 0
+# list of guppy_basecall_server
+# basecalling_guppy_server:
+    # - 'localhost:9000'
 # command line flags directly passed to guppy
 basecalling_guppy_flags: ''
 # the flappie basecaller supports different models, check the docs for available options
@@ -82,6 +85,7 @@ sv_sniffles_flags: '-s 10 -l 30 -r 2000 --genotype'
 sv_STRique_config: 'STRique.tsv'
 sv_STRique_model: 'r9_4_450bps.mpi.model'
 sv_STRique_mod_model: 'r9_4_450bps_mCpG.mpi.model'
+
 
 # transcriptome
 transcript_use_pychopper: True
