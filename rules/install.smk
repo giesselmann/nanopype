@@ -78,12 +78,17 @@ rule transcript:
         rules.transcript_core.input,
         "bin/cdna_classifier.py"
 
+rule assembly:
+    input:
+        "bin/flye"
+
 rule all:
     input:
         rules.processing.input,
         rules.alignment.input,
         rules.methylation.input,
-        rules.transcript.input
+        rules.transcript.input,
+        rules.assembly.input
 
 # helper functions
 def find_go():
@@ -451,7 +456,7 @@ rule strique:
 
 rule flye:
     output:
-        "bin/flye"
+        bin = "bin/flye"
     params:
         prefix = lambda wildcards : sys.prefix
     shell:
@@ -463,5 +468,5 @@ rule flye:
             cd Flye && git fetch --all --tags --prune && git checkout 2.6
         fi
         {config[python]} setup.py install
-        ln -s {params.prefix}/bin/flye ../../bin/flye
+        ln -s {params.prefix}/local/bin/flye ../../{output.bin}
         """

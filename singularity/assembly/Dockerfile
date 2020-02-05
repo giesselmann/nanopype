@@ -69,7 +69,7 @@ RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
 
 ## run setup rules
 RUN mkdir /build
-RUN snakemake --snakefile rules/install.smk --directory /build flye
+RUN snakemake --snakefile rules/install.smk --directory /build assembly
 
 
 
