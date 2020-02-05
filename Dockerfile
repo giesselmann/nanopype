@@ -81,6 +81,7 @@ RUN apt-get --yes update && \
 apt-get install -y --no-install-recommends wget git gcc g++ \
     zlib1g-dev bzip2 libbz2-dev \
     liblzma-dev libncurses5-dev libcunit1 libidn11 \
+    libgssapi-krb5-2 \
     ca-certificates \
     python python3 python3-dev python3-pip
 
