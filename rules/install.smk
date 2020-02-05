@@ -448,3 +448,20 @@ rule strique:
         {config[python]} setup.py install
         cp scripts/STRique.py ../../bin/
         """
+
+rule flye:
+    output:
+        "bin/flye"
+    params:
+        prefix = lambda wildcards : sys.prefix
+    shell:
+        """
+        mkdir -p src && cd src
+        if [ ! -d Flye ]; then
+            git clone https://github.com/fenderglass/Flye --branch 2.6 && cd Flye
+        else
+            cd Flye && git fetch --all --tags --prune && git checkout 2.6
+        fi
+        {config[python]} setup.py install
+        ln -s {params.prefix}/bin/flye ../../bin/flye
+        """

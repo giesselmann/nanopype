@@ -51,8 +51,10 @@ rule flye:
         out_prefix = lambda wildcards : "asm/flye/{sequence_workflow}/{tag}".format(sequence_workflow=wildcards.sequence_workflow, tag=wildcards.tag),
         flye_flags = config.get('asm_flye_flags') or '',
         flye_preset = config.get('asm_flye_preset') or '--nano-raw'
+    singularity:
+        "docker://nanopype/assembly:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin][flye]} {params.flye_flags} -g {config[asm_genome_size]} -t {threads} {params.flye_preset} {input.seq} -o {params.out_prefix}
+        {config[bin_singularity][python]} {config[bin_singularity][flye]} {params.flye_flags} -g {config[asm_genome_size]} -t {threads} {params.flye_preset} {input.seq} -o {params.out_prefix}
         mv {params.out_prefix}/assembly.fasta {output.fa}
         """
