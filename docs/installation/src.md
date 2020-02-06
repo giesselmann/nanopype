@@ -6,6 +6,7 @@ Nanopype can be installed without root privileges as it's maintaining most of it
 * gcc g++
 * binutils autoconf make cmake
 * zlib1g-dev bzip2 libbz2-dev
+* libhdf5-100 libidn11 libopenblas-base libgssapi-krb5-2
 * liblzma-dev libncurses5-dev libcunit1-dev
 
 These packages are likely present in most production environments. Please also refer to the Dockerfiles in the singularity folder of the pipeline repository. If you need only a subset of the provided tools the number of dependencies might decrease.
@@ -78,12 +79,12 @@ Nanopype integrates a variety of different **[tools](../tools.md)** merged into 
 
     snakemake --snakefile rules/install.smk --directory /path/to/INSTALL_PREFIX all
 
-to build and install all tools into **src**, **bin** and **lib** folders of the INSTALL_PREFIX directory. To only build a subset or specific targets e.g. samtools you can use:
+to build and install all tools into **src**, **bin** and **lib** folders of the INSTALL_PREFIX directory. To only build a subset or specific targets e.g. samtools you can use (The file rules/install.smk lists all available groups):
 
     # core functionality of basecalling and alignment
     snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] processing
-    # extended analysis functionality
-    snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] analysis
+    # extended methylation detection functionality
+    snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] methylation
     # specific tool only
     snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] samtools
 

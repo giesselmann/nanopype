@@ -1,12 +1,16 @@
 # Release notes
 
-#### v0.10.0 - 2020
+#### v0.10.0 - 2020-02-
 Main release:
 
-:   * Introduce assembly module with flye and wtdbg2
-    * Flye version
-    * Wtdbg2 version
+:   * Introduce assembly module with flye
+    * Enable guppy GPU mode via basecall_server
+    * Flye v2.6
     * Update guppy_basecaller and guppy_barcoder to version v3.4.4
+    * The basecalling module is simplified to support only .fastq.gz extension.
+      (instead of fastq, fq, fasta, fa)
+    * The analysis singularity container is deprecated due to its size (4G) and complex pdflatex dependencies.
+      Better pdf reports and logs are the objective of v0.11.0.
 
 #### v0.9.1 - 2019-11-13
 Maintenance release:

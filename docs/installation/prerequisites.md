@@ -20,6 +20,7 @@ We provide Singularity images per module, wrapper to build and install tools fro
 | Windows 	|      no     	|   no   	|   yes  	|
 | Tools   	|     all     	|   all  	| public[^1]|
 | Cluster   |     yes       |   yes     |   no      |
+| GPU       |      no       |   yes   |   no      |
 | Complexity|     low       | high      | low       |
 
 
@@ -27,7 +28,7 @@ We provide Singularity images per module, wrapper to build and install tools fro
 
 Independent of the operating system you'll need a working **python3** installation and **git** to clone the pipeline repository. On Linux and MacOS these are likely already present, on Windows we can recommend [gitforwindows](https://gitforwindows.org/) as a starting point.
 
-**Recommendation:** If possible use the Singularity workflow of Nanopype. If you have already existing installations or wish to customize or optimize the build process go for the source installation. If you want to quickly test or run the pipeline on a Windows machine use the all-in-one Docker container.
+**Recommendation:** If possible use the Singularity workflow of Nanopype. If you have already existing installations or wish to customize or optimize the build process go for the source installation. If you want to use advanced features like GPU basecalling, use the source installation. If you want to quickly test or run the pipeline on a Windows machine use the all-in-one Docker container.
 
 !!! warning "Configuration"
     Independent of the installation the pipeline needs to be configured once [globally](configuration.md) and for each sample [locally](../usage/general.md).

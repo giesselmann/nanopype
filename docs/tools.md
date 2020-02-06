@@ -17,6 +17,10 @@ Nanopype integrates a growing number of different tools merged into processing w
 
 ## Analysis
 
+**Assembly**
+
+:   * Flye *https://github.com/fenderglass/Flye*
+
 **Methylation detection**
 
 :   * Nanopolish *https://github.com/jts/nanopolish*
