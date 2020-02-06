@@ -1,6 +1,6 @@
 #!/bin/sh
 # basecalling
-# docker build -t basecalling --shm-size 4g -f singularity/basecalling/Dockerfile .
+docker build -t basecalling --shm-size 4g -f singularity/basecalling/Dockerfile .
 # alignment
 #docker build -t alignment --shm-size 4g -f singularity/alignment/Dockerfile .
 # methylation
@@ -12,4 +12,4 @@
 # demux
 #docker build -t demux --shm-size 4g -f singularity/demux/Dockerfile .
 # demux
-docker build -t analysis --shm-size 4g -f singularity/analysis/Dockerfile .
+#docker build -t analysis --shm-size 4g -f singularity/analysis/Dockerfile .
