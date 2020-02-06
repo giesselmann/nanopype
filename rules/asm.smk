@@ -42,19 +42,20 @@ rule flye:
     input:
         seq = lambda wildcards : get_sequence_runs(wildcards, config)
     output:
-        fa = "asm/flye/{sequence_workflow}/{tag}.fasta"
+        fa = "assembly/flye/{sequence_workflow}/{tag}.fasta"
     threads : config.get('threads_asm') or 1
     resources:
-        mem_mb = config['memory'].get('flye')[0] or 1000000,
-        time_min = 7200
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['flye'][0] + config['memory']['flye'][1] * threads)),
+        time_min = lambda wildcards, threads, attempt: int((576000 / threads) * attempt * config['runtime']['flye'])   # 120 h / 80 threads
     params:
-        out_prefix = lambda wildcards : "asm/flye/{sequence_workflow}/{tag}".format(sequence_workflow=wildcards.sequence_workflow, tag=wildcards.tag),
+        out_prefix = lambda wildcards : "assembly/flye/{sequence_workflow}/{tag}".format(sequence_workflow=wildcards.sequence_workflow, tag=wildcards.tag),
         flye_flags = config.get('asm_flye_flags') or '',
-        flye_preset = config.get('asm_flye_preset') or '--nano-raw'
+        flye_preset = config.get('asm_flye_preset') or '--nano-raw',
+        genome_size = lambda wildcards : config.get('asm_genome_size') or '3.0g'
     singularity:
         "docker://nanopype/assembly:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][python]} {config[bin_singularity][flye]} {params.flye_flags} -g {config[asm_genome_size]} -t {threads} {params.flye_preset} {input.seq} -o {params.out_prefix}
+        {config[bin_singularity][python]} {config[bin_singularity][flye]} {params.flye_flags} -g {params.genome_size} -t {threads} {params.flye_preset} {input.seq} -o {params.out_prefix}
         mv {params.out_prefix}/assembly.fasta {output.fa}
         """

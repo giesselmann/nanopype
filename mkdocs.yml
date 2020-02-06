@@ -104,6 +104,7 @@ nav:
     - Storage: rules/storage.md
     - Basecalling: rules/basecalling.md
     - Alignment: rules/alignment.md
+    - Assembly: rules/assembly.md
     - Methylation: rules/methylation.md
     - Transcriptome: rules/transcript.md
     - Structural Variation: rules/sv.md
