@@ -101,7 +101,8 @@ rule guppy:
     threads: config['threads_basecalling']
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['guppy_basecaller'][0] + config['memory']['guppy_basecaller'][1] * threads)),
-        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['guppy_basecaller']) # 90 min / 16 threads
+        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['guppy_basecaller']), # 90 min / 16 threads
+        GPU = 1
     params:
         guppy_config = lambda wildcards : '-c {cfg}{flags}'.format(
                             cfg = config.get('basecalling_guppy_config') or 'dna_r9.4.1_450bps_fast.cfg',
@@ -116,7 +117,6 @@ rule guppy:
     shell:
         """
         mkdir -p raw
-        echo "USING GUPPY SERVER:" {params.guppy_server}
         {config[bin_singularity][python]} {config[sbin_singularity][storage_fast5Index.py]} extract {input.batch} raw/ {params.index} --output_format bulk
         {config[bin_singularity][guppy_basecaller]} -i raw/ --recursive --num_callers 1 --cpu_threads_per_caller {threads} -s workspace/ {params.guppy_config}  {params.filtering} {params.guppy_flags} {params.guppy_server}
         FASTQ_DIR='workspace/pass'

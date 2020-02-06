@@ -364,6 +364,7 @@ rule guppy:
         rm ont-guppy-cpu_3.4.4_linux64.tar.gz
         ln -s $(pwd)/bin/guppy_basecaller ../../bin/guppy_basecaller
         ln -s $(pwd)/bin/guppy_barcoder ../../bin/guppy_barcoder
+        ln -s $(pwd)/bin/guppy_basecall_server ../../bin/guppy_basecall_server
         """
 
 rule pychopper:
