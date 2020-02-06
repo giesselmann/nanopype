@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # -----------------------------------------------------------------------
-# Copyright (c) 2018-2019, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,13 +35,13 @@
 # Nanopype Dockerfile Demultiplexing
 
 # PACKAGE STAGE
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
 RUN apt-get --yes update && \
     apt-get install -y --no-install-recommends wget locales \
-    git gcc g++ python3.5 python3.5-dev \
+    git gcc g++ python3 python3-dev python3-pip \
     zlib1g-dev bzip2 libbz2-dev \
     ca-certificates apt-transport-https \
     && rm -rf /var/lib/apt/lists/*
@@ -56,10 +56,8 @@ RUN mkdir -p /app
 COPY . /app/
 WORKDIR /app
 
-RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN ln -s /usr/bin/python3.5 /usr/bin/python3
-RUN python3 get-pip.py
-RUN pip3 install --upgrade pip
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install setuptools wheel
 RUN python3 -m pip install -r requirements.txt
 
 RUN snakemake --snakefile rules/install.smk --directory /usr deepbinner

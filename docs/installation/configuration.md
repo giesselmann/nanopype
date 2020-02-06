@@ -57,7 +57,7 @@ memory:
             genome: ~/references/hg38/hg38.fa
             chr_sizes: ~/references/hg38/hg38.chrom.sizes
 
-    # Executable name for tools found in PATH or absolut paths
+    # Executable name for tools found in PATH or absolute paths
     bin:
         albacore: ~/bin/read_fast5_basecaller.py
         flappie: ~/bin/flappie
@@ -71,6 +71,14 @@ memory:
         sniffles: ~/bin/sniffles
         deepbinner: ~/bin/deepbinner-runner.py
         bedGraphToBigWig: ~/bin/bedGraphToBigWig
+        racon: ~/bin/racon
+        cdna_classifier: ~/bin/cdna_classifier.py
+        spliced_bam2gff: ~/bin/spliced_bam2gff
+        cluster_gff: ~/bin/cluster_gff
+        collapse_partials: ~/bin/collapse_partials
+        polish_clusters: ~/bin/polish_clusters
+        strique: ~/bin/STRique.py
+        flye: ~/bin/flye
 
     # runtime scaling of tools
     runtime:
@@ -85,6 +93,7 @@ memory:
         deepbinner: 1.0
         pinfish: 1.0
         strique: 1.0
+        flye: 1.0
 
     # memory in MB scaling of tools as base + threads * scaling
     memory:
@@ -99,6 +108,7 @@ memory:
         deepbinner: [4000,1000]
         pinfish: [8000,1000]
         strique: [32000,4000]
+        flye: [1000000,0]
     ```
 
 Additional references possibly only needed once in a **[workflow](../usage/general.md)** can also be configured in the *nanopype.yaml* of the working directory.

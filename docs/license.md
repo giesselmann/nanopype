@@ -4,7 +4,7 @@
 
 **MIT License**
 
-Copyright &copy; 2018 - 2019 Pay Giesselmann, Max Planck Institute for Molecular Genetics
+Copyright &copy; 2018 - 2020 Pay Giesselmann, Max Planck Institute for Molecular Genetics
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

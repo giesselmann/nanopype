@@ -25,6 +25,7 @@ threads_sv: 4
 threads_demux: 4
 threads_transcript: 4
 threads_transcript_batch: 4
+threads_asm: 80
 
 
 # basecalling
@@ -40,6 +41,9 @@ basecalling_guppy_config: 'dna_r9.4.1_450bps_fast.cfg'
 basecalling_guppy_qscore_filter: 0
 # command line flags directly passed to guppy
 basecalling_guppy_flags: ''
+# list of guppy_basecall_server
+# basecalling_guppy_server:
+    # - 'localhost:9000'
 # the flappie basecaller supports different models, check the docs for available options
 basecalling_flappie_model: 'r941_5mC'
 # command line flags directly passed to flappie
@@ -82,9 +86,16 @@ sv_STRique_config: 'STRique.tsv'
 sv_STRique_model: 'r9_4_450bps.mpi.model'
 sv_STRique_mod_model: 'r9_4_450bps_mCpG.mpi.model'
 
+
 # transcriptome
 transcript_use_pychopper: True
 transcript_spliced_bam2gff_flags: ''
 transcript_cluster_gff_flags: '-c 10 -d 10 -e 30'
 transcript_collapse_partials: '-d 5 -f 5000 -e 30'
 transcript_polish_clusters: '-c 10'
+
+
+# Assembly
+asm_genome_size : '3.0g'
+asm_flye_preset : '--nano-raw'
+asm_flye_flags : '--asm-coverage 35'

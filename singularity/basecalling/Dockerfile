@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # -----------------------------------------------------------------------
-# Copyright (c) 2018-2019, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,63 +32,63 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 
-# BUILD STAGE
-FROM ubuntu:16.04 as build_stage
+# BASE STAGE
+FROM ubuntu:18.04 as base_stage
 
 ## system packages
-RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
-    git gcc g++ ninja-build ca-certificates \
-    apt-transport-https \
-    make cmake python3.5 python3.5-dev \
-    libcunit1-dev libhdf5-dev libopenblas-dev
+RUN apt-get --yes update && apt-get install -y --no-install-recommends \
+    wget gcc python3-dev python3-pip locales \
+    ca-certificates lsb-release apt-transport-https
 
 RUN update-ca-certificates
-
-## set up python 3
-RUN ln -s /usr/bin/python3.5 /usr/bin/python3
-RUN mkdir -p /src
-WORKDIR /src
-RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN python3 get-pip.py
-RUN pip3 install --upgrade pip
+RUN locale-gen en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
 ## copy and configure nanopype
 RUN mkdir -p /app
 COPY . /app/
 WORKDIR /app
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install setuptools wheel
 RUN python3 -m pip install -r requirements.txt
+
+
+
+
+# BUILD STAGE
+FROM base_stage as build_stage
+
+## system packages
+RUN apt-get install -y --no-install-recommends wget \
+    git gcc g++ ninja-build ca-certificates \
+    apt-transport-https \
+    make cmake python3 python3-dev python3-pip \
+    libcunit1-dev libhdf5-dev libopenblas-dev
 
 ## run setup rules
 RUN mkdir /build
 RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory /build flappie --config flappie_src=False
 
+
+
+
 # PACKAGE STAGE
-FROM ubuntu:16.04
+FROM base_stage
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
-RUN apt-get --yes update && \
-apt-get install -y --no-install-recommends wget \
-    gcc python3.5-dev \
-    ca-certificates lsb-release apt-transport-https \
-    libcunit1 libhdf5-10 libopenblas-base \
+RUN apt-get install -y --no-install-recommends wget \
+    gcc python3-dev \
+    libcunit1 libhdf5-100 libidn11 libopenblas-base \
+    libgssapi-krb5-2 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN update-ca-certificates
-
 ## GUPPY
-RUN wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.1.5_linux64.tar.gz && \
-        tar --skip-old-files -xzf ont-guppy-cpu_3.1.5_linux64.tar.gz -C /usr/ --strip 1 && \
-        rm ont-guppy-cpu_3.1.5_linux64.tar.gz
-
-RUN mkdir -p /app
-COPY . /app/
-WORKDIR /app
-
-RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN python3 get-pip.py
-RUN pip3 install --upgrade pip
-RUN python3 -m pip install -r requirements.txt
+RUN wget -q https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz && \
+        tar --skip-old-files -xzf ont-guppy-cpu_3.4.4_linux64.tar.gz -C /usr/ --strip 1 && \
+        rm ont-guppy-cpu_3.4.4_linux64.tar.gz
 
 COPY --from=build_stage /build/bin/* /usr/bin/
 

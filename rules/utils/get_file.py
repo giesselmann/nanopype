@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # ---------------------------------------------------------------------------------
-# Copyright (c) 2018-2019, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -88,11 +88,27 @@ def get_sequence_batch(wildcards, config):
             tag=wildcards.tag,
             runname=wildcards.runname,
             batch=wildcards.batch)
-    extensions = ['.fa', '.fasta', '.fq', '.fastq']
-    for ext in extensions:
-        if os.path.isfile(base + ext + '.gz') or os.path.isfile(base + ext):
-            return base + ext + '.gz'
     return base + '.fastq.gz'
+
+
+def get_sequence_run(wildcards, config):
+    base = "sequences/{sequence_workflow}/batches/{tag}/{runname}".format(
+            sequence_workflow=wildcards.sequence_workflow,
+            tag=wildcards.tag,
+            runname=wildcards.runname)
+    return base + '.fastq.gz'
+
+
+def get_sequence_runs(wildcards, config):
+    extensions = ['.fa', '.fasta', '.fq', '.fastq']
+    sequences = []
+    for run in config['runnames']:
+        base = "sequences/{sequence_workflow}/batches/{tag}/{runname}".format(
+                sequence_workflow=wildcards.sequence_workflow,
+                tag=wildcards.tag,
+                runname=run)
+        sequences.append(base + '.fastq.gz')
+    return sequences
 
 
 # get alignment batch with default basecaller and aligner

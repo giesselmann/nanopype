@@ -37,7 +37,7 @@ and
 mkdir -p ~/src && cd ~/src
 git clone --recursive https://github.com/giesselmann/nanopype
 cd nanopype && git checkout v0.7.0
-pip3 install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 To use Docker for processing you will need to mount the pipeline, your data and a processing directory to the container. Any processing results not copied to the host will not persist inside the container after leaving it! From the Nanopype repository run:

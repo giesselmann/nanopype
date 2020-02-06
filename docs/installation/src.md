@@ -6,6 +6,7 @@ Nanopype can be installed without root privileges as it's maintaining most of it
 * gcc g++
 * binutils autoconf make cmake
 * zlib1g-dev bzip2 libbz2-dev
+* libhdf5-100 libidn11 libopenblas-base libgssapi-krb5-2
 * liblzma-dev libncurses5-dev libcunit1-dev
 
 These packages are likely present in most production environments. Please also refer to the Dockerfiles in the singularity folder of the pipeline repository. If you need only a subset of the provided tools the number of dependencies might decrease.
@@ -33,7 +34,7 @@ source activate nanopype
 Nanopype is based on the Snakemake pipeline engine. With python3.4 pip is already installed and you get Snakemake by executing:
 
 ```
-pip3 install --upgrade snakemake
+python3 -m pip install --upgrade snakemake
 ```
 
 Alternatively you might use the conda package manager:
@@ -48,7 +49,7 @@ Nanopype relies on latest Snakemake features, please consider updating your Snak
 mkdir -p src && cd src
 git clone https://bitbucket.org/snakemake/snakemake.git
 cd snakemake
-pip3 install . --upgrade
+python3 -m pip install . --upgrade
 cd ..
 ```
 
@@ -58,7 +59,7 @@ Finally install Nanopype from [github.com/giesselmann](https://github.com/giesse
 ```
 git clone --recursive https://github.com/giesselmann/nanopype
 cd nanopype
-pip3 install -r requirements.txt
+python3 -m pip install -r requirements.txt
 cd ..
 ```
 
@@ -78,12 +79,12 @@ Nanopype integrates a variety of different **[tools](../tools.md)** merged into 
 
     snakemake --snakefile rules/install.smk --directory /path/to/INSTALL_PREFIX all
 
-to build and install all tools into **src**, **bin** and **lib** folders of the INSTALL_PREFIX directory. To only build a subset or specific targets e.g. samtools you can use:
+to build and install all tools into **src**, **bin** and **lib** folders of the INSTALL_PREFIX directory. To only build a subset or specific targets e.g. samtools you can use (The file rules/install.smk lists all available groups):
 
     # core functionality of basecalling and alignment
     snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] processing
-    # extended analysis functionality
-    snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] analysis
+    # extended methylation detection functionality
+    snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] methylation
     # specific tool only
     snakemake --snakefile rules/install.smk --directory [INSTALL_PREFIX] samtools
 
@@ -125,7 +126,7 @@ Mission accomplished! Everything else is solved at run time by Snakemake and Nan
 There are some common errors that could arise during the installation process. If you encounter one of the following error messages, please consider the respective solution attempts.
 
 **not a supported wheel on this platform**
-:   Nanopype requires at least python3.4 (The Docker image uses python3.5). If you install additional packages (e.g. albacore) from python wheels, make sure the downloaded binary packages matches the local python version.
+:   Nanopype requires at least python3.4 (The Docker image uses python3.6). If you install additional packages (e.g. albacore) from python wheels, make sure the downloaded binary packages matches the local python version.
 
 **terminated by signal 4**
 :   Nanopype is mostly compiling integrated tools from source. In heterogeneous cluster environments this can lead to errors if the compilation takes place on a machine supporting modern vector instructions (SSE, AVX, etc.) but execution also uses less recent computers. The error message *terminated by signal 4* indicates an instruction in the software not supported by the underlying hardware. Please re-compile and install the tools from a machine with a common subset of vector instructions in this case.

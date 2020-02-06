@@ -1,6 +1,6 @@
 # \BUILD\---------------------------------------------------------------
 #
-#  CONTENTS      : Nanopype analysis singularity
+#  CONTENTS      : Nanopype singularity assembly
 #
 #  DESCRIPTION   : Dockerfile
 #
@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # -----------------------------------------------------------------------
-# Copyright (c) 2018-2019, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,17 +31,14 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-# Nanopype Dockerfile Analysis
 
-# PACKAGE STAGE
-FROM ubuntu:16.04
-MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
+# BASE STAGE
+FROM ubuntu:18.04 as base_stage
 
-## packages
-RUN apt-get --yes update && \
-    apt-get install -y --no-install-recommends wget locales \
-    ca-certificates apt-transport-https software-properties-common \
-    && rm -rf /var/lib/apt/lists/*
+## system packages
+RUN apt-get --yes update && apt-get install -y --no-install-recommends \
+    wget gcc python3-dev python3-pip locales \
+    ca-certificates lsb-release apt-transport-https
 
 RUN update-ca-certificates
 RUN locale-gen en_US.UTF-8
@@ -49,28 +46,46 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# install R
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
-RUN add-apt-repository 'deb [arch=amd64,i386] https://cran.rstudio.com/bin/linux/ubuntu xenial/'
-RUN add-apt-repository -y ppa:jonathonf/texlive
-RUN apt-get update && apt-get install --no-install-recommends --yes \
-    g++ gcc make \
-    r-base \
-    pandoc \
-    texlive-full \
-    && rm -rf /var/lib/apt/lists/*
-
-# install R packages
-RUN R -e "install.packages('rmarkdown', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
-RUN R -e "install.packages('ggplot2', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
-RUN R -e "install.packages('knitr', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
-RUN R -e "install.packages('grid', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
-RUN R -e "install.packages('gridExtra', repos = 'https://cloud.r-project.org/', lib='/usr/local/lib/R/site-library')"
-
+## copy and configure nanopype
 RUN mkdir -p /app
 COPY . /app/
+WORKDIR /app
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install setuptools wheel
+RUN python3 -m pip install -r requirements.txt
 
-ENV HOME /root
+
+
+
+# BUILD STAGE
+FROM base_stage as build_stage
+
+## system packages
+RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
+    git gcc g++ ninja-build ca-certificates \
+    binutils autoconf make cmake zlib1g-dev \
+    apt-transport-https \
+    python3 python3-dev python3-pip
+
+## run setup rules
+RUN mkdir /build
+RUN snakemake --snakefile rules/install.smk --directory /build assembly
+
+
+
+
+# PACKAGE STAGE
+FROM base_stage
+MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
+
+## packages
+RUN apt-get --yes update && \
+    apt-get install -y --no-install-recommends wget locales \
+    gcc python3-dev python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build_stage /usr/local/lib/python3.6/dist-packages /usr/local/lib/python3.6/dist-packages
+COPY --from=build_stage /build/bin/* /usr/bin/
 
 WORKDIR /
 # default entrypoint is /bin/sh

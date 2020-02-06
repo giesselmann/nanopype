@@ -24,6 +24,9 @@ Nanopype integrates a growing number of nanopore sequencing related tools. If yo
 
 ## Analysis functions
 
+####**Flye**
+>Mikhail Kolmogorov, Jeffrey Yuan, Yu Lin and Pavel Pevzner, Assembly of Long Error-Prone Reads Using Repeat Graphs, Nature Biotechnology, 2019 doi:10.1038/s41587-019-0072-8
+
 ####**Nanopolish**
 >Simpson, Jared T. et al. Detecting DNA cytosine methylation using nanopore sequencing. Nature Methods 14.4, 407-410 (2017).
 

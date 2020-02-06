@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # ---------------------------------------------------------------------------------
-# Copyright (c) 2018-2019, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,15 +47,6 @@ rule processing:
         "bin/graphmap",
         "bin/ngmlr"
 
-rule analysis:
-    input:
-        "bin/nanopolish",
-        "bin/bedGraphToBigWig",
-        "bin/sniffles",
-        "bin/deepbinner-runner.py",
-        "bin/racon",
-        "bin/cdna_classifier.py"
-
 rule alignment:
     input:
         "bin/minimap2",
@@ -72,9 +63,8 @@ rule methylation:
         "bin/bedtools",
         "bin/bedGraphToBigWig"
 
-rule transcript:
+rule transcript_core:
     input:
-        "bin/cdna_classifier.py",
         "bin/minimap2",
         "bin/samtools",
         "bin/racon",
@@ -83,11 +73,22 @@ rule transcript:
         "bin/polish_clusters",
         "bin/spliced_bam2gff"
 
+rule transcript:
+    input:
+        rules.transcript_core.input,
+        "bin/cdna_classifier.py"
+
+rule assembly:
+    input:
+        "bin/flye"
+
 rule all:
     input:
         rules.processing.input,
-        rules.analysis.input,
-        rules.transcript.input
+        rules.alignment.input,
+        rules.methylation.input,
+        rules.transcript.input,
+        rules.assembly.input
 
 # helper functions
 def find_go():
@@ -115,7 +116,7 @@ rule UCSCtools:
         "bin/bedGraphToBigWig"
     shell:
         """
-        wget -O {output} ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
+        wget -q -O {output} ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
         chmod 755 {output}
         """
 
@@ -270,7 +271,7 @@ rule golang:
     shell:
         """
         mkdir -p src && cd src
-        wget -nc https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz
+        wget -q -nc https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz
         tar -xzf go1.13.4.linux-amd64.tar.gz
         """
 
@@ -356,12 +357,14 @@ rule guppy:
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.5_linux64.tar.gz &&
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.7_linux64.tar.gz &&
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.0.3_linux64.tar.gz &&
+        # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.1.5_linux64.tar.gz &&
         mkdir -p src/guppy && cd src/guppy
-        wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.1.5_linux64.tar.gz && \
-        tar -xzf ont-guppy-cpu_3.1.5_linux64.tar.gz -C ./ --strip 1 && \
-        rm ont-guppy-cpu_3.1.5_linux64.tar.gz
+        wget -q https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz && \
+        tar -xzf ont-guppy-cpu_3.4.4_linux64.tar.gz -C ./ --strip 1 && \
+        rm ont-guppy-cpu_3.4.4_linux64.tar.gz
         ln -s $(pwd)/bin/guppy_basecaller ../../bin/guppy_basecaller
         ln -s $(pwd)/bin/guppy_barcoder ../../bin/guppy_barcoder
+        ln -s $(pwd)/bin/guppy_basecall_server ../../bin/guppy_basecall_server
         """
 
 rule pychopper:
@@ -375,7 +378,6 @@ rule pychopper:
         else
             cd pychopper && git fetch --all --tags --prune && git checkout v0.5.0
         fi
-        # TODO fix for error 'libparasail.so not found'
         {config[python]} -m pip install --upgrade incremental
         {config[python]} -m pip install --upgrade certifi
         {config[python]} -m pip install parasail==1.1.15 --upgrade
@@ -451,4 +453,21 @@ rule strique:
         {config[python]} -m pip install -r requirements.txt --upgrade
         {config[python]} setup.py install
         cp scripts/STRique.py ../../bin/
+        """
+
+rule flye:
+    output:
+        bin = "bin/flye"
+    params:
+        prefix = lambda wildcards : sys.prefix
+    shell:
+        """
+        mkdir -p src && cd src
+        if [ ! -d Flye ]; then
+            git clone https://github.com/fenderglass/Flye --branch 2.6 && cd Flye
+        else
+            cd Flye && git fetch --all --tags --prune && git checkout 2.6
+        fi
+        {config[python]} setup.py install
+        ln -s {params.prefix}/local/bin/flye ../../{output.bin}
         """
