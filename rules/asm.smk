@@ -56,6 +56,8 @@ rule flye:
         "docker://nanopype/assembly:{tag}".format(tag=config['version']['tag'])
     shell:
         """
+        flye_dir=`dirname {config[bin_singularity][python]}`
+        PATH=$flye_dir:$PATH
         {config[bin_singularity][python]} {config[bin_singularity][flye]} {params.flye_flags} -g {params.genome_size} -t {threads} {params.flye_preset} {input.seq} -o {params.out_prefix}
         mv {params.out_prefix}/assembly.fasta {output.fa}
         """
