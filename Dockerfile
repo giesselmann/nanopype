@@ -70,36 +70,37 @@ RUN apt-get --yes update && apt-get install -y --no-install-recommends wget \
     python python3 python3-dev python3-pip
 
 # run setup rules
-RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory / all
-
+RUN mkdir /build
+RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory /build all
+# HACK: fix broken symlink
+RUN rm /build/src/guppy/lib/libz.so
 
 
 
 # PACKAGE STAGE
-FROM ubuntu:18.04
+FROM base_stage
 RUN apt-get --yes update && \
 apt-get install -y --no-install-recommends wget git gcc g++ \
     zlib1g-dev bzip2 libbz2-dev \
-    liblzma-dev libncurses5-dev libcunit1 libidn11 \
-    libgssapi-krb5-2 \
+    liblzma-dev libncurses5-dev libcunit1 \
+    libhdf5-100 libidn11 libgssapi-krb5-2 \
     ca-certificates \
     python python3 python3-dev python3-pip
 
 ## copy binaries from build stage
-RUN mkdir -p /bin
-RUN mkdir -p /lib
-COPY --from=build_stage /bin/* /bin/
-COPY --from=build_stage /lib/* /lib/
+RUN mkdir -p /usr/local/bin
+RUN mkdir -p /usr/local/lib/guppy
+RUN mkdir -p /usr/local/data
+COPY --from=build_stage /build/bin/* /usr/local/bin/
+COPY --from=build_stage /build/lib/* /usr/local/lib/
+COPY --from=build_stage /build/src/guppy/bin/* /usr/local/bin/
+COPY --from=build_stage /build/src/guppy/lib/* /usr/local/lib/guppy/
+COPY --from=build_stage /build/src/guppy/data/* /usr/local/data/
+COPY --from=build_stage /usr/local/lib/python3.6/dist-packages /usr/local/lib/python3.6/dist-packages
 
-## GUPPY
-RUN wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz && \
-        tar --skip-old-files -xzf ont-guppy-cpu_3.4.4_linux64.tar.gz -C /usr/ --strip 1 && \
-        rm ont-guppy-cpu_3.4.4_linux64.tar.gz
-
-# re-run python module installer
-RUN snakemake --snakefile rules/install.smk --directory / deepbinner
-RUN snakemake --snakefile rules/install.smk --directory / pychopper
-RUN python3 -m pip install . --upgrade --install-option="--tools=/bin"
+# setup paths
+RUN python3 -m pip install . --upgrade --install-option="--tools=/usr/local/bin"
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/guppy
 
 # create working directories
 RUN mkdir -p /data/raw
