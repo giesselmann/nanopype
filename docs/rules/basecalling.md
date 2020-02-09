@@ -71,6 +71,9 @@ basecalling_guppy_flags: ''
 
 Guppy basecalling is an order of magnitude faster when running on a GPU. Nanopype supports different models of GPU accelerated basecalling, from local single device to distributed multi device environments. GPU basecalling is currently only possible with the [source](../installation/src.md) installation of the pipeline!
 
+!!! error "guppy version"
+    ONT deploys two builds of guppy, CPU and GPU based. Nanopype installs and uses the CPU version per default. To enable the accelerated workflow, you have to manually download and install the guppy GPU build. From the nanopore community, get the ```ont-guppy_3.x.y_linux64.tar.gz```, extract and overwrite the *guppy_basecaller* and *guppy_basecall_server* executables installed by Nanopype. Alternatively install the GPU version to a separate directory and change the **env.yaml** of Nanopype accordingly.
+
 **1. Local single GPU**
 
 The easiest setup is to run nanopype on a single server with one GPU. To enable it, change the guppy command line flags to:

@@ -1,6 +1,6 @@
 # Release notes
 
-#### v0.10.0 - 2020-02-
+#### v0.10.0 - 2020-02-10
 Main release:
 
 :   * Introduce assembly module with flye
