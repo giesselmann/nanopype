@@ -49,7 +49,8 @@ def get_tag():
     try:
         version = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
     except subprocess.CalledProcessError:
-        raise RuntimeError('[ERROR] Unable to get version number from git tags.')
+        print('[WARNING] Unable to get version number from git tags.', file=sys.stderr)
+        version = '-'
     if '-' in version:
         if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
             print("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container.", file=sys.stderr)
