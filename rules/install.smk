@@ -94,8 +94,8 @@ rule all:
 def find_go():
     for path in os.environ["PATH"].split(os.pathsep):
         exe_file = os.path.join(path, 'go')
-        if os.path.isfile(exe_file):
-            return exe_file
+        #if os.path.isfile(exe_file):
+        #    return exe_file
     return None
 
 config['python'] = sys.executable
@@ -374,13 +374,13 @@ rule pychopper:
         """
         mkdir -p src && cd src
         if [ ! -d pychopper ]; then
-            git clone https://github.com/nanoporetech/pychopper --branch v0.5.0 && cd pychopper
+            git clone https://github.com/nanoporetech/pychopper --branch v2.2.2 && cd pychopper
         else
-            cd pychopper && git fetch --all --tags --prune && git checkout v0.5.0
+            cd pychopper && git fetch --all --tags --prune && git checkout v2.2.2
         fi
         {config[python]} -m pip install --upgrade incremental
         {config[python]} -m pip install --upgrade certifi
-        {config[python]} -m pip install parasail==1.1.15 --upgrade
+        {config[python]} -m pip install parasail --upgrade
         {config[python]} -m pip install "matplotlib<3.1" --upgrade
         {config[python]} setup.py install
         cp $(pwd)/scripts/cdna_classifier.py ../../{output.bin}
