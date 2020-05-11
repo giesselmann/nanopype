@@ -73,6 +73,11 @@ rule transcript_core:
         "bin/polish_clusters",
         "bin/spliced_bam2gff"
 
+rule sv:
+    input:
+        "bin/sniffles",
+        "bin/STRique.py"
+
 rule transcript:
     input:
         rules.transcript_core.input,
@@ -88,6 +93,7 @@ rule all:
         rules.alignment.input,
         rules.methylation.input,
         rules.transcript.input,
+        rules.sv.input,
         rules.assembly.input
 
 # helper functions
