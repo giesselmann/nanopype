@@ -4,12 +4,13 @@ We deploy new versions of Nanopype for both important updates in the included to
 
 Before starting the update process, please make sure to backup your configuration files. Changes to the Nanopype repository (e.g. *env.yaml*) will be lost after the update and have to be restored manually.
 
-Independant of the installation method, the repository of the pipeline needs to be updated. The examples illustrate an update to version v0.7.0.
+Independant of the installation method, the repository of the pipeline needs to be updated. The examples illustrate an update to version v0.7.0. Please activate the virtual environment of nanopype, if you used one during initial installation.
 
 ```
 cd /path/to/nanopype
 git fetch --tags
 git checkout -f v0.7.0 && git clean -dfx && git gc --auto
+python3 -m pip install . --upgrade
 ```
 
 The pipeline repository is now in a default state, changes made to the environment configuration in **env.yaml** need to be restored. Please also note that workflow configurations might change between pipeline releases. Compare the default **nanopype.yaml** in the repository with the one in the working directory to identify additional options.

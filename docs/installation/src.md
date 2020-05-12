@@ -57,9 +57,9 @@ cd ..
 Finally install Nanopype from [github.com/giesselmann](https://github.com/giesselmann/nanopype/). If you use conda you find pip in the *bin/* folder of the conda installation. If you use a conda virtual environment use the pip from the *envs/nanopype/bin*.
 
 ```
-git clone --recursive https://github.com/giesselmann/nanopype
+git clone https://github.com/giesselmann/nanopype
 cd nanopype
-python3 -m pip install -r requirements.txt
+python3 -m pip install . --upgrade
 cd ..
 ```
 
