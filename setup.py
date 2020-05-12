@@ -33,6 +33,7 @@
 # ---------------------------------------------------------------------------------
 import os, sys, shutil
 import site
+import setuptools
 from setuptools import setup
 from setuptools.command.install import install
 from setuptools.command.develop import develop
@@ -69,7 +70,8 @@ setup(
     url='https://github.com/giesselmann/nanopype',
     license='LICENSE',
     python_requires='>=3.5',
-    install_requires=open('requirements.txt').read().split('\n'),
+    install_requires=[p for p in open('requirements.txt').read().split('\n') if not '/' in p],
+    packages=setuptools.find_packages(),
     include_package_data=True,
     scripts=['scripts/nanopype_import.py',],
     zip_safe=False,

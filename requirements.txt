@@ -1,8 +1,8 @@
 snakemake==5.5.2
 h5py>=2.7.1
 PyYAML>=5.1
+ont_fast5_api>=3.0
 setuptools
 numpy
 pandas
 matplotlib
-submodules/ont_fast5_api
