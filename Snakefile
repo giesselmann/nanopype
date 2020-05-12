@@ -283,7 +283,7 @@ include : "rules/asm.smk"
 def print_log(status='SUCCESS'):
     os.makedirs('log', exist_ok=True)
     now = datetime.now()
-    log_name = os.path.join('log', now.strftime('%Y%m%d_%H%M_%S.%f_nanopype.log'))
+    log_name = os.path.join('log', now.strftime('%Y%m%d_%H_%M_%S_%f.nanopype.log'))
     end_files = get_dir_files(workflow.workdir_init)
     with open(log_name, 'w') as fp:
         print('Log file for Nanopype version {tag}'.format(tag=nanopype_tag), file=fp)
@@ -315,15 +315,24 @@ def print_log(status='SUCCESS'):
 
 onsuccess:
     log_name = print_log(status='SUCCESS')
-    print("Nanopype completed successfully. The log file was written to {}".format(log_name), file=sys.stderr)
+    print("""
+Nanopype completed successfully.
+The log file was written to {}.
+
+If you use Nanopype in your research, please consider citing:
+Giesselmann, P. et al., Nanopype: a modular and scalable nanopore data processing pipeline. Bioinformatics, 2019.""".format(log_name), file=sys.stderr)
 
 
 onerror:
     log_name = print_log(status='ERROR')
-    print("""Nanopype exited with an error. The log file was written to {}.
+    print("""
+Nanopype exited with an error.
+The log file was written to {}.
+
 Please visit the documentation at
     https://nanopype.readthedocs.io/
 to make sure everything is configured correctly.
-If you need further assistance feel free to open an issue at
+
+If you need further assistance, feel free to open an issue at
     https://github.com/giesselmann/nanopype/issues
 and attach the above Snakemake and Nanopype log files.""".format(log_name), file=sys.stderr)
