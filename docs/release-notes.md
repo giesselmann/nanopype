@@ -1,5 +1,21 @@
 # Release notes
 
+#### v0.11.0 - 2020-05-
+Main release:
+
+The output of nanopype >= v0.11.0 is limited backwards compatible.
+The methylation module was reworked, while output files are identical, the format of
+temporary files changed.
+Please run ```rm methylation/*/*/*/batches/*/*/*.tsv``` in each working directory,
+to remove previous files.
+
+:   * Add onerror and onsuccess handler to workflow
+    * Log each run with config and file system changes
+    * Replace ont_fast5_api submodule with pip package
+    * Always install go with the pipeline
+    * Rework methylation module to get batch files with consistent format
+    * Rework single read methylation script to benefit from multiple cores
+
 #### v0.10.0 - 2020-02-10
 Main release:
 
