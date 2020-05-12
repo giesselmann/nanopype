@@ -69,7 +69,7 @@ setup(
     url='https://github.com/giesselmann/nanopype',
     license='LICENSE',
     python_requires='>=3.5',
-    install_requires=['snakemake==5.5.2', 'numpy', 'h5py>=2.7.1', 'watchdog'],
+    install_requires=open('requirements.txt').read().split('\n'),
     include_package_data=True,
     scripts=['scripts/nanopype_import.py',],
     zip_safe=False,

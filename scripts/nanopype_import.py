@@ -39,8 +39,6 @@ import h5py, tarfile
 import threading
 import queue
 from collections import deque
-from watchdog.observers import Observer
-from watchdog.events import RegexMatchingEventHandler
 from multiprocessing import Process, Queue
 
 
@@ -356,6 +354,8 @@ if __name__ == '__main__':
     pkgr.start()
     # create fs watchdogs
     if args.watch:
+        from watchdog.observers import Observer
+        from watchdog.events import RegexMatchingEventHandler
         wtchdg = fs_watchdog(input_dirs, args.filter)
         wtchdg.start()
         logger.log("Started file system observer, press CTRL + C to abort")
