@@ -95,19 +95,29 @@ class fasta_index(object):
 
 # parse single read methylation table (abstract base)
 class tsv_parser():
-    def __init__(self, tsv_file):
+    def __init__(self, tsv_file, threshold=0.0):
         self.tsv_file = tsv_file
+        self.records = defaultdict(dict)
+        def filtered_iter(raw_iter):
+            for _, begin, end, _, value, strand, score in raw_iter:
+                score = float(score)
+                if abs(score) >= threshold:
+                    yield (int(begin), int(end), strand, value)
+        for chr_ID, value_iter in itertools.groupby(self.__tsv_buffered_iter__(), key=lambda x : (x[0], x[3])):
+            chr, ID = chr_ID
+            values = [x for x in filtered_iter(value_iter)]
+            self.records[chr][ID] = values
 
     def __tsv_iter__(self):
         f_open = gzip.GzipFile if os.path.splitext(self.tsv_file)[1] == '.gz' else open
         with f_open(self.tsv_file, 'rb') as fp:
-            for line in tqdm(fp, desc='loading'):
+            for line in fp:
                 yield line.decode('utf-8').strip().split('\t')
 
     def __tsv_buffered_iter__(self):
         f_open = gzip.GzipFile if os.path.splitext(self.tsv_file)[1] == '.gz' else open
         chunkSize = 1024*1024*100
-        with f_open(self.tsv_file, 'rb') as fp, tqdm(desc='loading') as pbar:
+        with f_open(self.tsv_file, 'rb') as fp:
             chunk = fp.read(chunkSize)
             buffer = ''
             while chunk != b'' or buffer != '':
@@ -117,30 +127,8 @@ class tsv_parser():
                 for line in lines:
                     fields = line.split('\t')
                     yield fields
-                pbar.update(len(lines))
                 buffer = buffer[last_break:].lstrip()
                 chunk = fp.read(chunkSize)
-
-    def get_record(self, ID, chr, begin, end, strand):
-        raise NotImplementedError()
-
-
-
-
-# parse single read table from nanopolish
-class tsv_parser_nanopolish(tsv_parser):
-    def __init__(self, tsv_file, log_p_threshold=2.0):
-        super(tsv_parser_nanopolish, self).__init__(tsv_file)
-        self.records = defaultdict(dict)
-        def filtered_iter(raw_iter):
-            for _, begin, end, _, log_p_ratio, strand, _, _ in raw_iter:
-                ratio = float(log_p_ratio)
-                if abs(ratio) >= log_p_threshold:
-                    yield (int(begin), int(end), strand, '1' if ratio >= log_p_threshold else '0')
-        for chr_ID, value_iter in itertools.groupby(self.__tsv_buffered_iter__(), key=lambda x : (x[0], x[3])):
-            chr, ID = chr_ID
-            values = [x for x in filtered_iter(value_iter)]
-            self.records[chr][ID] = values
 
     def get_record(self, ID, chr, begin, end, strand):
         records = self.records[chr].get(ID)
@@ -148,24 +136,6 @@ class tsv_parser_nanopolish(tsv_parser):
             return [x for x in records if x[0] >= begin and x[1] <= end and x[2] == strand]
         else:
             return []
-
-
-
-
-# parse single read table from flappie
-class tsv_parser_flappie(tsv_parser):
-    def __init__(self, tsv_file, qval_threshold=3.0):
-        self.qval_threshold =qval_threshold
-        f_open = gzip.GzipFile if os.path.splitext(tsv_file)[1] == '.gz' else open
-        self.records = defaultdict(list)
-        with f_open(tsv_file, 'rb') as fp:
-            for line in fp:
-                chr, begin, end, ID, value, strand, qvalue = line.decode('utf-8').strip().split('\t')
-                if float(qvalue) >= qval_threshold:
-                    self.records[ID].append((chr, int(begin), int(end), strand, value))
-
-    def get_record(self, ID, chr, begin, end, strand):
-        return [x for x in self.records[ID] if x[0] == chr and x[1] >= begin and x[2] <= end and x[3] == strand]
 
 
 
@@ -322,18 +292,17 @@ if __name__ == '__main__':
     parser.add_argument("ref", help="Reference sequence")
     parser.add_argument("tsv", help="Methylation level tsv file")
     parser.add_argument("--threshold", type=float, default="2.0", help="Q-value threshold")
-    parser.add_argument("--method", default="nanopolish", help="Methylation caller used")
     parser.add_argument("--mode", default="IGV", help="Output mode, either IGV or GViz")
     parser.add_argument("--polish", action='store_true', help="Replace matches in sequence with reference")
     args = parser.parse_args()
     # load reference and methylation calls
-    print('[DEBUG] reading reference', file=sys.stderr)
+    #print('[DEBUG] reading reference', file=sys.stderr)
     ref_idx = fasta_index(args.ref)
-    print('[DEBUG] reading methyl records', file=sys.stderr)
-    mod_records = tsv_parser_nanopolish(args.tsv, args.threshold) if args.method == 'nanopolish' else tsv_parser_flappie(args.tsv, args.threshold) if args.method == 'flappie' else tsv_parser()
+    #print('[DEBUG] reading methyl records', file=sys.stderr)
+    mod_records = tsv_parser(args.tsv, threshold=args.threshold)
     scrambler = seq_scramble(ref_idx, mod_records, mode=args.mode, polish=args.polish)
     # parse SAM records from stdin and modify seq field
-    for line in tqdm(sys.stdin, desc='processing'):
+    for line in sys.stdin:
         if line.startswith('@'):
             print(line, end='')
         else:
