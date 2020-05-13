@@ -6,3 +6,5 @@ setuptools
 numpy
 pandas
 matplotlib
+reportlab
+svglib
