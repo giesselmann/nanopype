@@ -41,15 +41,16 @@ localrules: methylation_bedGraph, methylation_bigwig
 localrules: methylation_single_read_run, methylation_single_read_tag
 
 # get batches
-def get_batches_methylation(wildcards, config, methylation_caller=None):
+def get_batches_methylation(wildcards, config, methylation_caller=None, runname=None):
+    runname=runname or wildcards.runname
     r = expand("methylation/{methylation_caller}/{aligner}/{sequence_workflow}/batches/{tag}/{runname}/{batch}.{reference}",
             methylation_caller=methylation_caller or wildcards.methylation_caller,
             aligner=wildcards.aligner,
             sequence_workflow=wildcards.sequence_workflow,
             tag=wildcards.tag,
-            runname=wildcards.runname,
+            runname=runname,
             reference=wildcards.reference,
-            batch=get_batch_ids_raw(wildcards.runname, config=config, tag=wildcards.tag, checkpoints=checkpoints))
+            batch=get_batch_ids_raw(runname, config=config, tag=wildcards.tag, checkpoints=checkpoints))
     return r
 
 def get_batches_methylation2(wildcards, config, methylation_caller=None):
@@ -246,7 +247,7 @@ rule methylation_single_read_run:
         bam = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.\/]*}.bam"
     threads: config.get('threads_samtools') or 1
     params:
-        input_prefix = lambda wildcards, input : input.bam[:-5]
+        input_prefix = lambda wildcards, input : input.fofn[:-5]
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
@@ -262,12 +263,12 @@ rule methylation_single_read_run:
 rule methylation_single_read_tag:
     input:
         fofn = "methylation/{methylation_caller}/{aligner}/{sequence_workflow}/{tag}.{reference}.fofn",
-        bam = lambda wildcards: [f + ".bam" for f in get_batches_methylation2(wildcards, config)]
+        bam = lambda wildcards: [f + ".bam" for runname in config['runnames'] for f in get_batches_methylation(wildcards, config, runname=runname)]
     output:
         bam = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.\/]*}.bam"
     threads: config.get('threads_samtools') or 1
     params:
-        input_prefix = lambda wildcards, input : input.bam[:-5]
+        input_prefix = lambda wildcards, input : input.fofn[:-5]
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
