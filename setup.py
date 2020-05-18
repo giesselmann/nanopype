@@ -69,7 +69,7 @@ setup(
     long_description=open('README.md').read(),
     url='https://github.com/giesselmann/nanopype',
     license='LICENSE',
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     install_requires=open('requirements.txt').read().split('\n'),
     include_package_data=True,
     scripts=['scripts/nanopype_import.py',],
