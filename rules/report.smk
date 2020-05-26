@@ -32,30 +32,93 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 # https://www.blog.pythonlibrary.org/2013/08/12/reportlab-how-to-add-page-numbers/
-
 # https://github.com/zopefoundation/z3c.rml
+import snakemake
 
 
 
 
-import matplotlib.pyplot as plt
-from io import BytesIO
-from reportlab.pdfgen import canvas
-from reportlab.graphics import renderPDF
-from svglib.svglib import svg2rlg
+rule report_disk_usage:
+    input:
+        runs = lambda wildcards : [os.path.join(config['storage_data_raw'], runname) for runname in config['runnames']],
+        modules = lambda wildcards : [m for m in
+            ['sequences', 'alignments', 'methylation', 'sv', 'transcript', 'assembly']
+            if os.path.isdir(m)]
+    output:
+        temp('report/stats/disk_usage.hdf5')
+    run:
+        import os
+        import pandas as pd
+        from pathlib import Path
 
-fig = plt.figure(figsize=(4, 3))
-plt.plot([1,2,3,4])
-plt.ylabel('some numbers')
+        def du(root_dir='.'):
+            root_dir = Path(root_dir)
+            return sum(f.stat().st_size for f in root_dir.glob('**/*') if f.is_file())
 
-imgdata = BytesIO()
-fig.savefig(imgdata, format='svg')
-imgdata.seek(0)  # rewind the data
+        raw = sum(du(os.path.join(config['storage_data_raw'], runname)) for runname in config['runnames'])
+        modules = [du(m) for m in input.modules]
+        df = pd.DataFrame(data={'name' : ['raw'] + input.modules, 'bytes' : [raw] + modules})
+        df.to_hdf(output[0], 'disk_usage')
 
-drawing=svg2rlg(imgdata)
 
-c = canvas.Canvas('test2.pdf')
-renderPDF.draw(drawing,c, 10, 40)
-c.drawString(10, 300, "So nice it works")
-c.showPage()
-c.save()
+
+
+checkpoint report_sequences:
+    input:
+        lambda wildcards : [x[0] for x in snakemake.utils.listfiles('sequences/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}')]
+    output:
+        directory('report/stats/sequences'),
+        directory('report/plots/sequences')
+    run:
+        import os
+        
+
+
+
+
+checkpoint report_coverage_plot:
+    input:
+        ''
+    output:
+        ''
+    params:
+        bin_width = 500000
+    run:
+        import re
+        import pandas as pd
+        import seaborn as sns
+        from matplotlib import pyplot as plt
+
+        cov_file = 'alignments/ngmlr/guppy/Hues8.fast.hg38.bedGraph'
+        df = pd.read_csv(cov_file, sep='\t', header=None, names=['chr', 'begin', 'end', 'coverage'])
+
+        df['bin'] = df['begin'] // params.bin_width
+
+        def sort_key(k):
+            return ''.join(re.findall(r'\D+', k) + ['{:05d}'.format(int(m)) for m in re.findall(r'\d+', k)])
+
+        df_agg = df.groupby(['chr', 'bin']).agg(
+            begin=('begin', 'first'),
+            end=('end', 'last'),
+            coverage=('coverage', 'median')
+        ).reset_index()
+
+        df_agg['key'] = df_agg.chr.map(sort_key)
+        df_agg = df_agg.sort_values(by=['key', 'begin']).drop(columns=['key'])
+
+        g = sns.FacetGrid(df_agg, col="chr", hue='chr', col_wrap=4, sharex=True, height=1, aspect=3)
+        g = (g.map(plt.plot, "begin", "coverage", marker=".", lw=0, markersize=0.2)
+            .set(ylim=(0, df_agg.coverage.mean() * 1.5))
+            .set_titles("{col_name}"))
+        g.fig.subplots_adjust(wspace=.05, hspace=0.5)
+        g.savefig('coverage.svg')
+
+
+
+
+rule report:
+    input:
+    output:
+        'report.pdf'
+    run:
+        pass

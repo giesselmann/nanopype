@@ -5,6 +5,7 @@ ont_fast5_api>=3.0
 setuptools
 numpy
 pandas
+tables
 matplotlib
 reportlab
 svglib

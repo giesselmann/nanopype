@@ -36,7 +36,8 @@ import os, sys
 from rules.utils.get_file import get_batch_ids_raw, get_signal_batch
 from rules.utils.storage import get_flowcell, get_kit
 # local rules
-localrules: basecaller_merge_batches, basecaller_merge_tag, fastx_stats, basecaller_qc
+localrules: basecaller_merge_batches, basecaller_merge_tag
+
 
 # get batches
 def get_batches_basecaller(wildcards):
@@ -182,31 +183,26 @@ rule basecaller_merge_tag:
                 with open(f, 'rb') as fp_in:
                     fp_out.write(fp_in.read())
 
-# basecalling QC
-rule fastx_stats:
+rule basecaller_stats:
     input:
-        "{file}.fastq.gz"
+        lambda wildcards: get_batches_basecaller(wildcards)
     output:
-        "{file}.fastq.qc.tsv"
-    resources:
-        time_min = lambda wildcards, threads, attempt: int(60 * attempt) # 60 min / 1 thread
+        "sequences/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.hdf5"
     run:
-        import rules.utils.basecalling_fastx_stats
-        rules.utils.basecalling_fastx_stats.main(input[0], output=output[0])
-
-# report from basecalling
-rule basecaller_qc:
-    input:
-        tsv = "{file}.fastq.qc.tsv"
-    output:
-        pdf = "{file}.fastq.pdf"
-    singularity:
-        "docker://nanopype/analysis:{tag}".format(tag=config['version']['tag'])
-    shell:
-        """
-        wd=$(pwd)
-        cp {config[sbin_singularity][basecalling_qc.Rmd]} ./
-        Rscript --vanilla -e 'rmarkdown::render("basecalling_qc.Rmd")' ${{wd}}/{input.tsv}
-        rm ./basecalling_qc.Rmd
-        mv basecalling_qc.pdf {output.pdf}
-        """
+        import gzip
+        import tqdm
+        import pandas as pd
+        def fastq_iter(iterable):
+            while True:
+                try:
+                    _ = next(iterable)
+                    seq = next(iterable)
+                    _ = next(iterable)
+                    qual = next(iterable)
+                except StopIteration:
+                    return
+                mean_q = sum([ord(x) - 33 for x in qual]) / len(qual) if qual else 0.0
+                yield len(seq), mean_q
+        line_iter = (line for f in input for line in gzip.open(f, 'r').read().decode('utf-8').split('\n'))
+        df = pd.DataFrame(fastq_iter(line_iter), columns=['length', 'quality'])
+        df.to_hdf(output[0], 'stats')

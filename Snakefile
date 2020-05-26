@@ -274,6 +274,7 @@ include : "rules/demux.smk"
 include : "rules/transcript.smk"
 include : "rules/clean.smk"
 include : "rules/asm.smk"
+include : "rules/report.smk"
 
 
 
