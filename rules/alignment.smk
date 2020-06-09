@@ -259,12 +259,12 @@ rule aligner_coverage:
     output:
         bedGraph = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bedGraph",
         bw = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bw"
-    threads: 1
+    threads: config.get('threads_samtools') or 1
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        while IFS= read -r bam_file; do {config[bin_singularity][samtools]} view -bF 4 ${{bam_file}} | {config[bin_singularity][bedtools]} bamtobed -i stdin; done < {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][alignment_cov.py]} {input.chr_sizes} > {output.bedGraph}
+        while IFS= read -r bam_file; do {config[bin_singularity][samtools]} view -bF 4 ${{bam_file}} -@ {threads} | {config[bin_singularity][bedtools]} bamtobed -i stdin; done < {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][alignment_cov.py]} {input.chr_sizes} > {output.bedGraph}
         {config[bin_singularity][bedGraphToBigWig]} {output.bedGraph} {input.chr_sizes} {output.bw}
         """
 
