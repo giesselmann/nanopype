@@ -16,6 +16,11 @@ to remove previous files.
     * Rework methylation module to get batch files with consistent format
     * Rework single read methylation script to benefit from multiple cores
 
+Known issues:
+
+:   * The Flappie basecaller is temporarily excluded from the singularity builds due to build errors. Flappie will still work if installed manually.
+
+
 #### v0.10.0 - 2020-02-10
 Main release:
 

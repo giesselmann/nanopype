@@ -58,18 +58,18 @@ RUN python3 -m pip install -r requirements.txt
 
 
 # BUILD STAGE
-FROM base_stage as build_stage
+# FROM base_stage as build_stage
 
 ## system packages
-RUN apt-get install -y --no-install-recommends wget \
+# RUN apt-get install -y --no-install-recommends wget \
     git gcc g++ ninja-build ca-certificates \
     apt-transport-https \
     make cmake python3 python3-dev python3-pip \
     libcunit1-dev libhdf5-dev libopenblas-dev
 
 ## run setup rules
-RUN mkdir /build
-RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory /build flappie --config flappie_src=False
+# RUN mkdir /build
+# RUN snakemake --snakefile rules/install.smk --config build_generator=Ninja --directory /build flappie --config flappie_src=False
 
 
 
@@ -90,7 +90,7 @@ RUN wget -q https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_
         tar --skip-old-files -xzf ont-guppy-cpu_3.4.4_linux64.tar.gz -C /usr/ --strip 1 && \
         rm ont-guppy-cpu_3.4.4_linux64.tar.gz
 
-COPY --from=build_stage /build/bin/* /usr/bin/
+# COPY --from=build_stage /build/bin/* /usr/bin/
 
 WORKDIR /
 # default entrypoint is /bin/sh
