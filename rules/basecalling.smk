@@ -165,7 +165,7 @@ rule basecaller_merge_batches:
     input:
         lambda wildcards: get_batches_basecaller(wildcards)
     output:
-        "sequences/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.fastq.gz"
+        "sequences/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.fastq.gz"
     run:
         with open(output[0], 'wb') as fp_out:
             for f in input:
@@ -187,10 +187,9 @@ rule basecaller_stats:
     input:
         lambda wildcards: get_batches_basecaller(wildcards)
     output:
-        "sequences/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.hdf5"
+        "sequences/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.hdf5"
     run:
         import gzip
-        import tqdm
         import pandas as pd
         def fastq_iter(iterable):
             while True:
@@ -203,6 +202,6 @@ rule basecaller_stats:
                     return
                 mean_q = sum([ord(x) - 33 for x in qual]) / len(qual) if qual else 0.0
                 yield len(seq), mean_q
-        line_iter = (line for f in input for line in gzip.open(f, 'r').read().decode('utf-8').split('\n'))
+        line_iter = (line for f in input for line in gzip.open(f, 'rb').read().decode('utf-8').split('\n'))
         df = pd.DataFrame(fastq_iter(line_iter), columns=['length', 'quality'])
         df.to_hdf(output[0], 'stats')
