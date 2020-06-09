@@ -34,7 +34,6 @@
 import sys, re
 import argparse
 import pandas as pd
-from tqdm import tqdm
 from signal import signal, SIGPIPE, SIG_DFL
 
 
@@ -77,14 +76,16 @@ if __name__ == '__main__':
                 cigar = fields[5]
                 l = opsLength(decodeCigar(cigar), recOps='MID')
                 blast_identity = (l-nm)/l
-                yield fields[0], fields[1], blast_identity
+                yield fields[0], int(fields[1]), blast_identity
             else:
                 yield fields[0], int(fields[1])
-    record_iter = (line for line in tqdm(sys.stdin) if not line.startswith('@'))
+    record_iter = (line for line in sys.stdin if not line.startswith('@'))
     stat_iter = (sam_parser(record_iter))
     df = pd.DataFrame(stat_iter)
     if df.shape[1] == 2:
         df.columns = ['ID', 'flag']
+        df = df.astype({'ID': 'object', 'flag': 'int32'})
     else:
         df.columns = ['ID', 'flag', 'identity']
+        df = df.astype({'ID': 'object', 'flag': 'int32', 'identity': 'float32'})
     df.to_hdf(args.output, 'stats')
