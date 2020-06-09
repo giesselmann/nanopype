@@ -62,10 +62,10 @@ RUN python3 -m pip install -r requirements.txt
 
 ## system packages
 # RUN apt-get install -y --no-install-recommends wget \
-    git gcc g++ ninja-build ca-certificates \
-    apt-transport-https \
-    make cmake python3 python3-dev python3-pip \
-    libcunit1-dev libhdf5-dev libopenblas-dev
+#    git gcc g++ ninja-build ca-certificates \
+#    apt-transport-https \
+#    make cmake python3 python3-dev python3-pip \
+#    libcunit1-dev libhdf5-dev libopenblas-dev
 
 ## run setup rules
 # RUN mkdir /build
