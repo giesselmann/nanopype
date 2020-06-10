@@ -31,49 +31,133 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
+import os
+import itertools
+import matplotlib.pyplot as plt
+from io import BytesIO
+
+from reportlab.platypus import SimpleDocTemplate, Spacer, PageBreak
+from reportlab.platypus import Paragraph, Image, Table
+from reportlab.platypus import ListFlowable
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
+from reportlab.lib.enums import TA_LEFT,  TA_CENTER, TA_RIGHT
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
+from svglib.svglib import svg2rlg
 
 
 
 
+class nanopype_report():
+    def __init__(self, cwd, output):
+        self.cwd = cwd
+        self.tag = os.path.basename(os.path.normpath(self.cwd))
+        self.story = []
+        stylesheet = getSampleStyleSheet()
+        self.title_style = stylesheet['Title']
+        self.heading_style = stylesheet['Heading2']
+        self.heading2_style = stylesheet['Heading3']
+        self.normal_style = stylesheet['Normal']
+        self.body_style = stylesheet['BodyText']
+        self.current_section = 0
+        self.doc = doc = SimpleDocTemplate(output,
+            pagesize=A4,
+            leftMargin=2.2*cm, rightMargin=2.2*cm,
+            topMargin=1.5*cm,bottomMargin=2.5*cm)
+        self.plot_width = self.doc.width * 0.85
 
+    def on_first_page(self, canvas, doc):
+        canvas.saveState()
+        canvas.rotate(90)
+        canvas.setFont('Helvetica-Bold', 100)
+        canvas.setFillGray(0.8)
+        canvas.drawString(0, -0.95*A4[0], "Nanopype")
+        canvas.restoreState()
 
+    def on_later_pages(self, canvas, doc):
+        canvas.saveState()
+        canvas.setFont('Helvetica', 10)
+        canvas.setLineWidth(0.5)
+        canvas.line(doc.leftMargin, 1.5*cm, A4[0]-doc.rightMargin, 1.5*cm)
+        canvas.drawString(doc.leftMargin, 0.8*cm, "Nanopype report")
+        canvas.drawCentredString(A4[0] // 2, 0.8 * cm, "{:d}".format(doc.page))
+        canvas.drawRightString(A4[0] - doc.rightMargin, 0.8*cm, "{}".format(self.tag))
+        canvas.restoreState()
 
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    from io import BytesIO
-    from reportlab.pdfgen import canvas
-    from reportlab.graphics import renderPDF
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.units import cm
+    def get_section_number(self):
+        self.current_section += 1
+        return self.current_section
 
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    def add_summary(self, summary_table=[]):
+        self.story.append(Spacer(1, 8*cm))
+        self.story.append(Paragraph("Sequencing Report", self.title_style))
+        style = self.normal_style
+        style.alignment = TA_CENTER
+        self.story.append(Paragraph("{}".format(self.tag), style))
+        self.story.append(Spacer(1, 4*cm))
+        summary_table_style = [('ALIGN',(0,0),(0,-1),'RIGHT'),
+                               ('ALIGN',(1,0),(1,-1),'LEFT')]
+        if len(summary_table):
+            self.story.append(Table(summary_table, style=summary_table_style))
+        self.story.append(PageBreak())
 
+    def add_section_flowcells(self, runnames=[]):
+        self.story.append(Paragraph("{:d} Flow cells".format(self.get_section_number()), self.heading_style))
+        self.story.append(Spacer(1, 0))
+        table_data = [('{:3d}: '.format(i), runname) for i, runname in enumerate(runnames)]
+        table_style = [('FONTSIZE', (0,0), (-1, -1), 10),
+                        ('BOTTOMPADDING', (0,0), (-1,-1), 1),
+                        ('TOPPADDING', (0,0), (-1,-1), 1),
+                        ('VALIGN', (0,0), (-1,-1), 'MIDDLE')]
+        self.story.append(Table(table_data, style=table_style))
+        self.story.append(Spacer(1, 0.5*cm))
 
-    from svglib.svglib import svg2rlg
+    def add_section_sequences(self, plots=[], stats=None):
+        section = self.get_section_number()
+        subsection = itertools.count(1)
+        self.story.append(Paragraph("{:d} Basecalling".format(section), self.heading_style))
+        self.story.append(Spacer(1, 0))
+        if stats is not None:
+            self.story.append(Paragraph("{:d}.{:d} Summary".format(section, next(subsection)), self.heading2_style))
+            #['Tag', 'Basecalling', 'Sum', 'Mean', 'Median', 'N50', 'Maximum']
+            header = ['', ''] + list(stats.columns.values[2:])
+            table_data = [header] + [[y if isinstance(y, str) else '{:.0f}'.format(y) for y in x] for x in stats.values]
+            table_style = [ ('FONTSIZE', (0,0), (-1, -1), 10),
+                            ('LINEABOVE', (0,1), (-1,1), 0.5, colors.black),
+                            ('LINEBEFORE', (2,0), (2,-1), 0.5, colors.black),
+                            ('ALIGN', (0,0), (1,-1), 'LEFT'),
+                            ('ALIGN', (2,0), (-1,-1), 'RIGHT')]
+            self.story.append(Table(table_data, style=table_style))
+            self.story.append(Spacer(1, 0))
+        for key, group in itertools.groupby(plots, lambda x : x[1].basecalling):
+            self.story.append(Paragraph('{:d}.{:d} {}:'.format(section, next(subsection), key.capitalize()), self.heading2_style))
+            for plot_file, plot_wildcards in sorted(list(group), key=lambda x : x[1].i):
+                im = svg2rlg(plot_file)
+                im = Image(im, width=self.plot_width, height=self.plot_width * im.height / im.width)
+                im.hAlign = 'CENTER'
+                self.story.append(im)
+                self.story.append(Spacer(1, 0.5*cm))
+        self.story.append(Spacer(1, 0.5*cm))
 
-    fig = plt.figure(figsize=(4, 3))
-    plt.plot([1,2,3,4])
-    plt.ylabel('some numbers')
+    def add_section_alignments(self, coverage=[]):
+        section = self.get_section_number()
+        subsection = itertools.count(1)
+        self.story.append(Paragraph("{:d} Alignments".format(section), self.heading_style))
+        self.story.append(Spacer(1, 0))
+        if coverage:
+            self.story.append(Paragraph("{:d}.{:d} Coverage".format(section, next(subsection)), self.heading2_style))
+            im = svg2rlg(coverage[0])
+            im = Image(im, width=self.plot_width, height=self.plot_width * im.height / im.width)
+            im.hAlign = 'CENTER'
+            self.story.append(im)
+            self.story.append(Spacer(1, 0.5*cm))
+        self.story.append(Spacer(1, 0.5*cm))
 
-    imgdata = BytesIO()
-    fig.savefig(imgdata, format='svg')
-    imgdata.seek(0)  # rewind the data
-    drawing=svg2rlg(imgdata)
+    def add_section_methylation(self):
+        self.story.append(Paragraph("{:d} Methylation".format(self.get_section_number()), self.heading_style))
+        self.story.append(Spacer(1, 0))
 
-    Story = []
-    Story.append(Spacer(1, 12))
-    Story.append(Image(drawing))
-
-    doc = SimpleDocTemplate("test.pdf")
-    doc.build(Story)
-
-
-    c = canvas.Canvas('test2.pdf', pagesize=A4)
-    c.translate(cm,cm)
-    renderPDF.draw(drawing, c, 10, 40)
-    c.showPage()
-    c.translate(cm,cm)
-    c.drawString(0, 0, "So nice it works")
-    c.showPage()
-    c.save()
+    def build(self):
+        self.doc.build(self.story, onFirstPage=self.on_first_page, onLaterPages=self.on_later_pages)

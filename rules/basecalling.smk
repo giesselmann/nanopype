@@ -194,7 +194,8 @@ rule basecaller_stats:
         def fastq_iter(iterable):
             while True:
                 try:
-                    _ = next(iterable)
+                    title = next(iterable)
+                    assert title[0] == '@'
                     seq = next(iterable)
                     _ = next(iterable)
                     qual = next(iterable)
@@ -202,6 +203,6 @@ rule basecaller_stats:
                     return
                 mean_q = sum([ord(x) - 33 for x in qual]) / len(qual) if qual else 0.0
                 yield len(seq), mean_q
-        line_iter = (line for f in input for line in gzip.open(f, 'rb').read().decode('utf-8').split('\n'))
+        line_iter = (line for f in input for line in gzip.open(f, 'rb').read().decode('utf-8').split('\n') if line)
         df = pd.DataFrame(fastq_iter(line_iter), columns=['length', 'quality'])
         df.to_hdf(output[0], 'stats')

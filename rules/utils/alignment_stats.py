@@ -71,21 +71,21 @@ if __name__ == '__main__':
             fields = line.strip().split('\t')
             opt_fields = [tuple(x.split(':')) for x in fields[11:]]
             opt_nm = [f[2] for f in opt_fields if f[0] == 'NM']
+            mapped_length = opsLength(decodeCigar(cigar), recOps='MID')
             if opt_nm:
                 nm = int(opt_nm[0])
                 cigar = fields[5]
-                l = opsLength(decodeCigar(cigar), recOps='MID')
-                blast_identity = (l-nm)/l
-                yield fields[0], int(fields[1]), blast_identity
+                blast_identity = (mapped_length-nm)/mapped_length if mapped_length > 0 else 0.0
+                yield fields[0], int(fields[1]), mapped_length, blast_identity
             else:
-                yield fields[0], int(fields[1])
+                yield fields[0], int(fields[1]), mapped_length
     record_iter = (line for line in sys.stdin if not line.startswith('@'))
     stat_iter = (sam_parser(record_iter))
     df = pd.DataFrame(stat_iter)
     if df.shape[1] == 2:
-        df.columns = ['ID', 'flag']
+        df.columns = ['ID', 'flag', 'mapped_length']
         df = df.astype({'ID': 'object', 'flag': 'int32'})
     else:
-        df.columns = ['ID', 'flag', 'identity']
-        df = df.astype({'ID': 'object', 'flag': 'int32', 'identity': 'float32'})
+        df.columns = ['ID', 'flag', 'mapped_length', 'identity']
+        df = df.astype({'ID': 'object', 'flag': 'int32', 'mapped_length': 'int32', 'identity': 'float32'})
     df.to_hdf(args.output, 'stats')
