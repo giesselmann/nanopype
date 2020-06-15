@@ -40,7 +40,7 @@ rule default:
 rule processing:
     input:
         "bin/guppy_basecaller",
-        "bin/flappie",
+        #"bin/flappie",
         "bin/bedtools",
         "bin/samtools",
         "bin/minimap2",

@@ -170,6 +170,7 @@ class fast5_Index():
                     fp_tar.extractall(path=tmpdirname)
                     f5files = [os.path.join(dirpath, f) for dirpath, _, files in os.walk(tmpdirname) for f in files if f.endswith('.fast5')]
                     output_bulk_file = os.path.join(output, os.path.basename(batch_name) + '.fast5')
+                    #single_to_multi_fast5.create_multi_read_file(f5files, output_bulk_file)
                     single_to_multi_fast5.create_multi_read_file(f5files, output_bulk_file, 'gzip')
         # bulk fast5
         elif batch_ext == '.fast5':
