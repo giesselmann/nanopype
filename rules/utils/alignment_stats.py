@@ -42,7 +42,7 @@ from signal import signal, SIGPIPE, SIG_DFL
 # helper
 # decode cigar into list of edits
 def decodeCigar(cigar):
-    ops = [(int(op[:-1]), op[-1]) for op in re.findall('(\d*\D)',cigar)]
+    ops = [(int(op[:-1]), op[-1]) for op in re.findall('(\d*\D)',cigar) if op[:-1]]
     return ops
 
 
@@ -71,21 +71,22 @@ if __name__ == '__main__':
             fields = line.strip().split('\t')
             opt_fields = [tuple(x.split(':')) for x in fields[11:]]
             opt_nm = [f[2] for f in opt_fields if f[0] == 'NM']
-            mapped_length = opsLength(decodeCigar(cigar), recOps='MID')
+            cigar = fields[5]
+            length = opsLength(decodeCigar(cigar), recOps='MIS=X') if cigar != "*" else len(fields[9]) if fields[9] != "*" else 0
+            mapped_length = opsLength(decodeCigar(cigar), recOps='MI=X') if cigar != "*" else 0.0
             if opt_nm:
                 nm = int(opt_nm[0])
-                cigar = fields[5]
-                blast_identity = (mapped_length-nm)/mapped_length if mapped_length > 0 else 0.0
-                yield fields[0], int(fields[1]), mapped_length, blast_identity
+                blast_identity = ((mapped_length-nm)/mapped_length) if mapped_length > 0.0 else 0.0
+                yield fields[0], int(fields[1]), length, mapped_length, blast_identity
             else:
-                yield fields[0], int(fields[1]), mapped_length
+                yield fields[0], int(fields[1]), length, mapped_length
     record_iter = (line for line in sys.stdin if not line.startswith('@'))
     stat_iter = (sam_parser(record_iter))
     df = pd.DataFrame(stat_iter)
     if df.shape[1] == 2:
-        df.columns = ['ID', 'flag', 'mapped_length']
-        df = df.astype({'ID': 'object', 'flag': 'int32'})
+        df.columns = ['ID', 'flag', 'length', 'mapped_length']
+        df = df.astype({'ID': 'object', 'flag': 'int32', 'length': 'int32', 'mapped_length': 'int32'})
     else:
-        df.columns = ['ID', 'flag', 'mapped_length', 'identity']
-        df = df.astype({'ID': 'object', 'flag': 'int32', 'mapped_length': 'int32', 'identity': 'float32'})
+        df.columns = ['ID', 'flag', 'length', 'mapped_length', 'identity']
+        df = df.astype({'ID': 'object', 'flag': 'int32', 'length': 'int32', 'mapped_length': 'int32', 'identity': 'float32'})
     df.to_hdf(args.output, 'stats')

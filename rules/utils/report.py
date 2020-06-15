@@ -35,7 +35,7 @@ import os
 import itertools
 import matplotlib.pyplot as plt
 from io import BytesIO
-
+from svglib.svglib import svg2rlg
 from reportlab.platypus import SimpleDocTemplate, Spacer, PageBreak
 from reportlab.platypus import Paragraph, Image, Table
 from reportlab.platypus import ListFlowable
@@ -44,8 +44,6 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib.enums import TA_LEFT,  TA_CENTER, TA_RIGHT
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-
-from svglib.svglib import svg2rlg
 
 
 
@@ -67,6 +65,7 @@ class nanopype_report():
             leftMargin=2.2*cm, rightMargin=2.2*cm,
             topMargin=1.5*cm,bottomMargin=2.5*cm)
         self.plot_width = self.doc.width * 0.85
+        self.plot_scale = 0.4
 
     def on_first_page(self, canvas, doc):
         canvas.saveState()
@@ -117,9 +116,9 @@ class nanopype_report():
     def add_section_sequences(self, plots=[], stats=None):
         section = self.get_section_number()
         subsection = itertools.count(1)
-        self.story.append(Paragraph("{:d} Basecalling".format(section), self.heading_style))
-        self.story.append(Spacer(1, 0))
         if stats is not None:
+            self.story.append(Paragraph("{:d} Basecalling".format(section), self.heading_style))
+            self.story.append(Spacer(1, 0))
             self.story.append(Paragraph("{:d}.{:d} Summary".format(section, next(subsection)), self.heading2_style))
             #['Tag', 'Basecalling', 'Sum', 'Mean', 'Median', 'N50', 'Maximum']
             header = ['', ''] + list(stats.columns.values[2:])
@@ -135,24 +134,51 @@ class nanopype_report():
             self.story.append(Paragraph('{:d}.{:d} {}:'.format(section, next(subsection), key.capitalize()), self.heading2_style))
             for plot_file, plot_wildcards in sorted(list(group), key=lambda x : x[1].i):
                 im = svg2rlg(plot_file)
-                im = Image(im, width=self.plot_width, height=self.plot_width * im.height / im.width)
+                im = Image(im, width=im.width * self.plot_scale, height=im.height * self.plot_scale)
                 im.hAlign = 'CENTER'
                 self.story.append(im)
-                self.story.append(Spacer(1, 0.5*cm))
+                self.story.append(Spacer(1, 0))
         self.story.append(Spacer(1, 0.5*cm))
 
-    def add_section_alignments(self, coverage=[]):
+    def add_section_alignments(self, counts=[], bases=[], identity=[], coverage=[]):
         section = self.get_section_number()
         subsection = itertools.count(1)
         self.story.append(Paragraph("{:d} Alignments".format(section), self.heading_style))
         self.story.append(Spacer(1, 0))
+        if bases:
+            self.story.append(Paragraph("{:d}.{:d} Mapped bases (primary alignments)".format(section, next(subsection)), self.heading2_style))
+            for b, label in bases:
+                im = svg2rlg(b)
+                im = Image(im, width=im.width * self.plot_scale, height=im.height * self.plot_scale)
+                im.hAlign = 'CENTER'
+                self.story.append(Paragraph(label, self.normal_style))
+                self.story.append(im)
+                self.story.append(Spacer(1, 0))
+        if counts:
+            self.story.append(Paragraph("{:d}.{:d} Mapped reads".format(section, next(subsection)), self.heading2_style))
+            for c, label in counts:
+                im = svg2rlg(c)
+                im = Image(im, width=im.width * self.plot_scale, height=im.height * self.plot_scale)
+                im.hAlign = 'CENTER'
+                self.story.append(Paragraph(label, self.normal_style))
+                self.story.append(im)
+                self.story.append(Spacer(1, 0))
+        if identity:
+            self.story.append(Paragraph("{:d}.{:d} Read identity (primary alignments, all aligners)".format(section, next(subsection)), self.heading2_style))
+            for b, label in identity:
+                im = svg2rlg(b)
+                im = Image(im, width=im.width * self.plot_scale, height=im.height * self.plot_scale)
+                im.hAlign = 'CENTER'
+                self.story.append(Paragraph(label, self.normal_style))
+                self.story.append(im)
+                self.story.append(Spacer(1, 0))
         if coverage:
             self.story.append(Paragraph("{:d}.{:d} Coverage".format(section, next(subsection)), self.heading2_style))
             im = svg2rlg(coverage[0])
-            im = Image(im, width=self.plot_width, height=self.plot_width * im.height / im.width)
+            im = Image(im, width=im.width * self.plot_scale, height=im.height * self.plot_scale)
             im.hAlign = 'CENTER'
             self.story.append(im)
-            self.story.append(Spacer(1, 0.5*cm))
+            self.story.append(Spacer(1, 0))
         self.story.append(Spacer(1, 0.5*cm))
 
     def add_section_methylation(self):
