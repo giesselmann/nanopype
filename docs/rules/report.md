@@ -1,6 +1,7 @@
 # Report
 
 The automatic generation of a pdf-report is the last step in the processing provided by Nanopype. In contrast to all other modules, the report does not trigger any processing and only summarizes, what's present in the current working directory.
+
 Nonetheless it's recommended to check the processing with a dry-run before:
 
 ```
