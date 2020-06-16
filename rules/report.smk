@@ -56,7 +56,7 @@ def get_alignment_summary_report(wildcards):
 
 def configure_seaborn(sns):
     sns.set_palette("colorblind")
-    sns.set_context("paper", font_scale=1.2, rc={
+    sns.set_context("paper", font_scale=1.4, rc={
         "lines.linewidth": 0.75})
     sns.set_style("white", rc={
         #'axes.edgecolor': 'white',
@@ -388,7 +388,7 @@ rule report:
         f_sequences_plots = snakemake.utils.listfiles('report/plots/sequences/sequences{i}_{basecalling}.svg')
         report.add_section_sequences(f_sequences_plots, df_sequences)
         # alignments
-        f_alignments_counts = [(x[0], "Basecalling: {} ({})".format(x[1].sequence_workflow, x[1].tag)) for x in snakemake.utils.listfiles('report/plots/alignments/alignments_counts_{sequence_workflow}_{tag}.svg')]
+        f_alignments_counts = [(x[0], "Basecalling: {} ({})".format(x[1].sequence_workflow, x[1].tag)) for x in snakemake.utils.listfiles('report/plots/alignments/alignments_counts_{sequence_workflow, [^_]*}_{tag}.svg')]
         f_alignments_bases = [(x[0], "Basecalling: {}".format(x[1].sequence_workflow)) for x in snakemake.utils.listfiles('report/plots/alignments/alignments_bases_{sequence_workflow}.svg')]
         f_alignments_identity = [(x[0], "Basecalling: {}".format(x[1].sequence_workflow)) for x in snakemake.utils.listfiles('report/plots/alignments/alignments_identity_{sequence_workflow}.svg')]
         f_alignments_coverage = [x[0] for x in snakemake.utils.listfiles('report/plots/coverage/coverage_{tag}.svg')]
