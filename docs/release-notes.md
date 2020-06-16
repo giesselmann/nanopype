@@ -1,6 +1,6 @@
 # Release notes
 
-#### v0.11.0 - 2020-05-
+#### v0.11.0 - 2020-06-17
 Main release:
 
 The output of nanopype >= v0.11.0 is limited backwards compatible.
@@ -8,13 +8,16 @@ The methylation module was reworked, while output files are identical, the forma
 temporary files changed.
 Please run ```rm methylation/*/*/*/batches/*/*/*.tsv``` in each working directory,
 to remove previous files.
+Nanopype >= v0.11.0 requires a Python >=3.6 installation.
 
-:   * Add onerror and onsuccess handler to workflow
-    * Log each run with config and file system changes
+:   * PDF reports are back without pdflatex backend and with more plots!
+    * Add onerror and onsuccess handler to workflow
+    * Log each pipeline run with config and file system changes
     * Replace ont_fast5_api submodule with pip package
     * Always install go with the pipeline
     * Rework methylation module to get batch files with consistent format
     * Rework single read methylation script to benefit from multiple cores
+    * Fix Flye build in source installation
 
 Known issues:
 

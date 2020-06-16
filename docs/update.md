@@ -30,10 +30,17 @@ According to the versions listed in the [release notes](release-notes.md) tools 
 ```
 rm ~/bin/guppy_basecaller
 cd /path/to/nanopype
-snakemake --snakefile rules/install.smk --directory ~/ guppy
+snakemake --snakefile rules/install.smk --directory ~/ bin/guppy_basecaller
 ```
 
 The build rules are implemented as Snakemake workflows, thus deleting the output file (the binary) triggers a re-run of the build/download process.
+
+All tools can be re-installed by forcing a Snakemake run. This is safer but takes considerably more time.
+
+```
+cd /path/to/nanopype
+snakemake --snakefile rules/install.smk --directory ~/ all --forceall
+```
 
 
 ## Docker
