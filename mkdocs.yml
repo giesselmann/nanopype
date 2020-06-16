@@ -54,8 +54,8 @@ theme:
   name: 'material'
   include_search_page: false
   search_index_only: true
-  logo:
-    icon: 'apps'
+  icon:
+    logo: 'apps'
   static_templates:
     - 404.html
 
