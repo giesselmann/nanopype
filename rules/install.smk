@@ -368,9 +368,9 @@ rule guppy:
         wget -q https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz && \
         tar -xzf ont-guppy-cpu_3.4.4_linux64.tar.gz -C ./ --strip 1 && \
         rm ont-guppy-cpu_3.4.4_linux64.tar.gz
-        ln -s $(pwd)/bin/guppy_basecaller ../../bin/guppy_basecaller
-        ln -s $(pwd)/bin/guppy_barcoder ../../bin/guppy_barcoder
-        ln -s $(pwd)/bin/guppy_basecall_server ../../bin/guppy_basecall_server
+        ln -fs $(pwd)/bin/guppy_basecaller ../../bin/guppy_basecaller
+        ln -fs $(pwd)/bin/guppy_barcoder ../../bin/guppy_barcoder
+        ln -fs $(pwd)/bin/guppy_basecall_server ../../bin/guppy_basecall_server
         """
 
 rule pychopper:
@@ -474,6 +474,6 @@ rule flye:
         else
             cd Flye && git fetch --all --tags --prune && git checkout 2.6
         fi
-        {config[python]} setup.py install
-        ln -s {params.prefix}/local/bin/flye ../../{output.bin}
+        {config[python]} setup.py install --prefix {params.prefix}
+        ln -s {params.prefix}/bin/flye ../../{output.bin}
         """
