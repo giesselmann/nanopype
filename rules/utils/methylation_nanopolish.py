@@ -79,3 +79,16 @@ class tsvParser():
                 yield name, chr, strand, sites
             else:
                 return
+
+
+
+
+if __name__ == '__main__':
+    recordIterator = tsvParser()
+    # skip header
+    next(sys.stdin)
+    # iterate input
+    for name, chr, strand, sites in recordIterator.records(sys.stdin):
+        for begin, end, ratio, log_methylated, log_unmethylated in sites:
+            value = '1' if ratio >= 0 else '0'
+            print('\t'.join([chr, str(begin), str(end), name, str(value), strand, str(ratio)]))

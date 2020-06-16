@@ -35,7 +35,6 @@ import os, sys, re
 import argparse
 import numpy as np
 from itertools import groupby
-from tqdm import tqdm
 from signal import signal, SIGPIPE, SIG_DFL
 
 
@@ -55,7 +54,7 @@ if __name__ == '__main__':
             chr, len_str = line.strip().split('\t')
             chr_dict[chr] = np.zeros(int(len_str), dtype=np.int32)
 
-    for line in tqdm(sys.stdin):
+    for line in sys.stdin:
         chr, begin, end, _ = line.split('\t', 3)
         chr_dict[chr][int(begin):int(end)] += 1
 

@@ -35,24 +35,26 @@
 import os, re
 from rules.utils.get_file import get_batch_ids_raw, get_signal_batch, get_sequence_batch, get_alignment_batch
 # local rules
-localrules: methylation_nanopolish_merge_run, methylation_nanopolish_frequencies
-localrules: methylation_flappie_merge_run, methylation_flappie_frequencies
-localrules: methylation_bedGraph, methylation_bigwig, methylation_compress
+localrules: methylation_merge_run, methylation_frequencies
+localrules: methylation_run_fofn, methylation_tag_fofn
+localrules: methylation_bedGraph, methylation_bigwig
+localrules: methylation_single_read_run, methylation_single_read_tag
 
 # get batches
-def get_batches_methylation(wildcards, config, methylation_caller):
-    r = expand("methylation/{methylation_caller}/{aligner}/{sequence_workflow}/batches/{tag}/{runname}/{batch}.{reference}.tsv",
-            methylation_caller=methylation_caller,
+def get_batches_methylation(wildcards, config, methylation_caller=None, runname=None):
+    runname=runname or wildcards.runname
+    r = expand("methylation/{methylation_caller}/{aligner}/{sequence_workflow}/batches/{tag}/{runname}/{batch}.{reference}",
+            methylation_caller=methylation_caller or wildcards.methylation_caller,
             aligner=wildcards.aligner,
             sequence_workflow=wildcards.sequence_workflow,
             tag=wildcards.tag,
-            runname=wildcards.runname,
+            runname=runname,
             reference=wildcards.reference,
-            batch=get_batch_ids_raw(wildcards.runname, config=config, tag=wildcards.tag, checkpoints=checkpoints))
+            batch=get_batch_ids_raw(runname, config=config, tag=wildcards.tag, checkpoints=checkpoints))
     return r
 
 def get_batches_methylation2(wildcards, config, methylation_caller=None):
-    r = expand("methylation/{methylation_caller}/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.tsv.gz",
+    r = expand("methylation/{methylation_caller}/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}",
                         methylation_caller=methylation_caller or wildcards.methylation_caller,
                         aligner=wildcards.aligner,
                         sequence_workflow=wildcards.sequence_workflow,
@@ -80,7 +82,7 @@ rule methylation_nanopolish:
         bai = lambda wildcards : get_alignment_batch(wildcards, config) + '.bai',
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     output:
-        "methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.tsv"
+        "methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.tsv.gz"
     shadow: "minimal"
     threads: config['threads_methylation']
     resources:
@@ -96,27 +98,8 @@ rule methylation_nanopolish:
         {config[bin_singularity][python]} {config[sbin_singularity][storage_fast5Index.py]} extract {input.batch} raw/ {params.index} --output_format lazy
         zcat {input.sequences} > sequences.fastx
         {config[bin_singularity][nanopolish]} index -d raw/ sequences.fastx
-        {config[bin_singularity][nanopolish]} call-methylation -t {threads} -r sequences.fastx -g {input.reference} -b {input.bam} > {output}
+        {config[bin_singularity][nanopolish]} call-methylation -t {threads} -r sequences.fastx -g {input.reference} -b {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][methylation_nanopolish.py]} | sort -k1,1 -k2,2n | gzip > {output}
         """
-
-# merge batch tsv files and split connected CpGs
-rule methylation_nanopolish_merge_run:
-    input:
-        lambda wildcards: get_batches_methylation(wildcards, config, 'nanopolish')
-    output:
-        temp("methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.\/]*}.tsv")
-    run:
-        from rules.utils.methylation_nanopolish import tsvParser
-        recordIterator = tsvParser()
-        with open(output[0], 'w') as fp_out:
-            for ip in input:
-                with open(ip, 'r') as fp_in:
-                    # skip header
-                    next(fp_in)
-                    # iterate input
-                    for name, chr, strand, sites in recordIterator.records(iter(fp_in)):
-                        for begin, end, ratio, log_methylated, log_unmethylated in sites:
-                            print('\t'.join([chr, str(begin), str(end), name, str(ratio), strand, str(log_methylated), str(log_unmethylated)]), file=fp_out)
 
 # Flappie basecaller methylation alignment
 rule methylation_flappie:
@@ -126,7 +109,7 @@ rule methylation_flappie:
         bam = lambda wildcards, config=config : get_alignment_batch(wildcards, config),
         tsv = lambda wildcards ,config=config : re.sub('.gz$', '.tsv.gz', get_sequence_batch(wildcards, config))
     output:
-        "methylation/flappie/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.tsv"
+        "methylation/flappie/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.tsv.gz"
     shadow: "minimal"
     threads: 1
     resources:
@@ -136,20 +119,7 @@ rule methylation_flappie:
         "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][samtools]} view -F 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][methylation_flappie.py]} align {input.reference} {input.seq} {input.tsv} > {output}
-        """
-
-# merge batch tsv files
-rule methylation_flappie_merge_run:
-    input:
-        lambda wildcards: get_batches_methylation(wildcards, config, 'flappie')
-    output:
-        temp("methylation/flappie/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.\/]*}.tsv")
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
-    shell:
-        """
-        cat {input} > {output}
+        {config[bin_singularity][samtools]} view -F 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][methylation_flappie.py]} align {input.reference} {input.seq} {input.tsv} | sort -k1,1 -k2,2n | gzip > {output}
         """
 
 # Flappie basecaller methylation alignment
@@ -159,7 +129,7 @@ rule methylation_guppy:
         bam = lambda wildcards, config=config : get_alignment_batch(wildcards, config),
         hdf5 = lambda wildcards ,config=config : re.sub('.fastq.gz$', '.hdf5', get_sequence_batch(wildcards, config))
     output:
-        "methylation/guppy/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.tsv"
+        "methylation/guppy/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.tsv.gz"
     shadow: "minimal"
     threads: 1
     resources:
@@ -169,114 +139,58 @@ rule methylation_guppy:
         "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][samtools]} view -F 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][basecalling_guppy_mod.py]} align {input.hdf5} --reference {input.reference} > {output}
+        {config[bin_singularity][samtools]} view -F 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][basecalling_guppy_mod.py]} align {input.hdf5} --reference {input.reference} | sort -k1,1 -k2,2n | gzip > {output}
         """
 
 # merge batch tsv files
-rule methylation_guppy_merge_run:
+rule methylation_merge_run:
     input:
-        lambda wildcards: get_batches_methylation(wildcards, config, 'guppy')
+        lambda wildcards: [f + ".tsv.gz" for f in get_batches_methylation(wildcards, config)]
     output:
-        temp("methylation/guppy/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.\/]*}.tsv")
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
-    shell:
-        """
-        cat {input} > {output}
-        """
+        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, ^.\/#]*}.tsv.gz"
+    run:
+        with open(output[0], 'wb') as fp_out:
+            for f in sorted(input):     # sort by file name, you never know
+                with open(f, 'rb') as fp_in:
+                    fp_out.write(fp_in.read())
 
-# compress methylation caller tsv output
-rule methylation_compress:
+rule methylation_run_fofn:
     input:
-        "methylation/{methylation_caller}/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.tsv"
+        lambda wildcards: [f + ".tsv.gz" for f in get_batches_methylation(wildcards, config)]
     output:
-        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.\/]*}.tsv.gz"
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
-    shell:
-        "cat {input} | sort -k1,1 -k4,4 -k2,2n | gzip > {output}"
+        temp("methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.\/]*}.fofn")
+    run:
+        with open(output[0], 'w') as fp_out:
+            print('\n'.join([re.sub('.tsv.gz$','',f) for f in sorted(input)]), file=fp_out)
 
-# single read methylation tracks for IGV/GViz
-rule methylation_single_read_run:
+rule methylation_tag_fofn:
     input:
-        tsv = "methylation/{methylation_caller}/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.tsv.gz",
-        bam = "alignments/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.bam"
+        lambda wildcards: [f + ".fofn" for f in get_batches_methylation2(wildcards, config)]
     output:
-        bam = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.\/]*}.bam",
-        bai = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.\/]*}.bam.bai"
+        temp("methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.\/#]*}.fofn")
+    run:
+        with open(output[0], 'w') as fp_out:
+            print(''.join(open(f, 'r').read() for f in sorted(input)), file=fp_out, end='')
+
+# methylation probability to frequencies
+rule methylation_frequencies:
+    input:
+        "methylation/{methylation_caller}/{aligner}/{sequence_workflow}/{tag}.{reference}.fofn"
+    output:
+        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.\/]*}.frequencies.tsv.gz"
     params:
-        reference = lambda wildcards: os.path.abspath(config['references'][wildcards.reference]['genome']),
-        threshold = lambda wildcards : config['methylation_nanopolish_logp_threshold'] if wildcards.methylation_caller == 'nanopolish' else config['methylation_flappie_qval_threshold'] if wildcards.methylation_caller == 'flappie' else 0
+        threshold = lambda wildcards : config['methylation_nanopolish_logp_threshold'] if wildcards.methylation_caller == 'nanopolish' else config['methylation_flappie_qval_threshold'] if wildcards.methylation_caller == 'flappie' else config['methylation_guppy_prob_threshold'] if wildcards.methylation_caller == 'guppy' else 0
     singularity:
         "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][samtools]} view -hF 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][methylation_sr.py]} {params.reference} {input.tsv} --threshold {params.threshold} --method {wildcards.methylation_caller} --mode IGV --polish | {config[bin_singularity][samtools]} view -b > {output.bam}
-        {config[bin_singularity][samtools]} index {output.bam}
-        """
-
-rule methylation_single_read:
-    input:
-        bam = lambda wildcards : [re.sub('.tsv.gz', '.bam', f) for f in get_batches_methylation2(wildcards, config)]
-    output:
-        bam = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.\/]*}.bam"
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
-    shell:
-        """
-        {config[bin_singularity][samtools]} merge {output.bam} {input.bam} -p
-        {config[bin_singularity][samtools]} index {output.bam}
-        """
-
-# nanopolish methylation probability to frequencies
-rule methylation_nanopolish_frequencies:
-    input:
-        lambda wildcards : get_batches_methylation2(wildcards, config, 'nanopolish')
-    output:
-        "methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow}/{tag, [^\/]*}.{reference, [^.\/]*}.frequencies.tsv"
-    params:
-        log_p_threshold = config['methylation_nanopolish_logp_threshold']
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
-    shell:
-        """
-        zcat {input} | cut -f1-3,5 | perl -anle 'if(abs($F[3]) > {params.log_p_threshold}){{if($F[3]>{params.log_p_threshold}){{print join("\t", @F[0..2], "1")}}else{{print join("\t", @F[0..2], "0")}}}}' | sort -k1,1 -k2,2n | {config[bin_singularity][bedtools]} groupby -g 1,2,3 -c 4 -o mean,count > {output}
-        """
-
-# flappie methylation with sequences quality to frequencies
-rule methylation_flappie_frequencies:
-    input:
-        lambda wildcards : get_batches_methylation2(wildcards, config, 'flappie')
-    output:
-        "methylation/flappie/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.\/]*}.frequencies.tsv"
-    params:
-        qval_threshold = config['methylation_flappie_qval_threshold']
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
-    shell:
-        """
-        zcat {input} | perl -anle 'print $_ if $F[6] > {params.qval_threshold}' | cut -f1-3,5 | sort -k1,1 -k2,2n | {config[bin_singularity][bedtools]} groupby -g 1,2,3 -c 4 -o mean,count > {output}
-        """
-
-# guppy methylation with sequences quality to frequencies
-rule methylation_guppy_frequencies:
-    input:
-        lambda wildcards : get_batches_methylation2(wildcards, config, 'guppy')
-    output:
-        "methylation/guppy/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.\/]*}.frequencies.tsv"
-    params:
-        prob_threshold = config.get('methylation_guppy_prob_threshold') or 20
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
-    shell:
-        """
-        zcat {input} | cut -f1-3,5 | perl -anle 'if(abs($F[3]) > {params.prob_threshold}){{if($F[3]>{params.prob_threshold}){{print join("\t", @F[0..2], "1")}}else{{print join("\t", @F[0..2], "0")}}}}' | sort -k1,1 -k2,2n | {config[bin_singularity][bedtools]} groupby -g 1,2,3 -c 4 -o mean,count > {output}
+        cat {input} | while read line; do zcat ${{line}}.tsv.gz; done | perl -anle 'print $_ if abs($F[6]) > {params.threshold}' | cut -f1-3,5 | sort -k1,1 -k2,2n | {config[bin_singularity][bedtools]} groupby -g 1,2,3 -c 4 -o mean,count | gzip > {output}
         """
 
 # frequencies to bedGraph
 rule methylation_bedGraph:
     input:
-        "methylation/{methylation_caller}/{aligner}/{sequence_workflow}/{tag}.{reference}.frequencies.tsv"
+        "methylation/{methylation_caller}/{aligner}/{sequence_workflow}/{tag}.{reference}.frequencies.tsv.gz"
     output:
         "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{coverage, [^.\/]*}.{reference, [^.\/]*}.bedGraph"
     params:
@@ -285,7 +199,7 @@ rule methylation_bedGraph:
         "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        cat {input} | perl -anle 'print $_ if $F[4] >= {params.methylation_min_coverage}' | cut -f1-4 > {output}
+        zcat {input} | perl -anle 'print $_ if $F[4] >= {params.methylation_min_coverage}' | cut -f1-4 > {output}
         """
 
 # bedGraph to bigWig
@@ -294,12 +208,77 @@ rule methylation_bigwig:
         bedGraph = "methylation/{methylation_caller}/{aligner}/{sequence_workflow}/{tag}.{coverage}.{reference}.bedGraph",
         chr_sizes = lambda wildcards : config["references"][wildcards.reference]["chr_sizes"]
     output:
-        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow}/{tag, [^\/]*}.{coverage, [^.\/]*}.{reference, [^.\/]*}.bw"
+        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{coverage, [^.\/]*}.{reference, [^.\/]*}.bw"
     singularity:
         "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
     shell:
         """
         {config[bin_singularity][bedGraphToBigWig]} {input.bedGraph} {input.chr_sizes} {output}
+        """
+
+# single read methylation tracks for IGV/GViz
+rule methylation_single_read:
+    input:
+        tsv = "methylation/{methylation_caller}/{aligner}/{sequence_workflow}/batches/{tag}/{runname}/{batch}.{reference}.tsv.gz",
+        bam = lambda wildcards : get_alignment_batch(wildcards, config),
+    output:
+        bam = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.bam",
+        bai = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.bam.bai"
+    threads: 1
+    resources:
+        mem_mb = 16000,
+        time_min = 15
+    params:
+        reference = lambda wildcards: os.path.abspath(config['references'][wildcards.reference]['genome']),
+        threshold = lambda wildcards : config['methylation_nanopolish_logp_threshold'] if wildcards.methylation_caller == 'nanopolish' else config['methylation_flappie_qval_threshold'] if wildcards.methylation_caller == 'flappie' else config['methylation_guppy_prob_threshold'] if wildcards.methylation_caller == 'guppy' else 0
+    singularity:
+        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
+    shell:
+        """
+        {config[bin_singularity][samtools]} view -hF 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][methylation_sr.py]} {params.reference} {input.tsv} --threshold {params.threshold} --mode IGV --polish | {config[bin_singularity][samtools]} view -b > {output.bam}
+        {config[bin_singularity][samtools]} index {output.bam}
+        """
+
+rule methylation_single_read_run:
+    input:
+        fofn = "methylation/{methylation_caller}/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.fofn",
+        bam = lambda wildcards: [f + ".bam" for f in get_batches_methylation(wildcards, config)]
+    output:
+        bam = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.\/]*}.bam"
+    threads: config.get('threads_samtools') or 1
+    params:
+        input_prefix = lambda wildcards, input : input.fofn[:-5]
+    singularity:
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
+    shell:
+        """
+        cat {input.fofn} | while read line; do echo ${{line}}.bam; done | split -l $((`ulimit -n` -10)) - {params.input_prefix}.part_
+        for f in {params.input_prefix}.part_*; do {config[bin_singularity][samtools]} merge ${{f}}.bam -b ${{f}} -p -@ {threads}; done
+        for f in {params.input_prefix}.part_*.bam; do {config[bin_singularity][samtools]} index ${{f}} -@ {threads}; done
+        {config[bin_singularity][samtools]} merge {output.bam} {params.input_prefix}.part_*.bam -p -@ {threads}
+        {config[bin_singularity][samtools]} index {output.bam} -@ {threads}
+        rm {params.input_prefix}.part_*
+        """
+
+rule methylation_single_read_tag:
+    input:
+        fofn = "methylation/{methylation_caller}/{aligner}/{sequence_workflow}/{tag}.{reference}.fofn",
+        bam = lambda wildcards: [f + ".bam" for runname in config['runnames'] for f in get_batches_methylation(wildcards, config, runname=runname)]
+    output:
+        bam = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.\/]*}.bam"
+    threads: config.get('threads_samtools') or 1
+    params:
+        input_prefix = lambda wildcards, input : input.fofn[:-5]
+    singularity:
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
+    shell:
+        """
+        cat {input.fofn} | while read line; do echo ${{line}}.bam; done | split -l $((`ulimit -n` -10)) - {params.input_prefix}.part_
+        for f in {params.input_prefix}.part_*; do {config[bin_singularity][samtools]} merge ${{f}}.bam -b ${{f}} -p -@ {threads}; done
+        for f in {params.input_prefix}.part_*.bam; do {config[bin_singularity][samtools]} index ${{f}} -@ {threads}; done
+        {config[bin_singularity][samtools]} merge {output.bam} {params.input_prefix}.part_*.bam -p -@ {threads}
+        {config[bin_singularity][samtools]} index {output.bam} -@ {threads}
+        rm {params.input_prefix}.part_*
         """
 
 # 1D2 matched methylation table

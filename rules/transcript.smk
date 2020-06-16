@@ -62,7 +62,7 @@ rule pinfish:
         bai = "alignments/{aligner}/{sequence_workflow}/{tag}.{reference}.bam.bai",
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     output:
-        gff = "transcript_isoforms/pinfish/{aligner, [^.\/]*}/{sequence_workflow}/{tag, [^.\/]*}.{reference, [^.\/]*}.gff"
+        gff = "transcript_isoforms/pinfish/{aligner, [^.\/]*}/{sequence_workflow}/{tag, [^\/]*}.{reference, [^.\/]*}.gff"
     threads: config['threads_transcript']
     shadow: 'minimal'
     resources:

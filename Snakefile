@@ -35,7 +35,11 @@
 import os, sys, collections
 import itertools
 import yaml, subprocess
+from datetime import datetime
 from snakemake.utils import min_version
+
+
+start_time = datetime.now()
 
 
 # snakemake config
@@ -54,13 +58,21 @@ def get_tag():
     if '-' in version:
         if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
             print("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container.", file=sys.stderr)
-        return 'latest'
+        return 'latest', version
     else:
-        return version
+        return version, version
 
 
-nanopype_tag = get_tag()
-config['version'] = {'tag': nanopype_tag}
+nanopype_tag, nanopype_git_tag = get_tag()
+config['version'] = {'tag': nanopype_tag, 'full-tag': nanopype_git_tag}
+
+
+# scan working directory
+def get_dir_files(base_dir):
+    return set({os.path.join(path, name) for path, subdirs, files in os.walk(base_dir) for name in files if not '/.' in path})
+
+
+start_files = get_dir_files(workflow.workdir_init)
 
 
 # append username to shadow prefix if not present
@@ -262,3 +274,66 @@ include : "rules/demux.smk"
 include : "rules/transcript.smk"
 include : "rules/clean.smk"
 include : "rules/asm.smk"
+include : "rules/report.smk"
+
+
+
+
+
+# error and success handler
+def print_log(status='SUCCESS'):
+    os.makedirs('log', exist_ok=True)
+    now = datetime.now()
+    log_name = os.path.join('log', now.strftime('%Y%m%d_%H_%M_%S_%f.nanopype.log'))
+    end_files = get_dir_files(workflow.workdir_init)
+    with open(log_name, 'w') as fp:
+        print('Log file for Nanopype version {tag}'.format(tag=nanopype_tag), file=fp)
+        print("Workflow begin: {}".format(start_time.strftime('%d.%m.%Y %H:%M:%S')), file=fp)
+        print("Workflow end:   {}".format(now.strftime('%d.%m.%Y %H:%M:%S')), file=fp)
+        print('Command: {}'.format(' '.join(sys.argv)), file=fp)
+        print('', file=fp)
+        print("Status: {}".format(status), file=fp)
+        print('', file=fp)
+        print("Working directory: {}".format(workflow.workdir_init), file=fp)
+        print("Log file: {}".format(log_name), file=fp)
+        print("Snakemake log file: {}".format(os.path.relpath(logger.logfile)), file=fp)
+        print('', file=fp)
+        print("Nanopype config:", file=fp)
+        print('-----------------------------------', file=fp)
+        print(yaml.dump({key:value for key, value in config.items()
+            if not (isinstance(value, dict) or isinstance(value, list))}, indent=2, sort_keys=True), file=fp)
+        print("Environment config", file=fp)
+        print('-----------------------------------', file=fp)
+        print(yaml.dump({key:value for key, value in config.items()
+            if isinstance(value, dict) or isinstance(value, list)}, indent=2, sort_keys=True), file=fp)
+        print("File system changes:", file=fp)
+        print('-----------------------------------', file=fp)
+        print("New files:", file=fp)
+        print('\n'.join(sorted([f for f in end_files.difference(start_files)])), file=fp)
+        print("Deleted files:", file=fp)
+        print('\n'.join(sorted([f for f in start_files.difference(end_files)])), file=fp)
+    return log_name
+
+onsuccess:
+    log_name = print_log(status='SUCCESS')
+    print("""
+Nanopype completed successfully.
+The log file was written to {}.
+
+If you use Nanopype in your research, please consider citing:
+Giesselmann, P. et al., Nanopype: a modular and scalable nanopore data processing pipeline. Bioinformatics, 2019.""".format(log_name), file=sys.stderr)
+
+
+onerror:
+    log_name = print_log(status='ERROR')
+    print("""
+Nanopype exited with an error.
+The log file was written to {}.
+
+Please visit the documentation at
+    https://nanopype.readthedocs.io/
+to make sure everything is configured correctly.
+
+If you need further assistance, feel free to open an issue at
+    https://github.com/giesselmann/nanopype/issues
+and attach the above Snakemake and Nanopype log files.""".format(log_name), file=sys.stderr)

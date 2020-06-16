@@ -1,6 +1,6 @@
 # Singularity
 
-In order to use the Singularity driven version of Nanopype a working python3 with Snakemake and the pipeline repository itself are sufficient. At least python version 3.4 is required and we recommend to use a virtual environment. Additionally Singularity needs to be installed system wide. On Ubuntu the package is called *singularity-container*. The full installation requires root privileges and might require help of your IT department. Under [Local Singularity](#local-singularity) we describe a workaround for a limited functionality local Singularity installation.  We currently test workflows with Singularity version 3.3.0.
+In order to use the Singularity driven version of Nanopype a working python3 with Snakemake and the pipeline repository itself are sufficient. At least python version 3.6 is required and we recommend to use a virtual environment. Additionally Singularity needs to be installed system wide. On Ubuntu the package is called *singularity-container*. The full installation requires root privileges and might require help of your IT department. Under [Local Singularity](#local-singularity) we describe a workaround for a limited functionality local Singularity installation. We currently test workflows with Singularity version 3.3.0.
 
 Start with creating a virtual environment:
 
@@ -45,9 +45,9 @@ cd ..
 Finally install Nanopype from [github.com/giesselmann](https://github.com/giesselmann/nanopype/). If you use conda you find pip in the *bin/* folder of the conda installation. If you use a conda virtual environment use the pip from the *envs/nanopype/bin*.
 
 ```
-git clone --recursive https://github.com/giesselmann/nanopype
+git clone https://github.com/giesselmann/nanopype
 cd nanopype
-python3 -m pip install -r requirements.txt
+python3 -m pip install . --upgrade
 cd ..
 ```
 

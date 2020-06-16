@@ -40,7 +40,7 @@ rule default:
 rule processing:
     input:
         "bin/guppy_basecaller",
-        "bin/flappie",
+        #"bin/flappie",
         "bin/bedtools",
         "bin/samtools",
         "bin/minimap2",
@@ -73,6 +73,11 @@ rule transcript_core:
         "bin/polish_clusters",
         "bin/spliced_bam2gff"
 
+rule sv:
+    input:
+        "bin/sniffles",
+        "bin/STRique.py"
+
 rule transcript:
     input:
         rules.transcript_core.input,
@@ -88,14 +93,15 @@ rule all:
         rules.alignment.input,
         rules.methylation.input,
         rules.transcript.input,
+        rules.sv.input,
         rules.assembly.input
 
 # helper functions
 def find_go():
     for path in os.environ["PATH"].split(os.pathsep):
         exe_file = os.path.join(path, 'go')
-        if os.path.isfile(exe_file):
-            return exe_file
+        #if os.path.isfile(exe_file):
+        #    return exe_file
     return None
 
 config['python'] = sys.executable
@@ -362,9 +368,9 @@ rule guppy:
         wget -q https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz && \
         tar -xzf ont-guppy-cpu_3.4.4_linux64.tar.gz -C ./ --strip 1 && \
         rm ont-guppy-cpu_3.4.4_linux64.tar.gz
-        ln -s $(pwd)/bin/guppy_basecaller ../../bin/guppy_basecaller
-        ln -s $(pwd)/bin/guppy_barcoder ../../bin/guppy_barcoder
-        ln -s $(pwd)/bin/guppy_basecall_server ../../bin/guppy_basecall_server
+        ln -fs $(pwd)/bin/guppy_basecaller ../../bin/guppy_basecaller
+        ln -fs $(pwd)/bin/guppy_barcoder ../../bin/guppy_barcoder
+        ln -fs $(pwd)/bin/guppy_basecall_server ../../bin/guppy_basecall_server
         """
 
 rule pychopper:
@@ -374,13 +380,13 @@ rule pychopper:
         """
         mkdir -p src && cd src
         if [ ! -d pychopper ]; then
-            git clone https://github.com/nanoporetech/pychopper --branch v0.5.0 && cd pychopper
+            git clone https://github.com/nanoporetech/pychopper --branch v2.2.2 && cd pychopper
         else
-            cd pychopper && git fetch --all --tags --prune && git checkout v0.5.0
+            cd pychopper && git fetch --all --tags --prune && git checkout v2.2.2
         fi
         {config[python]} -m pip install --upgrade incremental
         {config[python]} -m pip install --upgrade certifi
-        {config[python]} -m pip install parasail==1.1.15 --upgrade
+        {config[python]} -m pip install parasail --upgrade
         {config[python]} -m pip install "matplotlib<3.1" --upgrade
         {config[python]} setup.py install
         cp $(pwd)/scripts/cdna_classifier.py ../../{output.bin}
@@ -468,6 +474,6 @@ rule flye:
         else
             cd Flye && git fetch --all --tags --prune && git checkout 2.6
         fi
-        {config[python]} setup.py install
-        ln -s {params.prefix}/local/bin/flye ../../{output.bin}
+        {config[python]} setup.py install --prefix {params.prefix}
+        ln -s {params.prefix}/bin/flye ../../{output.bin}
         """

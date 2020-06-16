@@ -33,6 +33,7 @@
 # ---------------------------------------------------------------------------------
 import os, sys, shutil
 import site
+import setuptools
 from setuptools import setup
 from setuptools.command.install import install
 from setuptools.command.develop import develop
@@ -61,15 +62,15 @@ class CustomInstallCmd(install):
 
 setup(
     name='nanopype',
-    version='0.10.0',
+    version='0.11.0',
     author='Pay Giesselmann',
     author_email='giesselmann@molgen.mpg.de',
     description='Nanopore data processing workflows',
     long_description=open('README.md').read(),
     url='https://github.com/giesselmann/nanopype',
     license='LICENSE',
-    python_requires='>=3.5',
-    install_requires=['snakemake==5.5.2', 'numpy', 'h5py>=2.7.1', 'watchdog'],
+    python_requires='>=3.6',
+    install_requires=open('requirements.txt').read().split('\n'),
     include_package_data=True,
     scripts=['scripts/nanopype_import.py',],
     zip_safe=False,

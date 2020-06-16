@@ -227,7 +227,9 @@ Available guppy commands are:
                     ref_begin = prob_pos[begin:end][0]
                     ref_end = prob_pos[begin:end][-1] + 1
                     if re.fullmatch(args.context, read_expanded[begin:end]):
-                        print('\t'.join([sam._rname, str(ref_begin), str(ref_end), sam._qname, str(prob_mapped[begin] - 127), sam.get_strand()]))
+                        prob = prob_mapped[begin] - 127
+                        value = '1' if prob >=0 else '0'
+                        print('\t'.join([sam._rname, str(ref_begin), str(ref_end), sam._qname, value, sam.get_strand(), str(prob)]))
 
 
 
