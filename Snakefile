@@ -58,13 +58,13 @@ def get_tag():
     if '-' in version:
         if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
             print("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container.", file=sys.stderr)
-        return 'latest'
+        return 'latest', version
     else:
-        return version
+        return version, version
 
 
-nanopype_tag = get_tag()
-config['version'] = {'tag': nanopype_tag}
+nanopype_tag, nanopype_git_tag = get_tag()
+config['version'] = {'tag': nanopype_tag, 'full-tag': nanopype_git_tag}
 
 
 # scan working directory
