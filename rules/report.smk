@@ -123,16 +123,16 @@ checkpoint report_sequences:
         df_list = []
         def n50(df):
             return df[df.throughput > (df.throughput.iloc[-1] / 2)].length.iloc[0]
-        for group, values in itertools.groupby(workflows, lambda x: x[1].sequence_workflow):
+        for sequence_workflow, values in itertools.groupby(workflows, lambda x: x[1].sequence_workflow):
             f, ax = plt.subplots(ncols=2, figsize=(10,5), constrained_layout=True)
             values = list(values)
             n_groups = len(values)
             for tag_folder, tag_wildcards in values:
-                tag_inputs = snakemake.utils.listfiles('sequences/{sequence_workflow}/batches/{tag}/{runname}.hdf5'.format(sequence_workflow=tag_wildcards.sequence_workflow, tag=tag_wildcards.tag, runname='{runname, [^\/]*}'))
+                tag_inputs = snakemake.utils.listfiles('sequences/{sequence_workflow}/batches/{tag}/{runname}.hdf5'.format(sequence_workflow=sequence_workflow, tag=tag_wildcards.tag, runname='{runname, [^\/]*}'))
                 df = pd.concat([pd.read_hdf(f).assign(
                         Flowcell=lambda x: run_id[wc.runname],
                         Tag=lambda x: tag_wildcards.tag,
-                        Basecalling=lambda x: tag_wildcards.sequence_workflow) for f, wc in tag_inputs if wc.runname in config['runnames']])
+                        Basecalling=lambda x: sequence_workflow) for f, wc in tag_inputs if wc.runname in config['runnames']])
                 df_list.append(df)
                 df.sort_values(by='length', inplace=True)
                 df['throughput'] = df.length.cumsum()
@@ -149,7 +149,7 @@ checkpoint report_sequences:
                     label=label,
                     data=df[df.length < xlim].iloc[np.linspace(0, df[df.length < xlim].shape[0]-1, 1000).astype(int)],
                     ax=ax[1])
-                summary.append((tag_wildcards.tag, tag_wildcards.sequence_workflow,
+                summary.append((tag_wildcards.tag, sequence_workflow,
                                 df.length.sum(),
                                 df.length.mean(), df.length.median(),
                                 n50(df), df.length.max()
@@ -161,7 +161,7 @@ checkpoint report_sequences:
             ax[1].set_ylabel('Throughput')
             ax[1].legend()
             f.suptitle("Read length distribution and cumulative throughput")
-            f.savefig(os.path.join(output.plot, 'sequences1_{}.svg'.format(tag_wildcards.sequence_workflow)))
+            f.savefig(os.path.join(output.plot, 'sequences1_{}.svg'.format(sequence_workflow)))
 
         if len(summary):
             df_total = pd.concat(df_list)
@@ -245,17 +245,19 @@ checkpoint report_alignments_stats:
             })], axis=1)
         xlim = df_agg_primary[df_agg_primary['Mapped Bases'] > (0.95 * df_agg_primary['Mapped Bases'].max())].length.iloc[0]
         xlim *= 1.1
-        for bc in df_agg_primary.Basecaller.unique():
+        df_agg_primary.set_index('Basecaller', inplace=True)
+        for bc in df_agg_primary.index.unique():
+            df_subset = df_agg_primary.loc[bc]
             g = sns.relplot(x="length", y="Mapped Bases", hue='Aligner', style='Tag', col="Reference",
-                data=df_agg_primary[df_agg_primary.length < xlim].iloc[np.linspace(0, df_agg_primary[df_agg_primary.length < xlim].shape[0]-1, 1000).astype(int)], kind='line', height=5, aspect=1.0)
+                data=df_subset[df_subset.length < xlim].iloc[np.linspace(0, df_subset[df_subset.length < xlim].shape[0]-1, 1000).astype(int)], kind='line', height=5, aspect=1.0)
             g.fig.subplots_adjust(wspace=.05, hspace=0.5)
             (g.set_axis_labels("Read length", "Mapped Bases"))
             g.savefig(os.path.join(output.plot, 'alignments_bases_{}.svg'.format(bc)))
             # read identity if available
             # TODO this will fail if one aligner sets the NM-tag and the other not
-            if df_agg_primary[df_agg_primary.Basecaller == bc].Identity.sum() > 0:
+            if df_subset.Identity.sum() > 0:
                 g = sns.catplot(x="Flowcell", y="Identity", hue='Tag', row="Reference",
-                    data=df_agg_primary, kind='violin', kwargs={'cut': 0}, height=2.5, aspect=4)
+                    data=df_subset, kind='violin', kwargs={'cut': 0}, height=2.5, aspect=4)
                 g.fig.subplots_adjust(wspace=.05, hspace=0.5)
                 (g.set_axis_labels("Flow cell", "BLAST identity")
                 .set(ylim=(0,1)))
@@ -311,9 +313,8 @@ checkpoint report_methylation:
     output:
         plot = directory('report/plots/methylation/')
     run:
-        import itertools
+        import os, itertools
         import snakemake
-        import numpy as np
         import pandas as pd
         from matplotlib import pyplot as plt
         import seaborn as sns
@@ -322,6 +323,33 @@ checkpoint report_methylation:
         os.makedirs(output.plot, exist_ok=True)
 
         workflows = snakemake.utils.listfiles('methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.\/]*}.frequencies.tsv.gz')
+        df_list = []
+        df_agg_list = []
+        for frequencies, wildcards in workflows:
+            df = pd.read_csv(frequencies, sep='\t', header=None, compression='gzip', names=['chr', 'begin', 'end', 'level', 'coverage'])
+            df.sort_values('coverage', inplace=True)
+            df_agg = df.groupby('coverage', sort=False).agg(
+                count=('coverage', 'count')
+            ).reset_index().sort_values('coverage', ascending=False)
+            df_agg['total'] = df_agg['count'].cumsum()
+            df_agg['Methylation caller'] = wildcards.methylation_caller
+            df_agg['Aligner'] = wildcards.aligner
+            df_agg['Basecaller'] = wildcards.sequence_workflow
+            df_agg['Tag'] = wildcards.tag
+            df_agg['Reference'] = wildcards.reference
+            df_agg_list.append(df_agg)
+        # plots
+        df_agg = pd.concat(df_agg_list)
+        df_agg.set_index(['Basecaller', 'Aligner'], inplace=True)
+        for basecaller, aligner in df_agg.index.unique():
+            df_subset = df_agg.loc[basecaller, aligner]
+            g = sns.relplot(x="coverage", y="total",
+                 col="Reference", hue="Methylation caller", style="Tag",
+                 kind="line", height=5, aspect=1.0,
+                 data=df_subset[df_subset.total > (df_subset.total.max() * 0.05)])
+            g.fig.subplots_adjust(wspace=.05, hspace=0.5)
+            (g.set_axis_labels("Coverage threshold", "CpGs"))
+            g.savefig(os.path.join(output.plot, 'coverage_{}_{}.svg'.format(aligner, basecaller)))
 
 
 
@@ -332,14 +360,14 @@ rule report:
         disk_usage = rules.report_disk_usage.output,
         sequences = rules.report_sequences.output,
         alignments = rules.report_alignments_stats.output,
-        coverage = rules.report_alignments_coverage.output
+        coverage = rules.report_alignments_coverage.output,
+        methylation = rules.report_methylation.output
     output:
         pdf = 'report.pdf'
     run:
         import os
         import pandas as pd
-
-        report = nanopype_report(os.getcwd(), output.pdf)
+        report = nanopype_report(os.getcwd(), output.pdf, version=config['version']['full-tag'])
         # summary
         summary_table = []
         summary_table.append(('{:d}'.format(len(config['runnames'])), 'Flow cells'))
@@ -368,5 +396,8 @@ rule report:
                         bases=f_alignments_bases,
                         identity=f_alignments_identity,
                         coverage=f_alignments_coverage)
+        # methylation
+        f_methylation_coverage = [(x[0], "Basecalling: {}, Alignment: {}".format(x[1].sequence_workflow, x[1].aligner)) for x in snakemake.utils.listfiles('report/plots/methylation/coverage_{aligner}_{sequence_workflow}.svg')]
+        report.add_section_methylation(coverage=f_methylation_coverage)
         # build report pdf
         report.build()

@@ -49,9 +49,10 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 
 class nanopype_report():
-    def __init__(self, cwd, output):
+    def __init__(self, cwd, output, version=''):
         self.cwd = cwd
         self.tag = os.path.basename(os.path.normpath(self.cwd))
+        self.version = version
         self.story = []
         stylesheet = getSampleStyleSheet()
         self.title_style = stylesheet['Title']
@@ -100,6 +101,8 @@ class nanopype_report():
                                ('ALIGN',(1,0),(1,-1),'LEFT')]
         if len(summary_table):
             self.story.append(Table(summary_table, style=summary_table_style))
+        self.story.append(Spacer(1, 1*cm))
+        self.story.append(Paragraph("Nanopype {}".format(self.version), style))
         self.story.append(PageBreak())
 
     def add_section_flowcells(self, runnames=[]):
@@ -181,9 +184,20 @@ class nanopype_report():
             self.story.append(Spacer(1, 0))
         self.story.append(Spacer(1, 0.5*cm))
 
-    def add_section_methylation(self):
-        self.story.append(Paragraph("{:d} Methylation".format(self.get_section_number()), self.heading_style))
+    def add_section_methylation(self, coverage=[]):
+        section = self.get_section_number()
+        subsection = itertools.count(1)
+        self.story.append(Paragraph("{:d} Methylation".format(section), self.heading_style))
         self.story.append(Spacer(1, 0))
+        if coverage:
+            self.story.append(Paragraph("{:d}.{:d} CpG coverage".format(section, next(subsection)), self.heading2_style))
+            for f, label in coverage:
+                im = svg2rlg(f)
+                im = Image(im, width=im.width * self.plot_scale, height=im.height * self.plot_scale)
+                im.hAlign = 'CENTER'
+                self.story.append(Paragraph(label, self.normal_style))
+                self.story.append(im)
+                self.story.append(Spacer(1, 0))
 
     def build(self):
         self.doc.build(self.story, onFirstPage=self.on_first_page, onLaterPages=self.on_later_pages)
