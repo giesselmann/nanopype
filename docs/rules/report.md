@@ -34,8 +34,8 @@ The generated pdf-report is a dynamic document with sections for the different m
 
 An example pdf report of three MinION flow cells is given below:
 
-<object data="https://raw.githubusercontent.com/giesselmann/nanopype/master/docs/report.pdf" type="application/pdf" width="700px" height="700px">
-    <embed src="https://raw.githubusercontent.com/giesselmann/nanopype/master/docs/report.pdf">
-        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="https://raw.githubusercontent.com/giesselmann/nanopype/master/docs/report.pdf">Download PDF</a>.</p>
+<object data="https://github.com/giesselmann/nanopype/raw/master/docs/report.pdf" type="application/pdf" width="700px" height="700px">
+    <embed src="https://github.com/giesselmann/nanopype/raw/master/docs/report.pdf">
+        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="https://github.com/giesselmann/nanopype/raw/master/docs/report.pdf">Download PDF</a>.</p>
     </embed>
 </object>
