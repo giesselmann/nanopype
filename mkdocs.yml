@@ -55,7 +55,7 @@ theme:
   include_search_page: false
   search_index_only: true
   icon:
-    logo: 'apps'
+    logo: material/apps
   static_templates:
     - 404.html
 
