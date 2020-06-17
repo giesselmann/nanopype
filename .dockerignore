@@ -1,4 +1,5 @@
 # exclude from build context
+Dockerfile
 .git
 .snakemake
 **/__pycache__

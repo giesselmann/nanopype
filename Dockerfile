@@ -92,7 +92,7 @@ RUN mkdir -p /usr/local/bin
 RUN mkdir -p /usr/local/lib/guppy
 RUN mkdir -p /usr/local/data
 COPY --from=build_stage /build/bin/* /usr/local/bin/
-COPY --from=build_stage /build/lib/* /usr/local/lib/
+# COPY --from=build_stage /build/lib/* /usr/local/lib/
 COPY --from=build_stage /build/src/guppy/bin/* /usr/local/bin/
 COPY --from=build_stage /build/src/guppy/lib/* /usr/local/lib/guppy/
 COPY --from=build_stage /build/src/guppy/data/* /usr/local/data/
