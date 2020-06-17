@@ -1,5 +1,10 @@
 # Release notes
 
+#### v0.11.1 - 2020-06-18
+Maintenance release:
+
+:   * Fix all-in-one Docker build
+
 #### v0.11.0 - 2020-06-17
 Main release:
 
