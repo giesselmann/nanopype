@@ -61,10 +61,10 @@ rule deepbinner:
     shadow: "minimal"
     threads: config['threads_demux']
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['deepbinner'][0] + config['memory']['deepbinner'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['deepbinner']) # 60 min / 16 threads
-    singularity:
-        "docker://nanopype/demux:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['demux']
     shell:
         """
         mkdir -p raw
@@ -79,13 +79,13 @@ checkpoint guppy_barcode_batches:
         batches = directory("demux/guppy/batches/{runname}")
     threads: config['threads_demux']
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['guppy_barcoder'][0] + config['memory']['guppy_barcoder'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['guppy_barcoder']) # 60 min / 16 threads
     params:
         seq_dir = lambda wildcards, input : os.path.dirname(input.sequences[0]),
         kits = lambda wildcards: '--barcode_kits "{}"'.format(config['demux_guppy_kits'].strip('"')) if 'demux_guppy_kits' in config else ''
-    singularity:
-        "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['basecalling']
     shell:
         """
         {config[bin_singularity][guppy_barcoder]} -i {params.seq_dir} -s {output.batches} -t {threads} -q {config[demux_batch_size]} --compress_fastq --{params.kits}
@@ -99,6 +99,7 @@ checkpoint guppy_barcode:
         barcodes = directory("demux/guppy/barcodes/{runname}")
     threads: config['threads_demux']
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['guppy_barcoder'][0] + config['memory']['guppy_barcoder'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['guppy_barcoder']) # 60 min / 16 threads
     params:

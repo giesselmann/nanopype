@@ -1,11 +1,12 @@
 snakemake==5.5.2
 h5py>=2.7.1
-PyYAML>=5.1
-ont_fast5_api>=3.1.0
+PyYAML>=5.1  # pyyaml with conda
+ont_fast5_api>=3.1.0  # ont-fast5-api with conda
 setuptools
 numpy
 pandas
-tables
+tables  # pytables with conda
 matplotlib
 reportlab
 svglib
+seaborn

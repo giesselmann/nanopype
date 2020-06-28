@@ -86,12 +86,12 @@ rule methylation_nanopolish:
     shadow: "minimal"
     threads: config['threads_methylation']
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, input, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['nanopolish'][0] + config['memory']['nanopolish'][1] * threads)),
         time_min = lambda wildcards, input, threads, attempt: int((960 / threads) * attempt * config['runtime']['nanopolish'])   # 60 min / 16 threads
     params:
         index = lambda wildcards : '--index ' + os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn') if get_signal_batch(wildcards, config).endswith('.txt') else ''
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['methylation']
     shell:
         """
         mkdir -p raw
@@ -113,10 +113,10 @@ rule methylation_flappie:
     shadow: "minimal"
     threads: 1
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, input, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (8000 + 500 * threads)),
         time_min = lambda wildcards, input, threads, attempt: int((15 / threads) * attempt)   # 15 min / 1 thread
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['methylation']
     shell:
         """
         {config[bin_singularity][samtools]} view -F 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][methylation_flappie.py]} align {input.reference} {input.seq} {input.tsv} | sort -k1,1 -k2,2n | gzip > {output}
@@ -133,10 +133,10 @@ rule methylation_guppy:
     shadow: "minimal"
     threads: 1
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, input, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (5000 + 500 * threads)),
         time_min = lambda wildcards, input, threads, attempt: int((15 / threads) * attempt)   # 15 min / 1 thread
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['methylation']
     shell:
         """
         {config[bin_singularity][samtools]} view -F 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][basecalling_guppy_mod.py]} align {input.hdf5} --reference {input.reference} | sort -k1,1 -k2,2n | gzip > {output}
@@ -180,8 +180,7 @@ rule methylation_frequencies:
         "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.\/]*}.frequencies.tsv.gz"
     params:
         threshold = lambda wildcards : config['methylation_nanopolish_logp_threshold'] if wildcards.methylation_caller == 'nanopolish' else config['methylation_flappie_qval_threshold'] if wildcards.methylation_caller == 'flappie' else config['methylation_guppy_prob_threshold'] if wildcards.methylation_caller == 'guppy' else 0
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['methylation']
     shell:
         """
         cat {input} | while read line; do zcat ${{line}}.tsv.gz; done | perl -anle 'print $_ if abs($F[6]) > {params.threshold}' | cut -f1-3,5 | sort -k1,1 -k2,2n | {config[bin_singularity][bedtools]} groupby -g 1,2,3 -c 4 -o mean,count | gzip > {output}
@@ -195,8 +194,7 @@ rule methylation_bedGraph:
         "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{coverage, [^.\/]*}.{reference, [^.\/]*}.bedGraph"
     params:
         methylation_min_coverage = lambda wildcards : get_min_coverage(wildcards)
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['methylation']
     shell:
         """
         zcat {input} | perl -anle 'print $_ if $F[4] >= {params.methylation_min_coverage}' | cut -f1-4 > {output}
@@ -209,8 +207,7 @@ rule methylation_bigwig:
         chr_sizes = lambda wildcards : config["references"][wildcards.reference]["chr_sizes"]
     output:
         "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{coverage, [^.\/]*}.{reference, [^.\/]*}.bw"
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['methylation']
     shell:
         """
         {config[bin_singularity][bedGraphToBigWig]} {input.bedGraph} {input.chr_sizes} {output}
@@ -226,13 +223,13 @@ rule methylation_single_read:
         bai = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.bam.bai"
     threads: 1
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = 16000,
         time_min = 15
     params:
         reference = lambda wildcards: os.path.abspath(config['references'][wildcards.reference]['genome']),
         threshold = lambda wildcards : config['methylation_nanopolish_logp_threshold'] if wildcards.methylation_caller == 'nanopolish' else config['methylation_flappie_qval_threshold'] if wildcards.methylation_caller == 'flappie' else config['methylation_guppy_prob_threshold'] if wildcards.methylation_caller == 'guppy' else 0
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['methylation']
     shell:
         """
         {config[bin_singularity][samtools]} view -hF 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][methylation_sr.py]} {params.reference} {input.tsv} --threshold {params.threshold} --mode IGV --polish | {config[bin_singularity][samtools]} view -b > {output.bam}
@@ -246,10 +243,11 @@ rule methylation_single_read_run:
     output:
         bam = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.\/]*}.bam"
     threads: config.get('threads_samtools') or 1
+    resources:
+        threads = lambda wildcards, threads: threads
     params:
         input_prefix = lambda wildcards, input : input.fofn[:-5]
-    singularity:
-        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['alignment']
     shell:
         """
         cat {input.fofn} | while read line; do echo ${{line}}.bam; done | split -l $((`ulimit -n` -10)) - {params.input_prefix}.part_
@@ -267,10 +265,11 @@ rule methylation_single_read_tag:
     output:
         bam = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.\/]*}.bam"
     threads: config.get('threads_samtools') or 1
+    resources:
+        threads = lambda wildcards, threads: threads
     params:
         input_prefix = lambda wildcards, input : input.fofn[:-5]
-    singularity:
-        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['alignment']
     shell:
         """
         cat {input.fofn} | while read line; do echo ${{line}}.bam; done | split -l $((`ulimit -n` -10)) - {params.input_prefix}.part_
@@ -288,8 +287,7 @@ rule methylation_1D2:
         pairs = "alignments/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.1D2.tsv"
     output:
         "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.\/]*}.1D2.tsv.gz"
-    singularity:
-        "docker://nanopype/methylation:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['methylation']
     shell:
         """
         {config[bin_singularity][python]} {config[sbin_singularity][methylation_1D2.py]} {input.pairs} {input.values} | gzip > {output}

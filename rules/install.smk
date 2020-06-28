@@ -130,6 +130,8 @@ rule bedtools:
     output:
         bin = "bin/bedtools"
     threads: config['threads_build']
+    resources:
+        threads = lambda wildcards, threads: threads
     shell:
         """
         mkdir -p src && cd src
@@ -146,6 +148,8 @@ rule htslib:
     output:
         src = directory("src/htslib")
     threads: config['threads_build']
+    resources:
+        threads = lambda wildcards, threads: threads
     shell:
         """
         mkdir -p src && cd src
@@ -163,6 +167,8 @@ rule samtools:
     output:
         bin = "bin/samtools"
     threads: config['threads_build']
+    resources:
+        threads = lambda wildcards, threads: threads
     shell:
         """
         mkdir -p src && cd src
@@ -179,6 +185,8 @@ rule minimap2:
     output:
         bin = "bin/minimap2"
     threads: config['threads_build']
+    resources:
+        threads = lambda wildcards, threads: threads
     shell:
         """
         mkdir -p src && cd src
@@ -195,6 +203,8 @@ rule graphmap:
     output:
         bin = "bin/graphmap"
     threads: config['threads_build']
+    resources:
+        threads = lambda wildcards, threads: threads
     shell:
         """
         mkdir -p src && cd src
@@ -211,6 +221,8 @@ rule ngmlr:
     output:
         bin = "bin/ngmlr"
     threads: config['threads_build']
+    resources:
+        threads = lambda wildcards, threads: threads
     shell:
         """
         mkdir -p src && cd src
@@ -227,6 +239,8 @@ rule nanopolish:
     output:
         bin = "bin/nanopolish"
     threads: config['threads_build']
+    resources:
+        threads = lambda wildcards, threads: threads
     shell:
         """
         mkdir -p src && cd src
@@ -244,6 +258,8 @@ rule sniffles:
     output:
         bin = "bin/sniffles"
     threads: config['threads_build']
+    resources:
+        threads = lambda wildcards, threads: threads
     shell:
         """
         mkdir -p src && cd src
@@ -298,6 +314,8 @@ rule OpenBLAS:
     output:
         src = directory("src/OpenBLAS")
     threads: config['threads_build']
+    resources:
+        threads = lambda wildcards, threads: threads
     shell:
         """
         install_prefix=`pwd`
@@ -315,6 +333,8 @@ rule hdf5:
     output:
         src = directory("src/hdf5")
     threads: config['threads_build']
+    resources:
+        threads = lambda wildcards, threads: threads
     shell:
         """
         install_prefix=`pwd`
@@ -337,6 +357,8 @@ rule flappie:
     output:
         bin = "bin/flappie"
     threads: config['threads_build']
+    resources:
+        threads = lambda wildcards, threads: threads
     shell:
         """
         install_prefix=`pwd`

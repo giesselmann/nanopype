@@ -43,8 +43,9 @@ rule flye:
         seq = lambda wildcards : get_sequence_runs(wildcards, config)
     output:
         fa = "assembly/flye/{sequence_workflow}/{tag}.fasta"
-    threads : config.get('threads_asm') or 1
+    threads: config.get('threads_asm') or 1
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['flye'][0] + config['memory']['flye'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((576000 / threads) * attempt * config['runtime']['flye'])   # 120 h / 80 threads
     params:
@@ -52,8 +53,7 @@ rule flye:
         flye_flags = config.get('asm_flye_flags') or '',
         flye_preset = config.get('asm_flye_preset') or '--nano-raw',
         genome_size = lambda wildcards : config.get('asm_genome_size') or '3.0g'
-    singularity:
-        "docker://nanopype/assembly:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['assembly']
     shell:
         """
         flye_dir=`dirname {config[bin_singularity][python]}`

@@ -153,6 +153,31 @@ else:
     raise RuntimeError("[ERROR] No binaries in environment configuration.")
 
 
+# verify singulalrity images
+singularity_images = [d for d in os.listdir('singularity/') if os.path.isdir(os.path.join('singularity', d))]
+if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
+    if 'singularity_images' not in nanopype_env:
+        print("[WARNING] No Singularity images were provided. Default ones will be used.", file=sys.stderr)
+        nanopype_env['singularity_images'] = {}
+        for singularity_image in singularity_images:
+            nanopype_env['singularity_images'][singularity_image] = \
+                'docker://nanopype/{singularity_image}:{version}'.format(
+                    singularity_image=singularity_image,
+                    version=config['version']['tag'])
+        print('[INFO] Singularity images: {}'.format(nanopype_env['singularity_images']), file=sys.stderr)
+    else:
+        if any(map(lambda x: x not in nanopype_env['singularity_images'].keys(), singularity_images)):
+            raise RuntimeError("[ERROR] Missing some Singularity images in environment configuration."
+                               " Need to specipy: {}".format(singularity_images))
+else:
+    nanopype_env['singularity_images'] = {}
+    for singularity_image in singularity_images:
+        nanopype_env['singularity_images'][singularity_image] = None
+config['singularity_images'] = {}
+for singularity_image, image in nanopype_env['singularity_images'].items():
+    config['singularity_images'][singularity_image] = image
+
+
 # Runtime scaling of data depending tools
 if 'runtime' in nanopype_env:
     config['runtime'] = {}

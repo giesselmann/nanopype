@@ -42,10 +42,10 @@ checkpoint pychopper:
     shadow: "minimal"
     threads: 1
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (3000 + 1000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 90 min / 16 threads
-    singularity:
-        "docker://nanopype/transcript:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['transcript']
     shell:
         """
         mkfifo input_seq
@@ -66,10 +66,10 @@ rule pinfish:
     threads: config['threads_transcript']
     shadow: 'minimal'
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['pinfish'][0] + config['memory']['pinfish'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['pinfish']) # 90 min / 16 threads
-    singularity:
-        "docker://nanopype/transcript:{tag}".format(tag=config['version']['tag'])
+    singularity: config['singularity_images']['transcript']
     shell:
         """
         racon_dir=`dirname {config[bin_singularity][racon]}`

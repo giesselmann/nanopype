@@ -1,0 +1,5 @@
+cluster: slurm_submission_wrapper.py
+jobs: 8
+resources: threads=8
+shadow-prefix: /tmp/nanopype_snakemake
+cluster-status: slurm_status.py
