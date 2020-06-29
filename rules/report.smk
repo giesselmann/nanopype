@@ -339,17 +339,18 @@ checkpoint report_methylation:
             df_agg['Reference'] = wildcards.reference
             df_agg_list.append(df_agg)
         # plots
-        df_agg = pd.concat(df_agg_list)
-        df_agg.set_index(['Basecaller', 'Aligner'], inplace=True)
-        for basecaller, aligner in df_agg.index.unique():
-            df_subset = df_agg.loc[basecaller, aligner]
-            g = sns.relplot(x="coverage", y="total",
-                 col="Reference", hue="Methylation caller", style="Tag",
-                 kind="line", height=5, aspect=1.0,
-                 data=df_subset[df_subset.total > (df_subset.total.max() * 0.05)])
-            g.fig.subplots_adjust(wspace=.05, hspace=0.5)
-            (g.set_axis_labels("Coverage threshold", "CpGs"))
-            g.savefig(os.path.join(output.plot, 'coverage_{}_{}.svg'.format(aligner, basecaller)))
+        if df_agg_list:
+            df_agg = pd.concat(df_agg_list)
+            df_agg.set_index(['Basecaller', 'Aligner'], inplace=True)
+            for basecaller, aligner in df_agg.index.unique():
+                df_subset = df_agg.loc[basecaller, aligner]
+                g = sns.relplot(x="coverage", y="total",
+                     col="Reference", hue="Methylation caller", style="Tag",
+                     kind="line", height=5, aspect=1.0,
+                     data=df_subset[df_subset.total > (df_subset.total.max() * 0.05)])
+                g.fig.subplots_adjust(wspace=.05, hspace=0.5)
+                (g.set_axis_labels("Coverage threshold", "CpGs"))
+                g.savefig(os.path.join(output.plot, 'coverage_{}_{}.svg'.format(aligner, basecaller)))
 
 
 
