@@ -25,7 +25,7 @@ threads_sv: 4
 threads_demux: 4
 threads_transcript: 4
 threads_transcript_batch: 4
-threads_asm: 80
+threads_asm: 4
 
 
 # basecalling
