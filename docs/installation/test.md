@@ -6,6 +6,18 @@ An initial test validates the presence of all required tools. This is only requi
 
     python3 test/test_install.py
 
+If a tool is not correctly installed, the output lists failed test cases. If you don't plan to use these, you can safely ignore the messages.
+
+```
+======================================================================
+FAIL: test_binary_albacore (__main__.test_case_binary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test/test_install.py", line 57, in fn
+    self.fail('{} is not executable'.format(self.binary_path))
+AssertionError: /project/minion/bin/read_fast5_basecaller.py is not executable
+```
+
 Secondly the functionality of the pipeline itself is tested on a small sample data set. The command is slightly different depending on the installation method:
 
 **Singularity**
