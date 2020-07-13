@@ -34,45 +34,54 @@
 import os, unittest, yaml
 
 
+
+
 def __is_exe__(fpath):
     return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
 
-# Test cases
-class test_unit_binaries(unittest.TestCase):
-    def setUp(self):
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', "env.yaml"), 'r') as fp:
-            self.nanopype_env = yaml.load(fp)
 
-    # Test if executables are found in absolute or PATH
-    def test_callables(self):
-        fail = False
-        for key, ex in self.nanopype_env['bin'].items():
-            print("Testing " + str(key))
-            # from https://stackoverflow.com/questions/377017/test-if-executable-exists-in-python
-            fpath, fname = os.path.split(ex)
-            if fpath:
-                if __is_exe__(ex):
-                    print(" ".join(["[INFO] Found", key, "in", fpath]))
-                else:
-                    print('[ERROR] ' + key + ": " + ex + " is not executable")
-                    fail = True
-                    #raise EnvironmentError(key + ": " + ex + " is not executable")
-            else:
-                exe_file_valid = None
-                for path in os.environ["PATH"].split(os.pathsep):
-                    exe_file = os.path.join(path, ex)
-                    if os.path.isfile(exe_file) and __is_exe__(exe_file):
-                        exe_file_valid = exe_file
-                if exe_file_valid:
-                    print(" ".join(["[Info] Found", key, "in", exe_file_valid]))
-                else:
-                    print('[ERROR]' + key + ": " + ex + " is not executable or found in PATH")
-                    fail = True
-                    #raise EnvironmentError(key + ": " + ex + " is not executable or found in PATH")
-        if fail:
-            raise EnvironmentError("One or more binaries not found or not executable")
+
+# generic test case locating binaries and testing if executable
+class test_case_binary(unittest.TestCase):
+    def __init__(self, binary_path='', methodName='none'):
+        self.binary_path = binary_path
+        # add dynamic named test case
+        def add_test_case(methodName):
+           def fn(self):
+              fpath, fname = os.path.split(self.binary_path)
+              if fpath:
+                  if __is_exe__(self.binary_path):
+                      return
+                  else:
+                      self.fail('{} is not executable'.format(self.binary_path))
+              else:
+                  exe_file_valid = None
+                  for path in os.environ["PATH"].split(os.pathsep):
+                      exe_file = os.path.join(path, self.binary_path)
+                      if os.path.isfile(exe_file) and __is_exe__(exe_file):
+                          exe_file_valid = exe_file
+                  if exe_file_valid:
+                      return
+                  else:
+                      self.fail('{} is not executable or found in PATH'.format(self.binary_path))
+           setattr(test_case_binary, methodName, fn)
+        # add dynamic method with methodName
+        add_test_case(methodName)
+        super(test_case_binary, self).__init__(methodName)
+
+    def setUp(self):
+        pass
+
+
+
 
 # main function
 if __name__ == '__main__':
-    unittest.main()
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', "env.yaml"), 'r') as fp:
+        nanopype_env = yaml.safe_load(fp)
+    suite = unittest.TestSuite()
+    for key, ex in nanopype_env['bin'].items():
+        suite.addTest(test_case_binary(ex, 'test_binary_{}'.format(key)))
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
