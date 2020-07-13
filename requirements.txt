@@ -3,6 +3,7 @@ h5py>=2.7.1
 PyYAML>=5.1
 ont_fast5_api>=3.1.0
 setuptools
+wget
 numpy
 pandas
 tables
