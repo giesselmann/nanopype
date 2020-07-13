@@ -57,7 +57,10 @@ def fastxIter(iterable):
                 comment = next_decode(it)
                 quality = next_decode(it)
                 yield name, sequence, comment, quality
-                line = next_decode(it)
+                try:
+                    line = next_decode(it)
+                except StopIteration:
+                    return
             elif line[0] == '>':      # fasta
                 name = line
                 sequence = next_decode(it)
@@ -103,7 +106,7 @@ Available flappie commands are:
             parser.print_help(file=sys.stderr)
             exit(1)
         getattr(self, args.command)(sys.argv[2:])
-        
+
     # decode cigar into list of edits
     def __decodeCigar__(self, cigar):
         ops = [(int(op[:-1]), op[-1]) for op in re.findall('(\d*\D)',cigar)]
@@ -113,7 +116,7 @@ Available flappie commands are:
     def __opsLength__(self, ops, recOps='MIS=X'):
         n = [op[0] for op in ops if op[1] in recOps]
         return sum(n)
-        
+
     def __annotate__(self, qname, flag, rname, pos, cigar):
         if rname in self.ref and qname in self.reads and qname in self.annotation:
             # restore original sequence

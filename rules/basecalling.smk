@@ -67,7 +67,7 @@ rule albacore:
         run = lambda wildcards : [os.path.join(config['storage_data_raw'], wildcards.runname)] + ([os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')] if get_signal_batch(wildcards, config).endswith('.txt') else [])
     output:
         "sequences/albacore/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.fastq.gz"
-    shadow: "minimal"
+    shadow: "shallow"
     threads: config['threads_basecalling']
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['albacore'][0] + config['memory']['albacore'][1] * threads)),
@@ -98,7 +98,7 @@ rule guppy:
     output:
         ["sequences/guppy/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.fastq.gz"] +
         (["sequences/guppy/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.hdf5"] if config.get('basecalling_guppy_config') and 'modbases' in config['basecalling_guppy_config'] else [])
-    shadow: "minimal"
+    shadow: "shallow"
     threads: config['threads_basecalling']
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['guppy_basecaller'][0] + config['memory']['guppy_basecaller'][1] * threads)),
@@ -126,7 +126,6 @@ rule guppy:
         fi
         find ${{FASTQ_DIR}} -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; | gzip > {output[0]}
         if [ \'{params.mod_table}\' != '' ]; then
-            echo `find workspace/ -name '*.fast5'`
             {config[bin_singularity][python]} {config[sbin_singularity][basecalling_guppy_mod.py]} extract `find workspace/ -name '*.fast5'` {params.mod_table}
         fi
         """
@@ -139,7 +138,7 @@ rule flappie:
     output:
         sequence = "sequences/flappie/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.fastq.gz",
         methyl_marks = "sequences/flappie/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.tsv.gz"
-    shadow: "minimal"
+    shadow: "shallow"
     threads: config['threads_basecalling']
     resources:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['flappie'][0] + config['memory']['flappie'][1] * threads)),
@@ -156,7 +155,8 @@ rule flappie:
         find raw/ -regextype posix-extended -regex '^.*fast5' -type f -exec du -h {{}} + | sort -r -h | cut -f2 > raw.fofn
         split -e -n r/{threads} raw.fofn raw.fofn.part.
         ls raw.fofn.part.* | xargs -n 1 -P {threads} -I {{}} $SHELL -c 'cat {{}} | shuf | xargs -n 1 {config[bin_singularity][flappie]} --model {config[basecalling_flappie_model]} {config[basecalling_flappie_flags]} > raw/{{}}.fastq'
-        find ./raw -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; | gzip > {output.sequence}
+        find ./raw -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; > {wildcards.batch}.fq
+        cat {wildcards.batch}.fq | {config[bin_singularity][python]} {config[sbin_singularity][methylation_flappie.py]} split methyl_marks.tsv | gzip > {output.sequence}
         cat methyl_marks.tsv | gzip > {output.methyl_marks}
         """
 

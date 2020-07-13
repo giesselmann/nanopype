@@ -67,7 +67,7 @@ class fasta_index(object):
             for i, o in enumerate(idx[:-1]):
                 fp.seek(o)
                 title = fp.readline().strip()
-                name = title[1:].decode('utf-8')
+                name = title.decode('utf-8')[1:].split(' ')[0]
                 self.records[name] = (o, idx[i+1] - o)
                 self.record_names.append(name)
 

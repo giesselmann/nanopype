@@ -83,7 +83,7 @@ rule methylation_nanopolish:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome']
     output:
         "methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.tsv.gz"
-    shadow: "minimal"
+    shadow: "shallow"
     threads: config['threads_methylation']
     resources:
         mem_mb = lambda wildcards, input, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['nanopolish'][0] + config['memory']['nanopolish'][1] * threads)),
@@ -107,7 +107,7 @@ rule methylation_flappie:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         seq = lambda wildcards, config=config : get_sequence_batch(wildcards, config),
         bam = lambda wildcards, config=config : get_alignment_batch(wildcards, config),
-        tsv = lambda wildcards ,config=config : re.sub('.gz$', '.tsv.gz', get_sequence_batch(wildcards, config))
+        tsv = lambda wildcards ,config=config : re.sub('.fastq.gz$', '.tsv.gz', get_sequence_batch(wildcards, config))
     output:
         "methylation/flappie/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.tsv.gz"
     shadow: "minimal"

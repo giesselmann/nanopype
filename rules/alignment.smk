@@ -103,9 +103,9 @@ rule graphmap:
 # graphmap index
 rule graphmap_index:
     input:
-        fasta = "{reference}.fa"
+        fasta = "{reference}.{ext}"
     output:
-        index = "{reference}.fa.gmidx"
+        index = "{reference}.{ext, (fa|fasta)}.gmidx"
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
@@ -137,9 +137,9 @@ rule ngmlr:
 # NGMLR index
 rule ngmlr_index:
     input:
-        fasta = "{reference}.fa"
+        fasta = "{reference}.{ext}"
     output:
-        index = "{reference}.fa.ngm"
+        index = "{reference}.{ext, (fa|fasta)}.ngm"
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
