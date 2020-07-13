@@ -1,5 +1,15 @@
 # Release notes
 
+#### v0.11.2 - 2020
+Maintenance release:
+
+:   * Rewrite unit tests for src and singularity
+    * Fix snakemake file exists error in case of raw data relative to workdir
+    * Fix Flappie basecalling "cat: methyl_marks.tsv: No such file or directory"
+    * Fix Flappie basecalling with fastq output
+    * Fix GraphMap and NGMLR index for .fasta extension (worked for .fa only)
+    * Fix single read methylation .bam for references with whitespace in name
+
 #### v0.11.1 - 2020-06-18
 Maintenance release:
 
