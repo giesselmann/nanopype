@@ -1,5 +1,5 @@
 # Raw sequencing data parent directory containing one folder per flow cell
-storage_data_raw : /data/raw
+storage_data_raw : raw/
 
 
 # How to parse the folders found in 'storage_data_raw'. A 'reads' subfolder is
