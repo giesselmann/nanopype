@@ -32,7 +32,7 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 import os, unittest, yaml
-
+from test_base import test_case_base
 
 
 
@@ -43,32 +43,28 @@ def __is_exe__(fpath):
 
 
 # generic test case locating binaries and testing if executable
-class test_case_binary(unittest.TestCase):
+class test_case_binary(test_case_base):
     def __init__(self, binary_path='', methodName='none'):
         self.binary_path = binary_path
         # add dynamic named test case
-        def add_test_case(methodName):
-           def fn(self):
-              fpath, fname = os.path.split(self.binary_path)
-              if fpath:
-                  if __is_exe__(self.binary_path):
-                      return
-                  else:
-                      self.fail('{} is not executable'.format(self.binary_path))
-              else:
-                  exe_file_valid = None
-                  for path in os.environ["PATH"].split(os.pathsep):
-                      exe_file = os.path.join(path, self.binary_path)
-                      if os.path.isfile(exe_file) and __is_exe__(exe_file):
-                          exe_file_valid = exe_file
-                  if exe_file_valid:
-                      return
-                  else:
-                      self.fail('{} is not executable or found in PATH'.format(self.binary_path))
-           setattr(test_case_binary, methodName, fn)
-        # add dynamic method with methodName
-        add_test_case(methodName)
-        super(test_case_binary, self).__init__(methodName)
+        def fn(self):
+           fpath, fname = os.path.split(self.binary_path)
+           if fpath:
+               if __is_exe__(self.binary_path):
+                   return
+               else:
+                   self.fail('{} is not executable'.format(self.binary_path))
+           else:
+               exe_file_valid = None
+               for path in os.environ["PATH"].split(os.pathsep):
+                   exe_file = os.path.join(path, self.binary_path)
+                   if os.path.isfile(exe_file) and __is_exe__(exe_file):
+                       exe_file_valid = exe_file
+               if exe_file_valid:
+                   return
+               else:
+                   self.fail('{} is not executable or found in PATH'.format(self.binary_path))
+        super(test_case_binary, self).__init__(fn, methodName)
 
     def setUp(self):
         pass

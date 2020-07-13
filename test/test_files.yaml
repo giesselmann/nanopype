@@ -1,0 +1,25 @@
+basecalling:
+    - sequences/albacore/batches/tag/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda/batch0.fastq.gz
+    - sequences/albacore/tag.fastq.gz
+    - sequences/flappie/batches/tag/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda/batch0.fastq.gz
+    - sequences/flappie/tag.fastq.gz
+    - sequences/guppy/batches/tag/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda/batch0.fastq.gz
+    - sequences/guppy/tag.fastq.gz
+alignment:
+    - alignments/minimap2/guppy/batches/tag/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda/batch0.NC_001416_1.bam
+    - alignments/minimap2/guppy/tag.NC_001416_1.bam
+    - alignments/graphmap/guppy/batches/tag/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda/batch0.NC_001416_1.bam
+    - alignments/graphmap/guppy/tag.NC_001416_1.bam
+    - alignments/ngmlr/guppy/batches/tag/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda/batch0.NC_001416_1.bam
+    - alignments/ngmlr/guppy/tag.NC_001416_1.bam
+    - alignments/minimap2/guppy/batches/tag/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda.NC_001416_1.hdf5
+    - alignments/minimap2/guppy/tag.NC_001416_1.bw
+methylation:
+    - methylation/nanopolish/minimap2/guppy/tag.1x.NC_001416_1.bedGraph
+    - methylation/nanopolish/minimap2/guppy/tag.1x.NC_001416_1.bw
+    - methylation/nanopolish/minimap2/guppy/tag.NC_001416_1.bam
+    - methylation/flappie/minimap2/flappie/tag.1x.NC_001416_1.bedGraph
+    - methylation/flappie/minimap2/flappie/tag.1x.NC_001416_1.bw
+    - methylation/flappie/minimap2/flappie/tag.NC_001416_1.bam
+sv:
+    - sv/sniffles/ngmlr/guppy/tag.NC_001416_1.vcf

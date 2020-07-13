@@ -31,90 +31,115 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-import os, glob, unittest, yaml
-import argparse
+import os, glob, argparse, yaml
 import subprocess
+import unittest
+import filecmp, shutil, wget
 import urllib.request
+from test_base import test_case_base
 
 
-# Test cases
-class test_unit_src(unittest.TestCase):
+
+
+base_url = 'https://owww.molgen.mpg.de/~nanopype/unit/{}'
+
+
+
+
+def init_test_dir(repo_dir, test_dir='.'):
+    if not os.path.exists(test_dir):
+        os.makedirs(test_dir)
+    os.chdir(test_dir)
+    # get list of filenames
+    fofn_url = base_url.format('index.fofn')
+    files = [file for file in urllib.request.urlopen(fofn_url).read().decode('utf-8').split('\n') if file]
+    # download files from
+    for file in files:
+        file_dir = os.path.dirname(file)
+        os.makedirs(file_dir, exist_ok=True)
+        if os.path.isfile(file):
+            os.remove(file)
+        wget.download(base_url.format(file), file, bar=None)
+    # copy nanopype.yaml from repo
+    shutil.copyfile(os.path.join(repo_dir, 'nanopype.yaml'),
+                    './nanopype.yaml')
+    # init test_dir as git repo to track changes
+    if not os.path.isdir('.git'):
+        subprocess.run('git init', check=True, shell=True, stdout=subprocess.PIPE)
+    with open('.gitignore', 'w') as fp:
+        print(".snakemake", file=fp)
+        print("**/__pycache__", file=fp)
+        print("log", file=fp)
+    subprocess.run('git add .', check=True, shell=True, stdout=subprocess.PIPE)
+    subprocess.run('git commit -m "init"', check=False, shell=True, stdout=subprocess.PIPE)
+    return os.getcwd()
+
+
+
+
+def reset_test_dir(test_dir='.'):
+    subprocess.run('git reset --hard', check=True, shell=True, stdout=subprocess.PIPE)
+    subprocess.run('git clean -f -d', check=True, shell=True, stdout=subprocess.PIPE)
+
+
+
+
+class test_case_src(test_case_base):
+    def __init__(self, snakefile, test_file, test_dir='.', methodName='none'):
+        self.test_dir = test_dir
+        base_cmd = 'snakemake -j 4 --snakefile {snakefile} --directory {test_dir} '.format(
+            snakefile=snakefile, test_dir=test_dir)
+        def fn(self):
+            # move expected output file if present
+            exp = False
+            if os.path.isfile(test_file):
+                shutil.move(test_file, test_file + '.expected_output')
+                exp = True
+            # run test
+            subprocess.run(base_cmd + test_file, check=True, shell=True, stdout=subprocess.PIPE)
+            # compare if expected output was present
+            if exp:
+                equal = filecmp.cmp(test_file, test_file + '.expected_output')
+                #self.assertTrue(equal, "Computed and expected output are not equal.")
+        super(test_case_src, self).__init__(fn, methodName)
+
     def setUp(self):
-        self.repo_dir = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
-        self.test_dir = os.path.join(self.repo_dir, 'test')
-        # make data directory and extract test reads
-        data_dir = os.path.join(self.test_dir, 'data', 'raw')
-        os.makedirs(data_dir, exist_ok=True)
-        print("Extracting read data ...")
-        subprocess.run('tar -xzf {archive} -C {data_dir}'.format(archive=os.path.join(self.test_dir, 'test_data.tar.gz'),data_dir=data_dir), check=True, shell=True, stdout=subprocess.PIPE)
-        # download reference fasta
-        ref_dir = os.path.join(self.test_dir, 'references')
-        os.makedirs(ref_dir, exist_ok=True)
-        ref_file = os.path.join(ref_dir, 'chr6.fa')
-        if not os.path.isfile(ref_file):
-            print("Download reference sequence ...")
-            urllib.request.urlretrieve('http://hgdownload.cse.ucsc.edu/goldenpath/hg38/chromosomes/chr6.fa.gz', ref_file + '.gz')
-            subprocess.run('gzip -d {ref_file}.gz'.format(ref_file=ref_file), check=True, shell=True, stdout=subprocess.PIPE)
-        size_file = os.path.join(ref_dir, 'chr6.sizes')
-        if not os.path.isfile(size_file):
-            urllib.request.urlretrieve('http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.chrom.sizes', size_file)
-        # modify config and copy to workdir
-        with open(os.path.join(self.test_dir, '..', 'nanopype.yaml'), 'r') as fp:
-            try:
-                default_config = yaml.load(fp)
-            except yaml.YAMLError as exc:
-                print(exc)
-        default_config['storage_data_raw'] = data_dir
-        with open(os.path.join(self.test_dir, 'nanopype.yaml'), 'w') as fp:
-            yaml.dump(default_config, fp, default_flow_style=False)
-        # create readnames file
-        runnames = [os.path.basename(f) for f in glob.glob(os.path.join(data_dir, '*'))]
-        with open(os.path.join(self.test_dir, 'runnames.txt'), 'w') as fp:
-            for runname in runnames:
-                print(runname, file=fp)
-        self.snk_cmd = 'snakemake -j 4 --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
+        pass
 
-    # test indexing
-    def test_storage(self):
-        subprocess.run(self.snk_cmd + 'storage_index_runs', check=True, shell=True)
+    def tearDown(self):
+        pass
+        reset_test_dir(self.test_dir)
 
-    # Test basecaller functionality
-    def test_albacore(self):
-        subprocess.run(self.snk_cmd + 'sequences/albacore/test.fastq.gz', check=True, shell=True)
 
-    def test_guppy(self):
-        subprocess.run(self.snk_cmd + 'sequences/guppy/test.fastq.gz', check=True, shell=True)
-
-    def test_flappie(self):
-        subprocess.run(self.snk_cmd + 'sequences/flappie/test.fastq.gz', check=True, shell=True)
-
-    #def test_qc(self):
-    #    subprocess.run(self.snk_cmd + 'sequences/guppy/test.fastq.pdf', check=True, shell=True)
-
-    # Test alignment
-    def test_minimap2(self):
-        subprocess.run(self.snk_cmd + 'alignments/minimap2/guppy/test.test.bam', check=True, shell=True)
-
-    def test_graphmap(self):
-        subprocess.run(self.snk_cmd + 'alignments/graphmap/guppy/test.test.bam', check=True, shell=True)
-
-    def test_ngmlr(self):
-        subprocess.run(self.snk_cmd + 'alignments/ngmlr/guppy/test.test.bam', check=True, shell=True)
-
-    def test_nanopolish(self):
-        subprocess.run(self.snk_cmd + 'methylation/nanopolish/ngmlr/guppy/test.1x.test.bw', check=True, shell=True)
-
-    def test_sniffles(self):
-        subprocess.run(self.snk_cmd + "sv/sniffles/ngmlr/guppy/test.test.vcf", check=True, shell=True)
 
 
 # same tests but run within singularity
-class test_unit_singularity(test_unit_src):
-    def setUp(self):
-        super().setUp()
-        self.snk_cmd = 'snakemake -j 4 --use-singularity --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
+#class test_unit_singularity(test_unit_src):
+#    def setUp(self):
+#        super().setUp()
+#        self.snk_cmd = 'snakemake -j 4 --use-singularity --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
 
 
 # main function
 if __name__ == '__main__':
-    unittest.main()
+    cwd = os.getcwd()
+    repo_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
+    test_dir = 'test/test_src'
+    snakefile = os.path.join(repo_dir, 'Snakefile')
+    test_dir = init_test_dir(repo_dir, test_dir)
+    reset_test_dir(test_dir)
+    # load test cases
+    with open(os.path.join(repo_dir, 'test', 'test_files.yaml'), 'r') as fp:
+        try:
+            test_cases = yaml.safe_load(fp)
+        except yaml.YAMLError as exc:
+            print(exc)
+    suite = unittest.TestSuite()
+    for module, module_tests in test_cases.items():
+        for module_test in module_tests:
+            suite.addTest(test_case_src(snakefile, module_test, methodName='test_{}_{}'.format(module, module_test)))
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
+
+    os.chdir(cwd)
+    #unittest.main()

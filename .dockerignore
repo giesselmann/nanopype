@@ -4,7 +4,8 @@ Dockerfile
 .snakemake
 **/__pycache__
 test/*/
-!test/test_data.tar.gz
+!test/test_base.py
 !test/test_install.py
-!test/test_rules.py
+!test/test_function.py
+!test/test_files.yaml
 site/
