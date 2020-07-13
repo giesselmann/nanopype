@@ -49,16 +49,28 @@ configfile: "nanopype.yaml"
 
 # get pipeline version
 def get_tag():
-    cmd = 'git describe --tags'
+
     try:
+        cmd = 'git describe --tags'
         version = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
     except subprocess.CalledProcessError:
-        print('[WARNING] Unable to get version number from git tags.', file=sys.stderr)
+        print('[WARNING] Unable to get version from git tags.', file=sys.stderr)
         version = '-'
+    try:
+        cmd = 'git rev-parse --abbrev-ref HEAD'
+        branch = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
+    except subprocess.CalledProcessError:
+        print('[WARNING] Unable to get branch from git.', file=sys.stderr)
+        branch = ''
     if '-' in version:
         if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
             print("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container.", file=sys.stderr)
-        return 'latest', version
+        if branch == 'master':
+            return 'latest', version
+        elif branch == 'development':
+            return 'development', version
+        else:
+            raise RuntimeError("[ERROR] Singularity images are only build for master and development branch.")
     else:
         return version, version
 
