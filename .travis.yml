@@ -13,16 +13,16 @@ notifications:
 python:
     - "3.6"
 
-stages:
-    - base
-    - build
-    - modules
-    - test
-
-env:
-    - MODULE=alignment
-    - MODULE=basecalling
-    - MODULE=methylation
+#stages:
+#    - base
+#    - build
+#    - modules
+#    - test
+#
+#env:
+#    - MODULE=alignment
+#    - MODULE=basecalling
+#    - MODULE=methylation
 
 cache:
   directories:
@@ -44,24 +44,34 @@ before_cache:
       mkdir -p $HOME/docker && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}'
       | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
 
-script: docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
-
 jobs:
     include:
         - stage: base
+          install: skip
           env:
               - MODULE=base
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
         - stage: build
+          install: skip
           env:
               - MODULE=build
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
-        - stage: modules
-        - stage: test
+        - &modules
+          stage: modules
           env:
-              - MODULE=test
+              - MODULE=basecalling
+          install: skip
+          skript:
+              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
+        - <<: *modules
+          env:
+              - MODULE=alignment
+        - <<: *modules
+          env:
+              - MODULE=methylation
+        - stage: test
           install:
               - pip install -r requirements.txt
           script:
