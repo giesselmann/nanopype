@@ -1,0 +1,15 @@
+sudo: true
+dist: trusty
+
+jobs:
+    include:
+        - stage: build nanopype base image
+          script:
+              - echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password stdin
+              - docker build -t base -f singularity/base/Dockerfile .
+              - docker images
+              - docker tag base $DOCKER_USERNAME/base
+              - docker push $DOCKER_USERNAME/base
+        - stage: test
+          script:
+              - docker run --rm $DOCKER_USERNAME/base cat hello.txt
