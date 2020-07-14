@@ -1,6 +1,6 @@
 # \BUILD\---------------------------------------------------------------
 #
-#  CONTENTS      : Nanopype base singularity
+#  CONTENTS      : Nanopype build singularity
 #
 #  DESCRIPTION   : Dockerfile
 #
@@ -31,14 +31,5 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-FROM alpine
+FROM nanopype/base
 RUN echo "Hello Travis!" > hello.txt
-RUN apk add --update-cache wget git python3 locales
-
-## copy and configure nanopype
-RUN mkdir -p /app
-COPY . /app/
-WORKDIR /app
-RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install setuptools wheel
-RUN python3 -m pip install -r requirements.txt

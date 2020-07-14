@@ -3,13 +3,20 @@ dist: trusty
 
 jobs:
     include:
-        - stage: build nanopype base image
+        - stage: nanopype base image
           script:
               - echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
               - docker build -t base -f singularity/base/Dockerfile .
               - docker images
               - docker tag base $DOCKER_USERNAME/base
               - docker push $DOCKER_USERNAME/base
+        - stage: nanopype build image
+          script:
+              - echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
+              - docker build -t build -f singularity/build/Dockerfile .
+              - docker images
+              - docker tag build $DOCKER_USERNAME/build
+              - docker push $DOCKER_USERNAME/build
         - stage: test
           script:
               - docker run --rm $DOCKER_USERNAME/base cat hello.txt
