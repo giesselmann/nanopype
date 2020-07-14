@@ -63,7 +63,7 @@ memory:
         flappie: ~/bin/flappie
         guppy: ~/bin/guppy_basecaller
         bedtools: ~/bin/bedtools
-        graphmap: ~/bin/graphmap
+        graphmap2: ~/bin/graphmap2
         minimap2: ~/bin/minimap2
         nanopolish: ~/bin/nanopolish
         ngmlr: ~/bin/ngmlr
@@ -85,7 +85,7 @@ memory:
         albacore: 1.0
         flappie: 1.0
         guppy: 2.0
-        graphmap: 1.0
+        graphmap2: 1.0
         minimap2: 1.0
         ngmlr: 1.0
         nanopolish: 1.0
@@ -100,7 +100,7 @@ memory:
         albacore: [4000,1000]
         flappie: [4000,5000]
         guppy: [8000,4000]
-        graphmap: [80000,500]
+        graphmap2: [80000,500]
         minimap2: [8000,500]
         ngmlr: [32000,500]
         nanopolish: [8000,500]

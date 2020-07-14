@@ -80,24 +80,24 @@ rule minimap2:
         {config[bin_singularity][minimap2]} -t {threads} {config[alignment_minimap2_flags]} {input.reference} {input.sequence} >> {output}
         """
 
-# graphmap alignment
-rule graphmap:
+# graphmap2 alignment
+rule graphmap2:
     input:
         sequence = lambda wildcards: get_sequence_batch(wildcards, config),
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         index = lambda wildcards: config['references'][wildcards.reference]['genome'] + ".gmidx"
     output:
-        pipe("alignments/graphmap/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference}.sam")
+        pipe("alignments/graphmap2/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference}.sam")
     threads: config['threads_alignment']
-    group: "graphmap"
+    group: "graphmap2"
     resources:
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (config['memory']['graphmap'][0] + config['memory']['graphmap'][1] * threads)),
-        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['graphmap']),   # 90 min / 16 threads
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (config['memory']['graphmap2'][0] + config['memory']['graphmap2'][1] * threads)),
+        time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['graphmap2']),   # 90 min / 16 threads
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][graphmap2]} align -r {input.reference} -d {input.sequence} -t {threads} {config[alignment_graphmap_flags]} >> {output}
+        {config[bin_singularity][graphmap2]} align -r {input.reference} -d {input.sequence} -t {threads} {config[alignment_graphmap2_flags]} >> {output}
         """
 
 # graphmap index
@@ -110,7 +110,7 @@ rule graphmap_index:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
         """
-        {config[bin_singularity][graphmap]} align -r {input.fasta} --index-only
+        {config[bin_singularity][graphmap2]} align -r {input.fasta} --index-only
         """
 
 # NGMLR alignment

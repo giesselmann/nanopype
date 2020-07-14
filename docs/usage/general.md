@@ -85,11 +85,11 @@ The name of the output file is called a **tag** and is in this case is arbitrary
 
 ## Processing examples
 
-If available Nanopype tries to implement and provide multiple, possibly competing tools for the same task. The alignment module for instance allows currently to select from three different long read aligners namely minimap2, graphmap and ngmlr.
+If available Nanopype tries to implement and provide multiple, possibly competing tools for the same task. The alignment module for instance allows currently to select from three different long read aligners namely minimap2, graphmap2 and ngmlr.
 A key design of Nanopype is that the executed pipeline is reflected in the structure of the output directory. Taking the alignment example, exchanging the aligner in a workflow becomes as simple as:
 
     snakemake --snakefile /path/to/nanopype/Snakefile alignments/minimap2/guppy/WA01.hg38.bam -j16
-    snakemake --snakefile /path/to/nanopype/Snakefile alignments/graphmap/guppy/WA01.hg38.bam -j16
+    snakemake --snakefile /path/to/nanopype/Snakefile alignments/graphmap2/guppy/WA01.hg38.bam -j16
     snakemake --snakefile /path/to/nanopype/Snakefile alignments/ngmlr/guppy/WA01.hg38.bam -j16
 
 All three commands will make use of the same basecalling results but create different .bam files.
