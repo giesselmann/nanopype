@@ -9,14 +9,22 @@ env:
     jobs:
         - MODULE=alignment
 
-#cache:
-#  bundler: true
-#  directories:
-#    - $HOME/docker
+cache:
+  directories:
+    - $HOME/docker
+
+before_cache:
+  # Save tagged docker images
+    - >
+      mkdir -p $HOME/docker && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}'
+      | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
 
 before_install:
+    # tag for docker from branch
     - if [[ $TRAVIS_BRANCH == "master" ]]; then export DOCKER_TAG=latest;
       else export DOCKER_TAG=$TRAVIS_BRANCH; fi
+    # Load cached docker images
+    - if [[ -d $HOME/docker ]]; then ls $HOME/docker/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
 
 after_success:
     - bash <(curl -s https://codecov.io/bash)
