@@ -15,11 +15,8 @@ env:
 #    - $HOME/docker
 
 before_install:
-    - if [[ $TRAVIS_BRANCH == "master" ]]; then
-          export DOCKER_TAG=latest
-      else
-          export DOCKER_TAG=$TRAVIS_BRANCH
-      fi
+    - if [[ $TRAVIS_BRANCH == "master" ]]; then export DOCKER_TAG=latest;
+      else export DOCKER_TAG=$TRAVIS_BRANCH; fi
 
 after_success:
     - bash <(curl -s https://codecov.io/bash)
