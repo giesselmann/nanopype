@@ -54,13 +54,13 @@ jobs:
         - stage: nanopype modules
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
-        - stage: test
-          install:
-              - pip install -r requirements.txt
-          script:
-              - docker run --rm $DOCKER_USERNAME/base python3 -c "import h5py"
-          before_cache: skip
-          deploy: skip
+        #- stage: test
+        #  install:
+        #      - pip install -r requirements.txt
+        #  script:
+        #      - docker run --rm $DOCKER_USERNAME/base python3 -c "import h5py"
+        #  before_cache: skip
+        #  deploy: skip
 
 after_success:
     - bash <(curl -s https://codecov.io/bash)
