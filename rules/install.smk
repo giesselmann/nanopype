@@ -50,7 +50,7 @@ rule processing:
 rule alignment:
     input:
         "bin/minimap2",
-        "bin/graphmap2",
+        #"bin/graphmap2",
         "bin/ngmlr",
         "bin/samtools",
         "bin/bedtools",
@@ -122,7 +122,7 @@ rule UCSCtools:
         "bin/bedGraphToBigWig"
     shell:
         """
-        wget -O {output} ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
+        wget -q -O {output} https://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
         chmod 755 {output}
         """
 
@@ -198,7 +198,7 @@ rule graphmap:
     shell:
         """
         mkdir -p src && cd src
-        if [ ! -d graphmap ]; then
+        if [ ! -d graphmap2 ]; then
             git clone https://github.com/lbcb-sci/graphmap2 --branch v0.6.4 --depth=1 && cd graphmap2
         else
             cd graphmap2 && git fetch --all --tags --prune && git checkout tags/v0.6.4
