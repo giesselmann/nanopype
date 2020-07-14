@@ -20,13 +20,32 @@ before_deploy:
     - echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
 
 deploy:
-    provider: script
-    skip_cleanup: true
-    script: docker tag $MODULE $DOCKER_USERNAME/$MODULE &&
-            docker push $DOCKER_USERNAME/$MODULE &&
-            docker images
-    on:
-        branch: travis
+    - provider: script
+      skip_cleanup: true
+      script: docker tag $MODULE $DOCKER_USERNAME/$MODULE &&
+              docker push $DOCKER_USERNAME/$MODULE &&
+              docker images
+      on:
+          tag: false
+          branch: master
+    - provider: script
+      skip_cleanup: true
+      script: docker tag $MODULE $DOCKER_USERNAME/$MODULE:$TRAVIS_TAG &&
+              docker push $DOCKER_USERNAME/$MODULE:$TRAVIS_TAG &&
+              docker images
+      on:
+          tag: true
+          branch: master
+    - provider: script
+      skip_cleanup: true
+      script: docker tag $MODULE $DOCKER_USERNAME/$MODULE:$TRAVIS_BRANCH &&
+              docker push $DOCKER_USERNAME/$MODULE:$TRAVIS_BRANCH &&
+              docker images
+      on:
+          tag: false
+          all_branches: true
+          condition: $TRAVIS_BRANCH != "master"
+
 
 notifications:
   email:
