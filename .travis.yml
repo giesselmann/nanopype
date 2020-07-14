@@ -2,22 +2,29 @@ os: linux
 dist: trusty
 language: python
 
+notifications:
+  email:
+    if: branch = master
+    recipients:
+      - giesselmann@molgen.mpg.de
+    on_success: never
+    on_failure: always
+
 python:
     - "3.6"
 
 env:
     jobs:
         - MODULE=alignment
+        - MODULE=basecalling
+        - MODULE=methylation
 
 cache:
   directories:
     - $HOME/docker
 
-before_cache:
-  # Save tagged docker images
-    - >
-      mkdir -p $HOME/docker && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}'
-      | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
+
+
 
 before_install:
     # tag for docker from branch
@@ -25,6 +32,35 @@ before_install:
       else export DOCKER_TAG=$TRAVIS_BRANCH; fi
     # Load cached docker images
     - if [[ -d $HOME/docker ]]; then ls $HOME/docker/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
+
+before_cache:
+  # Save tagged docker images
+    - >
+      mkdir -p $HOME/docker && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}'
+      | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
+
+jobs:
+    include:
+        - stage: nanopype base
+          env:
+              - MODULE=base
+          script:
+              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
+        - stage: nanopype build
+          env:
+              - MODULE=build
+          script:
+              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
+        - stage: nanopype modules
+          script:
+              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
+        - stage: test
+          install:
+              - pip install -r requirements.txt
+          script:
+              - docker run --rm $DOCKER_USERNAME/base python3 -c "import h5py"
+          before_cache: skip
+          deploy: skip
 
 after_success:
     - bash <(curl -s https://codecov.io/bash)
@@ -58,34 +94,3 @@ deploy:
           tag: false
           all_branches: true
           condition: $TRAVIS_BRANCH != "master"
-
-notifications:
-  email:
-    if: branch = master
-    recipients:
-      - giesselmann@molgen.mpg.de
-    on_success: never
-    on_failure: always
-
-jobs:
-    include:
-        - stage: nanopype base
-          env:
-              - MODULE=base
-          script:
-              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
-        - stage: nanopype build
-          env:
-              - MODULE=build
-          script:
-              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
-        - stage: nanopype modules
-          script:
-              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
-        - stage: test
-          install:
-              - pip install -r requirements.txt
-          script:
-              - docker run --rm $DOCKER_USERNAME/base python3 -c "import h5py"
-          before_cache: skip
-          deploy: skip
