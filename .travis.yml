@@ -13,17 +13,16 @@ notifications:
 python:
     - "3.6"
 
-env:
-    jobs:
-        - MODULE=alignment
-        - MODULE=basecalling
-        - MODULE=methylation
-
 stages:
     - base
     - build
     - modules
     - test
+
+#env:
+#    - MODULE=alignment
+#    - MODULE=basecalling
+#    - MODULE=methylation
 
 cache:
   directories:
@@ -58,6 +57,10 @@ jobs:
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
         - stage: modules
+          env:
+              - MODULE=basecalling
+              - MODULE=alignment
+              - MODULE=methylation
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
         - stage: test
