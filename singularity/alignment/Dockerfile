@@ -44,8 +44,6 @@ RUN snakemake --snakefile rules/install.smk --directory /build alignment
 # PACKAGE STAGE
 FROM nanopype/base:$TAG
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
-RUN apk add --no-cache zlib-dev bzip2 bzip2-dev \
-    xz-libs ax-dev ncurses5-libs
 
 ## packages
 COPY --from=build_stage /build/bin/* /usr/bin/

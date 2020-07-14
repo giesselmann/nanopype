@@ -34,10 +34,15 @@
 FROM alpine:latest as build
 
 # dependencies
-RUN apk --update add --no-cache bash wget python3 py3-pip hdf5-dev
+RUN apk --update add --no-cache bash wget python3 py3-pip \
+    hdf5-dev \
+    zlib-dev bzip2 bzip2-dev \
+    xz-libs xz-dev ncurses5-libs ncurses-dev
 
 # build dependencies
-RUN apk add --no-cache --virtual .build-deps python3-dev gfortran musl-dev gcc g++
+RUN apk add --no-cache --virtual .build-deps gcc g++ gfortran \
+    python3-dev \
+    musl-dev
 
 ## copy and configure nanopype
 RUN mkdir -p /app

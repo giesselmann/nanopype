@@ -35,10 +35,11 @@ ARG TAG=latest
 FROM nanopype/base:$TAG
 
 # build dependencies
-RUN apk add --no-cache --virtual .build-deps build-base python3-dev wget \
+RUN apk add --no-cache --virtual .build-deps build-base \
+    python2 python3-dev wget \
     git gcc g++ \
-    binutils autoconf make cmake zlib-dev bzip2 bzip2-dev \
-    xz-libs xz-dev ncurses5-libs
+    binutils autoconf make cmake
+
 
 # remove build dependencies
 # RUN apk del .build-deps
