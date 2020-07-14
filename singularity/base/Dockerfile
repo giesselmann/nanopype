@@ -33,7 +33,7 @@
 # ---------------------------------------------------------------------------------
 FROM alpine
 RUN echo "Hello Travis!" > hello.txt
-RUN apk add --update-cache wget git python3 py3-pip
+RUN apk add --update-cache wget git gcc python3 py3-pip
 
 ## copy and configure nanopype
 RUN mkdir -p /app
