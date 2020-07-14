@@ -49,7 +49,6 @@ configfile: "nanopype.yaml"
 
 # get pipeline version
 def get_tag():
-
     try:
         cmd = 'git describe --tags'
         version = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
