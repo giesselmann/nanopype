@@ -34,7 +34,7 @@
 FROM alpine:latest as build
 
 # dependencies
-RUN apk --update add --no-cache wget python3 py3-pip hdf5-dev
+RUN apk --update add --no-cache bash wget python3 py3-pip hdf5-dev
 
 # build dependencies
 RUN apk add --no-cache --virtual .build-deps python3-dev gfortran musl-dev gcc g++
