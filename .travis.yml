@@ -1,25 +1,38 @@
 os: linux
 dist: trusty
 language: python
+
 python:
     - "3.6"
 
+env:
+    - MODULE=alignment
+
+cache:
+  bundler: true
+  directories:
+    - $HOME/docker
+
+before_deploy:
+    - echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
+
+deploy:
+    script:
+        - docker images
+        - docker tag $MODULE $DOCKER_USERNAME/$MODULE
+        - docker push $DOCKER_USERNAME/$MODULE
+
 jobs:
     include:
-        - stage: nanopype base image
+        - stage: nanopype base
+          env:
+              - MODULE=base
+              - MODULE=build
           script:
-              - echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-              - docker build -t base -f singularity/base/Dockerfile .
-              - docker images
-              - docker tag base $DOCKER_USERNAME/base
-              - docker push $DOCKER_USERNAME/base
-        - stage: nanopype build image
+              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
+        - stage: nanopype modules
           script:
-              - echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-              - docker build -t build -f singularity/build/Dockerfile .
-              - docker images
-              - docker tag build $DOCKER_USERNAME/build
-              - docker push $DOCKER_USERNAME/build
+              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
         - stage: test
           install:
               - pip install -r requirements.txt

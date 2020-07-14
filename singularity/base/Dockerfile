@@ -50,6 +50,7 @@ RUN python3 -m pip install --upgrade pip && \
 # remove build dependencies
 RUN apk del .build-deps
 
+
+# Squash into flat image
 FROM alpine:latest
 COPY --from=build / /
-WORKDIR /app
