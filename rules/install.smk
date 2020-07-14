@@ -47,6 +47,11 @@ rule processing:
         "bin/graphmap2",
         "bin/ngmlr"
 
+rule basecalling:
+    input:
+        "bin/guppy_basecaller",
+        "bin/flappie",
+
 rule alignment:
     input:
         "bin/minimap2",
@@ -114,7 +119,7 @@ if not 'build_generator' in config:
     config['build_generator'] = '"Unix Makefiles"'
 
 if not 'flappie_src' in config:
-    config['flappie_src'] = True
+    config['flappie_src'] = False
 
 # detailed build rules
 rule UCSCtools:
@@ -364,10 +369,11 @@ rule guppy:
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.7_linux64.tar.gz &&
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.0.3_linux64.tar.gz &&
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.1.5_linux64.tar.gz &&
+        # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz &&
         mkdir -p src/guppy && cd src/guppy
-        wget -q https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz && \
-        tar -xzf ont-guppy-cpu_3.4.4_linux64.tar.gz -C ./ --strip 1 && \
-        rm ont-guppy-cpu_3.4.4_linux64.tar.gz
+        wget -q https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.6.0_linux64.tar.gz && \
+        tar -xzf ont-guppy-cpu_3.6.0_linux64.tar.gz -C ./ --strip 1 && \
+        rm ont-guppy-cpu_3.6.0_linux64.tar.gz
         ln -fs $(pwd)/bin/guppy_basecaller ../../bin/guppy_basecaller
         ln -fs $(pwd)/bin/guppy_barcoder ../../bin/guppy_barcoder
         ln -fs $(pwd)/bin/guppy_basecall_server ../../bin/guppy_basecall_server
