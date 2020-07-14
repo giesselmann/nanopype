@@ -6,12 +6,20 @@ python:
     - "3.6"
 
 env:
-    - MODULE=alignment
+    jobs:
+        - MODULE=alignment
 
 #cache:
 #  bundler: true
 #  directories:
 #    - $HOME/docker
+
+before_install:
+    - if [[ $TRAVIS_BRANCH == "master" ]]; then
+          export DOCKER_TAG=latest
+      else
+          export DOCKER_TAG=$TRAVIS_BRANCH
+      fi
 
 after_success:
     - bash <(curl -s https://codecov.io/bash)
@@ -46,7 +54,6 @@ deploy:
           all_branches: true
           condition: $TRAVIS_BRANCH != "master"
 
-
 notifications:
   email:
     if: branch = master
@@ -66,10 +73,10 @@ jobs:
           env:
               - MODULE=build
           script:
-              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
+              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
         - stage: nanopype modules
           script:
-              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
+              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
         - stage: test
           install:
               - pip install -r requirements.txt

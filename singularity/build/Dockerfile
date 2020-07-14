@@ -31,7 +31,8 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-FROM nanopype/base
+ARG TAG=latest
+FROM nanopype/base:$TAG
 
 # build dependencies
 RUN apk add --no-cache --virtual .build-deps build-base python3-dev wget \
