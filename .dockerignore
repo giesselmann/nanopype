@@ -1,14 +1,15 @@
-# exclude from build context
-Dockerfile
-.git
-.snakemake
-singularity/*/
+# Ignore everything
+**
+
+# Include build rules
+!rules/install.smk
 !singularity/requirements.txt
-**/__pycache__
-test/*/
+
+# Include tests
 !test/test_base.py
 !test/test_install.py
 !test/test_function.py
 !test/test_files.yaml
-docs/
-site/
+
+# Include License
+!LICENSE
