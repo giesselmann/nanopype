@@ -44,13 +44,13 @@ rule processing:
         "bin/bedtools",
         "bin/samtools",
         "bin/minimap2",
-        "bin/graphmap",
+        "bin/graphmap2",
         "bin/ngmlr"
 
 rule alignment:
     input:
         "bin/minimap2",
-        "bin/graphmap",
+        "bin/graphmap2",
         "bin/ngmlr",
         "bin/samtools",
         "bin/bedtools",
@@ -193,18 +193,18 @@ rule minimap2:
 
 rule graphmap:
     output:
-        bin = "bin/graphmap"
+        bin = "bin/graphmap2"
     threads: config['threads_build']
     shell:
         """
         mkdir -p src && cd src
         if [ ! -d graphmap ]; then
-            git clone https://github.com/isovic/graphmap --branch master --depth=1 && cd graphmap
+            git clone https://github.com/lbcb-sci/graphmap2 --branch v0.6.4 --depth=1 && cd graphmap2
         else
-            cd graphmap && git fetch --all --tags --prune && git checkout master
+            cd graphmap2 && git fetch --all --tags --prune && git checkout tags/v0.6.4
         fi
         make modules -j{threads} && make -j{threads}
-        cp bin/*/graphmap ../../bin/
+        cp bin/*/graphmap2 ../../bin/
         """
 
 rule ngmlr:
