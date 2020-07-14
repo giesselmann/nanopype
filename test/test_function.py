@@ -87,7 +87,7 @@ def reset_test_dir(test_dir='.'):
 class test_case_src(test_case_base):
     def __init__(self, snakefile, test_file, test_dir='.', methodName='none'):
         self.test_dir = test_dir
-        base_cmd = 'snakemake -j 4 --snakefile {snakefile} --directory {test_dir} '.format(
+        base_cmd = 'snakemake -q -j 4 --snakefile {snakefile} --directory {test_dir} '.format(
             snakefile=snakefile, test_dir=test_dir)
         def fn(self):
             # move expected output file if present
