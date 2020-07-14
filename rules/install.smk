@@ -204,7 +204,7 @@ rule graphmap:
             cd graphmap && git fetch --all --tags --prune && git checkout master
         fi
         make modules -j{threads} && make -j{threads}
-        cp bin/Linux-x64/graphmap ../../bin/
+        cp bin/*/graphmap ../../bin/
         """
 
 rule ngmlr:
