@@ -96,6 +96,6 @@ transcript_polish_clusters: '-c 10'
 
 
 # Assembly
-asm_genome_size : '3.0g'
+asm_genome_size : '48k'
 asm_flye_preset : '--nano-raw'
 asm_flye_flags : '--asm-coverage 35'
