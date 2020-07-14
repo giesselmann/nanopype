@@ -37,7 +37,7 @@ FROM nanopype/base
 RUN apk add --no-cache --virtual .build-deps build-base python3-dev wget \
     git gcc g++ \
     binutils autoconf make cmake zlib-dev bzip2 bzip2-dev \
-    xz-libs libncurses5-libs
+    xz-libs ncurses5-libs
 
 # remove build dependencies
 # RUN apk del .build-deps

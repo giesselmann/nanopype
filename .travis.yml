@@ -13,6 +13,9 @@ cache:
   directories:
     - $HOME/docker
 
+after_success:
+    - bash <(curl -s https://codecov.io/bash)
+
 before_deploy:
     - echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
 
@@ -26,13 +29,21 @@ deploy:
     on:
         branch: travis
 
+notifications:
+  email:
+    if: branch = master
+    recipients:
+      - giesselmann@molgen.mpg.de
+    on_success: never
+    on_failure: always
+
 jobs:
     include:
-        - stage: nanopype base
-          env:
-              - MODULE=base
-          script:
-              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
+        #- stage: nanopype base
+        #  env:
+        #      - MODULE=base
+        #  script:
+        #      - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
         - stage: nanopype build
           env:
               - MODULE=build
