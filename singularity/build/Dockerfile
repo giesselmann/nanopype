@@ -32,4 +32,11 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 FROM nanopype/base
-RUN echo "Hello Travis!" > hello.txt
+
+# build dependencies
+RUN apk add --no-cache --virtual .build-deps build-base
+
+
+
+# remove build dependencies
+RUN apk del .build-deps

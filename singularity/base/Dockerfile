@@ -31,14 +31,25 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-FROM alpine
-RUN echo "Hello Travis!" > hello.txt
-RUN apk add --update-cache wget git gcc python3 py3-pip
+FROM alpine:latest as build
+
+# dependencies
+RUN apk --update add --no-cache wget python3 py3-pip hdf5-dev
+
+# build dependencies
+RUN apk add --no-cache --virtual .build-deps python3-dev gfortran musl-dev gcc g++
 
 ## copy and configure nanopype
 RUN mkdir -p /app
 COPY . /app/
 WORKDIR /app
-RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install setuptools wheel
-RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install setuptools wheel && \
+    python3 -m pip install -r singularity/requirements.txt
+
+# remove build dependencies
+RUN apk del .build-deps
+
+FROM alpine:latest
+COPY --from=build / /
+WORKDIR /app

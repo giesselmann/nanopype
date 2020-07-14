@@ -2,10 +2,13 @@
 Dockerfile
 .git
 .snakemake
+singularity/*/
+!singularity/requirements.txt
 **/__pycache__
 test/*/
 !test/test_base.py
 !test/test_install.py
 !test/test_function.py
 !test/test_files.yaml
+docs/
 site/
