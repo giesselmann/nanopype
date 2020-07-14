@@ -17,10 +17,14 @@ before_deploy:
     - echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
 
 deploy:
+    provider: script
+    skip_cleanup: true
     script:
         - docker images
         - docker tag $MODULE $DOCKER_USERNAME/$MODULE
         - docker push $DOCKER_USERNAME/$MODULE
+    on:
+        branch: travis
 
 jobs:
     include:
