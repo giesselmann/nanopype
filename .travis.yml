@@ -45,6 +45,7 @@ before_cache:
       | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
 
 script: docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
+
 jobs:
     include:
         - stage: base
@@ -57,6 +58,7 @@ jobs:
               - MODULE=build
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
+        - stage: modules
         - stage: test
           env:
               - MODULE=test
