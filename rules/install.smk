@@ -122,7 +122,7 @@ rule UCSCtools:
         "bin/bedGraphToBigWig"
     shell:
         """
-        wget -q -O {output} ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
+        wget -O {output} ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
         chmod 755 {output}
         """
 
