@@ -22,10 +22,9 @@ before_deploy:
 deploy:
     provider: script
     skip_cleanup: true
-    script:
-        - docker images
-        - docker tag $MODULE $DOCKER_USERNAME/$MODULE
-        - docker push $DOCKER_USERNAME/$MODULE
+    script: docker tag $MODULE $DOCKER_USERNAME/$MODULE &&
+            docker push $DOCKER_USERNAME/$MODULE &&
+            docker images
     on:
         branch: travis
 
