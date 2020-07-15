@@ -41,9 +41,6 @@ WORKDIR /app
 RUN snakemake --snakefile rules/install.smk --directory /build methylation
 
 
-
-
-# PACKAGE STAGE
 # PACKAGE STAGE
 FROM nanopype/base:$TAG
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>

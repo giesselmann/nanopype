@@ -34,13 +34,12 @@
 # BUILD STAGE
 ARG TAG=latest
 FROM nanopype/build:$TAG as build_stage
+RUN apk add --no-cache go
 
 ## run setup rules
 RUN mkdir /build
 WORKDIR /app
 RUN snakemake --snakefile rules/install.smk --directory /build basecalling
-
-
 
 
 # PACKAGE STAGE
