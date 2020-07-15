@@ -39,4 +39,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python-minimal python3-dev \
     git gcc g++ \
     binutils autoconf make cmake \
+    libcunit1-dev libhdf5-dev libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
