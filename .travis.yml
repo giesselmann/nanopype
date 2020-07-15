@@ -74,7 +74,7 @@ jobs:
           install:
               - pip install -r requirements.txt
           script:
-              - docker run --rm $DOCKER_USERNAME/base python3 -c "import h5py"
+              - docker run --rm $DOCKER_USERNAME/base_bionic python3 -c "import h5py"
           before_cache: skip
           deploy: skip
 

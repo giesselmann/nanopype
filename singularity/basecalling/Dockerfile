@@ -46,9 +46,11 @@ FROM nanopype/base_bionic:$TAG
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
-RUN mkdir -p /build/src
+RUN mkdir -p /usr/data
 COPY --from=build_stage /build/bin/* /usr/bin/
-COPY --from=build_stage /build/src/guppy /build/src/guppy
+COPY --from=build_stage /build/lib/* /usr/lib/
+COPY --from=build_stage /build/data/* /usr/data/
+
 
 WORKDIR /app
 # default entrypoint is /bin/sh

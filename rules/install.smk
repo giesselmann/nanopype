@@ -378,13 +378,15 @@ rule guppy:
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.0.3_linux64.tar.gz &&
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.1.5_linux64.tar.gz &&
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz &&
-        mkdir -p src/guppy && cd src/guppy
-        wget -q https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.6.0_linux64.tar.gz && \
-        tar -xzf ont-guppy-cpu_3.6.0_linux64.tar.gz -C ./ --strip 1 && \
+        mkdir -p src/guppy && cd src/guppy && rm -r *
+        wget -q https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_4.0.11_linux64.tar.gz
+        tar -xzkf ont-guppy-cpu_4.0.11_linux64.tar.gz -C ./ --strip 1 && \
         rm ont-guppy-cpu_3.6.0_linux64.tar.gz
-        ln -fs $(pwd)/bin/guppy_basecaller ../../bin/guppy_basecaller
-        ln -fs $(pwd)/bin/guppy_barcoder ../../bin/guppy_barcoder
-        ln -fs $(pwd)/bin/guppy_basecall_server ../../bin/guppy_basecall_server
+        # copy everything except toplevel softlinks e.g.
+        # skip libhdf5.so
+        # copy libhdf5.so.1.8.11
+        rsync --files-from=<(find . ! \( -type l -and -regex '^.*so$' \) -print) --links . ../../
+        rm -r *
         """
 
 rule pychopper:
