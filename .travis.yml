@@ -25,7 +25,7 @@ before_install:
     - if [[ $TRAVIS_BRANCH == "master" ]]; then export DOCKER_TAG=latest;
       else export DOCKER_TAG=$TRAVIS_BRANCH; fi
     # Load cached docker images
-    - if [[ -d $HOME/docker ]]; then ls $HOME/docker/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
+    # - if [[ -d $HOME/docker ]]; then ls $HOME/docker/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
 
 before_cache:
   # Save tagged docker images
@@ -36,13 +36,11 @@ before_cache:
 jobs:
     include:
         - stage: base
-          install: skip
           env:
               - MODULE=base
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
         - stage: build
-          install: skip
           env:
               - MODULE=build
           script:
