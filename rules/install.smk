@@ -381,7 +381,7 @@ rule guppy:
         mkdir -p src/guppy && cd src/guppy && rm -r *
         wget -q https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_4.0.11_linux64.tar.gz
         tar -xzkf ont-guppy-cpu_4.0.11_linux64.tar.gz -C ./ --strip 1 && \
-        rm ont-guppy-cpu_3.6.0_linux64.tar.gz
+        rm ont-guppy-cpu_4.0.11_linux64.tar.gz
         # copy everything except toplevel softlinks e.g.
         # skip libhdf5.so
         # copy libhdf5.so.1.8.11
