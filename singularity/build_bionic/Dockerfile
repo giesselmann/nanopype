@@ -35,7 +35,8 @@ ARG TAG=latest
 FROM nanopype/base_bionic:$TAG
 
 # build dependencies
-RUN apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     python2 python3-dev \
     git gcc g++ \
-    binutils autoconf make cmake
+    binutils autoconf make cmake \
+    && rm -rf /var/lib/apt/lists/*
