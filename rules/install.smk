@@ -356,7 +356,12 @@ rule flappie:
         else
             cd flappie && git fetch --all --tags --prune && git checkout master
         fi
-        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} ../
+        # Hack for build on alpine linux
+        CMAKE_C_STANDARD_LIBRARIES=''
+        if [ -f /usr/lib/libargp.a ]; then
+            CMAKE_C_STANDARD_LIBRARIES='-DCMAKE_C_STANDARD_LIBRARIES="/usr/lib/libargp.a"'
+        fi
+        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} $CMAKE_C_STANDARD_LIBRARIES ../
         cmake --build . --config Release -- -j {threads}
         cp flappie ../../../{output.bin}
         """
