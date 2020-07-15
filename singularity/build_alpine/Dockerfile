@@ -32,7 +32,7 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 ARG TAG=latest
-FROM nanopype/base:$TAG
+FROM nanopype/base_alpine:$TAG
 
 # build dependencies
 RUN apk add --no-cache --virtual .build-deps build-base \

@@ -33,7 +33,7 @@
 # ---------------------------------------------------------------------------------
 # BUILD STAGE
 ARG TAG=latest
-FROM nanopype/build:$TAG as build_stage
+FROM nanopype/build_bionic:$TAG as build_stage
 RUN apk add --no-cache go
 
 ## run setup rules
@@ -43,7 +43,7 @@ RUN snakemake --snakefile rules/install.smk --directory /build basecalling
 
 
 # PACKAGE STAGE
-FROM nanopype/base:$TAG
+FROM nanopype/base_bionic:$TAG
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
@@ -53,10 +53,3 @@ COPY --from=build_stage /build/src/guppy /build/src/guppy
 
 WORKDIR /app
 # default entrypoint is /bin/sh
-
-
-
-## GUPPY
-# RUN wget -q https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz && \
-#         tar --skip-old-files -xzf ont-guppy-cpu_3.4.4_linux64.tar.gz -C /usr/ --strip 1 && \
-#         rm ont-guppy-cpu_3.4.4_linux64.tar.gz

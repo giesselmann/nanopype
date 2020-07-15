@@ -33,7 +33,7 @@
 # ---------------------------------------------------------------------------------
 # BUILD STAGE
 ARG TAG=latest
-FROM nanopype/build:$TAG as build_stage
+FROM nanopype/build_alpine:$TAG as build_stage
 
 ## run setup rules
 RUN mkdir /build
@@ -42,7 +42,7 @@ RUN snakemake --snakefile rules/install.smk --directory /build methylation
 
 
 # PACKAGE STAGE
-FROM nanopype/base:$TAG
+FROM nanopype/base_alpine:$TAG
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages

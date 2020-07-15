@@ -35,16 +35,27 @@ before_cache:
 
 jobs:
     include:
-        - stage: base
+        # Base stage with python3 and shared libs
+        - &base
+          stage: base
           env:
-              - MODULE=base
+              - MODULE=base_alpine
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
-        - stage: build
+        - <<: *base
           env:
-              - MODULE=build
+              - MODULE=base_bionic
+        # Build stage from base with gcc/g++ toolchain
+        - &build
+          stage: build
+          env:
+              - MODULE=build_alpine
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
+        - <<: *build
+          env:
+              - MODULE=build_bionic
+        # Modules from build stage, copied into base stage
         - &modules
           stage: modules
           env:
@@ -58,6 +69,7 @@ jobs:
         - <<: *modules
           env:
               - MODULE=methylation
+        # Unit tests per module
         - stage: test
           install:
               - pip install -r requirements.txt
