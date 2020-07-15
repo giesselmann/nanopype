@@ -105,8 +105,8 @@ rule all:
 def find_go():
     for path in os.environ["PATH"].split(os.pathsep):
         exe_file = os.path.join(path, 'go')
-        #if os.path.isfile(exe_file):
-        #    return exe_file
+        if os.path.isfile(exe_file):
+            return exe_file
     return None
 
 config['python'] = sys.executable
