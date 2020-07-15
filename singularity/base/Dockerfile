@@ -38,7 +38,8 @@ RUN apk --update add --no-cache bash wget python3 py3-pip \
     hdf5-dev \
     zlib-dev bzip2 bzip2-dev \
     xz-libs xz-dev ncurses5-libs ncurses-dev \
-    openblas-dev cunit-dev krb5-libs libidn
+    openblas-dev cunit-dev krb5-libs libidn \
+    argp-standalone
 
 # build dependencies
 RUN apk add --no-cache --virtual .build-deps gcc g++ gfortran \
