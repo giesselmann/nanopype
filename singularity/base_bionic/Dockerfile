@@ -1,6 +1,6 @@
 # \BUILD\---------------------------------------------------------------
 #
-#  CONTENTS      : Nanopype build singularity
+#  CONTENTS      : Nanopype base singularity
 #
 #  DESCRIPTION   : Dockerfile
 #
@@ -31,11 +31,42 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-ARG TAG=latest
-FROM nanopype/base_bionic:$TAG
+FROM ubuntu:bionic as build
 
-# build dependencies
+# locales
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    locales \
+    ca-certificates \
+    lsb-release \
+    apt-transport-https \
+    && rm -rf /var/lib/apt/lists/* \
+    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
+    && update-ca-certificates
+
+ENV LANG en_US.utf8
+
+# dependencies
 RUN apt-get install -y --no-install-recommends \
-    python2 python3-dev \
-    git gcc g++ \
-    binutils autoconf make cmake
+    wget python3 python3-pip \
+    zlib1g-dev \
+    bzip2 libbz2-dev \
+    liblzma-dev libncurses5-dev \
+    libcunit1 libhdf5-100 libidn11 libopenblas-base \
+    libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
+
+
+## copy and configure nanopype
+RUN mkdir -p /app
+COPY . /app/
+WORKDIR /app
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install setuptools wheel && \
+    python3 -m pip install -r singularity/requirements.txt
+
+
+
+
+# Squash into flat image
+FROM ubuntu:bionic
+COPY --from=build / /
