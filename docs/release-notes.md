@@ -5,6 +5,7 @@ Maintenance release:
 
 :   * Rewrite unit tests for src and singularity
     * Move Docker builds to travis-ci
+    * Update Guppy to v3.6.0
     * Update GraphMap to GraphMap2 v0.6.4
     * Fix snakemake file exists error in case of raw data relative to workdir
     * Fix Flappie basecalling "cat: methyl_marks.tsv: No such file or directory"
