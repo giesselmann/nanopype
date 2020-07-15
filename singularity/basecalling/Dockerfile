@@ -34,7 +34,6 @@
 # BUILD STAGE
 ARG TAG=latest
 FROM nanopype/build_bionic:$TAG as build_stage
-RUN apk add --no-cache go
 
 ## run setup rules
 RUN mkdir /build
