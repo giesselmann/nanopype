@@ -13,17 +13,6 @@ notifications:
 python:
     - "3.6"
 
-#stages:
-#    - base
-#    - build
-#    - modules
-#    - test
-#
-#env:
-#    - MODULE=alignment
-#    - MODULE=basecalling
-#    - MODULE=methylation
-
 cache:
   directories:
     - $HOME/docker

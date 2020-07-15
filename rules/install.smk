@@ -241,7 +241,8 @@ rule nanopolish:
             cd nanopolish && git fetch --all --tags --prune && git checkout tags/v0.11.0
         fi
         make clean
-        make -j{threads}
+        make -j{threads} 2&>1 >/dev/null | tee log.txt | grep 'g++\|gcc'
+        tail -n 100 log.txt
         cp nanopolish ../../bin/
         """
 
