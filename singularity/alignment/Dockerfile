@@ -33,16 +33,17 @@
 # ---------------------------------------------------------------------------------
 # BUILD STAGE
 ARG TAG=latest
-FROM nanopype/build_alpine:$TAG as build_stage
+FROM nanopype/build_bionic:$TAG as build_stage
 
 ## run setup rules
 RUN mkdir /build
 WORKDIR /app
+# COPY . /app/
 RUN snakemake --snakefile rules/install.smk --directory /build alignment
 
 
 # PACKAGE STAGE
-FROM nanopype/base_alpine:$TAG
+FROM nanopype/base_bionic:$TAG
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages

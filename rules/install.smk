@@ -32,20 +32,14 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 # main build rules
-import os, sys
+import os, sys, site
 
 rule default:
     shell : ""
 
-rule processing:
+rule demux:
     input:
-        "bin/guppy_basecaller",
-        #"bin/flappie",
-        "bin/bedtools",
-        "bin/samtools",
-        "bin/minimap2",
-        "bin/graphmap2",
-        "bin/ngmlr"
+        "bin/deepbinner"
 
 rule basecalling:
     input:
@@ -55,7 +49,7 @@ rule basecalling:
 rule alignment:
     input:
         "bin/minimap2",
-        #"bin/graphmap2",
+        "bin/graphmap2",
         "bin/ngmlr",
         "bin/samtools",
         "bin/bedtools",
@@ -68,6 +62,15 @@ rule methylation:
         "bin/bedtools",
         "bin/bedGraphToBigWig"
 
+rule assembly:
+    input:
+        "bin/flye"
+
+rule sv:
+    input:
+        "bin/sniffles",
+        "bin/STRique.py"
+
 rule transcript_core:
     input:
         "bin/minimap2",
@@ -78,28 +81,23 @@ rule transcript_core:
         "bin/polish_clusters",
         "bin/spliced_bam2gff"
 
-rule sv:
-    input:
-        "bin/sniffles",
-        "bin/STRique.py"
-
 rule transcript:
     input:
         rules.transcript_core.input,
         "bin/cdna_classifier.py"
 
-rule assembly:
-    input:
-        "bin/flye"
-
 rule all:
     input:
-        rules.processing.input,
+        rules.demux.input,
+        rules.basecalling.input,
         rules.alignment.input,
         rules.methylation.input,
-        rules.transcript.input,
         rules.sv.input,
+        rules.transcript.input,
         rules.assembly.input
+
+
+
 
 # helper functions
 def find_go():
@@ -266,7 +264,8 @@ rule sniffles:
 
 rule deepbinner:
     output:
-        bin = "bin/deepbinner-runner.py"
+        #bin = "bin/deepbinner-runner.py"
+        bin = 'bin/deepbinner'
     shell:
         """
         mkdir -p src && cd src
@@ -275,8 +274,9 @@ rule deepbinner:
         else
             cd Deepbinner && git fetch --all --tags --prune && git checkout tags/v0.2.0
         fi
-        {config[python]} -m pip install -r requirements.txt --upgrade
-        ln -s $(pwd)/deepbinner-runner.py ../../{output.bin}
+        {config[python]} -m pip install "tensorflow==1.15" "keras==2.2.5"
+        {config[python]} -m pip install . --prefix $(pwd)/../../
+        #ln -s $(pwd)/deepbinner-runner.py ../../{output.bin}
         """
 
 rule golang:
@@ -396,16 +396,16 @@ rule pychopper:
         """
         mkdir -p src && cd src
         if [ ! -d pychopper ]; then
-            git clone https://github.com/nanoporetech/pychopper --branch v2.2.2 && cd pychopper
+            git clone https://github.com/nanoporetech/pychopper --branch v2.4.0 && cd pychopper
         else
-            cd pychopper && git fetch --all --tags --prune && git checkout v2.2.2
+            cd pychopper && git fetch --all --tags --prune && git checkout v2.4.0
         fi
         {config[python]} -m pip install --upgrade incremental
         {config[python]} -m pip install --upgrade certifi
         {config[python]} -m pip install parasail --upgrade
         {config[python]} -m pip install "matplotlib<3.1" --upgrade
-        {config[python]} setup.py install
-        cp $(pwd)/scripts/cdna_classifier.py ../../{output.bin}
+        {config[python]} setup.py install --prefix $(pwd)/../../
+        #cp $(pwd)/scripts/cdna_classifier.py ../../{output.bin}
         """
 
 rule racon:
@@ -473,7 +473,7 @@ rule strique:
             cd STRique && git fetch --all --tags --prune && git checkout v0.3.0
         fi
         {config[python]} -m pip install -r requirements.txt --upgrade
-        {config[python]} setup.py install
+        {config[python]} setup.py install --prefix $(pwd)/../../
         cp scripts/STRique.py ../../bin/
         """
 
@@ -481,15 +481,16 @@ rule flye:
     output:
         bin = "bin/flye"
     params:
-        prefix = lambda wildcards : sys.prefix
+        pth_file = lambda wildcards : os.path.join(site.getsitepackages()[0], 'flye.pth'),
+        pth_content = lambda wildcards : 'import os; os.environ["PYTHONPATH"] = "{dir}" + os.pathsep + os.environ["PYTHONPATH"]'.format(dir=os.getcwd())
     shell:
         """
         mkdir -p src && cd src
         if [ ! -d Flye ]; then
-            git clone https://github.com/fenderglass/Flye --branch 2.6 && cd Flye
+            git clone https://github.com/fenderglass/Flye --branch 2.7 && cd Flye
         else
-            cd Flye && git fetch --all --tags --prune && git checkout 2.6
+            cd Flye && git fetch --all --tags --prune && git checkout 2.7
         fi
-        {config[python]} setup.py install --prefix {params.prefix}
-        ln -s {params.prefix}/bin/flye ../../{output.bin}
+        make
+        {config[python]} setup.py install --prefix $(pwd)/../..
         """

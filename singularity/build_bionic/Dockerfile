@@ -37,6 +37,7 @@ FROM nanopype/base_bionic:$TAG
 # build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python-minimal python3-dev \
+    wget rsync \
     git gcc g++ \
     binutils autoconf make cmake \
     libcunit1-dev libhdf5-dev libopenblas-dev \

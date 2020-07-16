@@ -69,6 +69,18 @@ jobs:
         - <<: *modules
           env:
               - MODULE=methylation
+        - <<: *modules
+          env:
+              - MODULE=assembly
+        - <<: *modules
+          env:
+              - MODULE=demux
+        - <<: *modules
+          env:
+              - MODULE=sv
+        - <<: *modules
+          env:
+              - MODULE=transcript
         # Unit tests per module
         - stage: test
           install:

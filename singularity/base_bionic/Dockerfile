@@ -43,10 +43,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && update-ca-certificates
 
 ENV LANG en_US.utf8
+ENV LC_CTYPE en_US.UTF-8
+
 
 # dependencies
 RUN apt-get install -y --no-install-recommends \
-    wget python3 python3-pip \
+    python3 python3-pip \
+    libgomp1 \
     zlib1g-dev \
     bzip2 libbz2-dev \
     liblzma-dev libncurses5-dev \
