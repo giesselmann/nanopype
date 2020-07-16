@@ -31,36 +31,28 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
+# BUILD STAGE
+ARG TAG=latest
+FROM nanopype/build_bionic:$TAG as build_stage
 
-# Nanopype Dockerfile Demultiplexing
+ENV LANG "en_US.utf8"
+ENV LC_CTYPE "en_US.UTF-8"
+
+## run setup rules
+RUN mkdir /build
+WORKDIR /app
+# COPY . /app/
+RUN snakemake --snakefile rules/install.smk --directory /build demux
+
 
 # PACKAGE STAGE
-FROM ubuntu:18.04
+FROM nanopype/base_bionic:$TAG
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
-RUN apt-get --yes update && \
-    apt-get install -y --no-install-recommends wget locales \
-    git gcc g++ python3 python3-dev python3-pip \
-    zlib1g-dev bzip2 libbz2-dev \
-    ca-certificates apt-transport-https \
-    && rm -rf /var/lib/apt/lists/*
+COPY --from=build_stage /build/bin/* /usr/bin/
+COPY --from=build_stage /usr/local/lib/python3.6/dist-packages /usr/local/lib/python3.6/dist-packages
+COPY --from=build_stage /build/lib/python3.6/site-packages/ /usr/local/lib/python3.6/dist-packages
 
-RUN update-ca-certificates
-RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
-
-RUN mkdir -p /app
-COPY . /app/
 WORKDIR /app
-
-RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install setuptools wheel
-RUN python3 -m pip install -r requirements.txt
-
-RUN snakemake --snakefile rules/install.smk --directory /usr deepbinner
-
-WORKDIR /
 # default entrypoint is /bin/sh

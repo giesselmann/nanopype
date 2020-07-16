@@ -66,10 +66,8 @@ def get_tag():
             print("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container.", file=sys.stderr)
         if branch == 'master':
             return 'latest', version
-        elif branch == 'development':
-            return 'development', version
         else:
-            raise RuntimeError("[ERROR] Singularity images are only build for master and development branch.")
+            return 'development', version
     else:
         return version, version
 

@@ -1,6 +1,6 @@
 # \BUILD\---------------------------------------------------------------
 #
-#  CONTENTS      : Nanopype alignment singularity
+#  CONTENTS      : Nanopype base singularity
 #
 #  DESCRIPTION   : Dockerfile
 #
@@ -31,23 +31,47 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-# BUILD STAGE
-ARG TAG=latest
-FROM nanopype/build_bionic:$TAG as build_stage
+FROM ubuntu:bionic as build
 
-## run setup rules
-RUN mkdir /build
+# locales
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    locales \
+    ca-certificates \
+    lsb-release \
+    apt-transport-https \
+    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
+    && update-ca-certificates
+
+RUN export LANG="en_US.utf8" && \
+    export LC_CTYPE="en_US.UTF-8"
+
+
+# dependencies
+RUN apt-get install -y --no-install-recommends \
+    python3 python3-pip \
+    libgomp1 \
+    zlib1g-dev \
+    bzip2 libbz2-dev \
+    liblzma-dev libncurses5-dev \
+    libcunit1 libhdf5-100 libidn11 libopenblas-base \
+    libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
+
+
+## copy and configure nanopype
+RUN mkdir -p /app
+COPY . /app/
 WORKDIR /app
-# COPY . /app/
-RUN snakemake --snakefile rules/install.smk --directory /build alignment
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install setuptools wheel && \
+    python3 -m pip install -r singularity/requirements.txt
 
 
-# PACKAGE STAGE
-FROM nanopype/base_bionic:$TAG
-MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
-## packages
-COPY --from=build_stage /build/bin/* /usr/bin/
 
-WORKDIR /app
-# default entrypoint is /bin/sh
+# Squash into flat image
+FROM ubuntu:bionic
+COPY --from=build / /
+
+RUN export LANG="en_US.utf8" && \
+    export LC_CTYPE="en_US.UTF-8"

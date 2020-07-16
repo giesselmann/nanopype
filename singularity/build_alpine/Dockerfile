@@ -1,6 +1,6 @@
 # \BUILD\---------------------------------------------------------------
 #
-#  CONTENTS      : Nanopype alignment singularity
+#  CONTENTS      : Nanopype build singularity
 #
 #  DESCRIPTION   : Dockerfile
 #
@@ -31,23 +31,15 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-# BUILD STAGE
 ARG TAG=latest
-FROM nanopype/build_bionic:$TAG as build_stage
+FROM nanopype/base_alpine:$TAG
 
-## run setup rules
-RUN mkdir /build
-WORKDIR /app
-# COPY . /app/
-RUN snakemake --snakefile rules/install.smk --directory /build alignment
+# build dependencies
+RUN apk add --no-cache --virtual .build-deps build-base \
+    python2 python3-dev wget \
+    git gcc g++ \
+    binutils autoconf make cmake
 
 
-# PACKAGE STAGE
-FROM nanopype/base_bionic:$TAG
-MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
-
-## packages
-COPY --from=build_stage /build/bin/* /usr/bin/
-
-WORKDIR /app
-# default entrypoint is /bin/sh
+# remove build dependencies
+# RUN apk del .build-deps

@@ -32,25 +32,24 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 # main build rules
-import os, sys
+import os, sys, site
 
 rule default:
     shell : ""
 
-rule processing:
+rule demux:
+    input:
+        "bin/deepbinner"
+
+rule basecalling:
     input:
         "bin/guppy_basecaller",
-        #"bin/flappie",
-        "bin/bedtools",
-        "bin/samtools",
-        "bin/minimap2",
-        "bin/graphmap",
-        "bin/ngmlr"
+        "bin/flappie",
 
 rule alignment:
     input:
         "bin/minimap2",
-        "bin/graphmap",
+        "bin/graphmap2",
         "bin/ngmlr",
         "bin/samtools",
         "bin/bedtools",
@@ -63,6 +62,15 @@ rule methylation:
         "bin/bedtools",
         "bin/bedGraphToBigWig"
 
+rule assembly:
+    input:
+        "bin/flye"
+
+rule sv:
+    input:
+        "bin/sniffles",
+        "bin/STRique.py"
+
 rule transcript_core:
     input:
         "bin/minimap2",
@@ -73,35 +81,30 @@ rule transcript_core:
         "bin/polish_clusters",
         "bin/spliced_bam2gff"
 
-rule sv:
-    input:
-        "bin/sniffles",
-        "bin/STRique.py"
-
 rule transcript:
     input:
         rules.transcript_core.input,
         "bin/cdna_classifier.py"
 
-rule assembly:
-    input:
-        "bin/flye"
-
 rule all:
     input:
-        rules.processing.input,
+        rules.demux.input,
+        rules.basecalling.input,
         rules.alignment.input,
         rules.methylation.input,
-        rules.transcript.input,
         rules.sv.input,
+        rules.transcript.input,
         rules.assembly.input
+
+
+
 
 # helper functions
 def find_go():
     for path in os.environ["PATH"].split(os.pathsep):
         exe_file = os.path.join(path, 'go')
-        #if os.path.isfile(exe_file):
-        #    return exe_file
+        if os.path.isfile(exe_file):
+            return exe_file
     return None
 
 config['python'] = sys.executable
@@ -114,7 +117,7 @@ if not 'build_generator' in config:
     config['build_generator'] = '"Unix Makefiles"'
 
 if not 'flappie_src' in config:
-    config['flappie_src'] = True
+    config['flappie_src'] = False
 
 # detailed build rules
 rule UCSCtools:
@@ -122,7 +125,7 @@ rule UCSCtools:
         "bin/bedGraphToBigWig"
     shell:
         """
-        wget -q -O {output} ftp://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
+        wget -q -O {output} https://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
         chmod 755 {output}
         """
 
@@ -193,18 +196,18 @@ rule minimap2:
 
 rule graphmap:
     output:
-        bin = "bin/graphmap"
+        bin = "bin/graphmap2"
     threads: config['threads_build']
     shell:
         """
         mkdir -p src && cd src
-        if [ ! -d graphmap ]; then
-            git clone https://github.com/isovic/graphmap --branch master --depth=1 && cd graphmap
+        if [ ! -d graphmap2 ]; then
+            git clone https://github.com/lbcb-sci/graphmap2 --branch v0.6.4 --depth=1 && cd graphmap2
         else
-            cd graphmap && git fetch --all --tags --prune && git checkout master
+            cd graphmap2 && git fetch --all --tags --prune && git checkout tags/v0.6.4
         fi
         make modules -j{threads} && make -j{threads}
-        cp bin/Linux-x64/graphmap ../../bin/
+        cp bin/*/graphmap2 ../../bin/
         """
 
 rule ngmlr:
@@ -236,7 +239,10 @@ rule nanopolish:
             cd nanopolish && git fetch --all --tags --prune && git checkout tags/v0.11.0
         fi
         make clean
-        make -j{threads}
+        set +e
+        make -j{threads} 2>&1 | tee log.txt | grep 'g++\|gcc'
+        exitcode=$?
+        if [ $exitcode -ne 0 ]; then tail -n 100 log.txt; exit 1; fi
         cp nanopolish ../../bin/
         """
 
@@ -258,7 +264,8 @@ rule sniffles:
 
 rule deepbinner:
     output:
-        bin = "bin/deepbinner-runner.py"
+        #bin = "bin/deepbinner-runner.py"
+        bin = 'bin/deepbinner'
     shell:
         """
         mkdir -p src && cd src
@@ -267,8 +274,9 @@ rule deepbinner:
         else
             cd Deepbinner && git fetch --all --tags --prune && git checkout tags/v0.2.0
         fi
-        {config[python]} -m pip install -r requirements.txt --upgrade
-        ln -s $(pwd)/deepbinner-runner.py ../../{output.bin}
+        {config[python]} -m pip install "tensorflow==1.15" "keras==2.2.5"
+        {config[python]} -m pip install . --prefix $(pwd)/../../
+        #ln -s $(pwd)/deepbinner-runner.py ../../{output.bin}
         """
 
 rule golang:
@@ -348,7 +356,12 @@ rule flappie:
         else
             cd flappie && git fetch --all --tags --prune && git checkout master
         fi
-        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} ../
+        # Hack for build on alpine linux
+        CMAKE_C_STANDARD_LIBRARIES=''
+        if [ -f /usr/lib/libargp.a ]; then
+            CMAKE_C_STANDARD_LIBRARIES='-DCMAKE_C_STANDARD_LIBRARIES="/usr/lib/libargp.a"'
+        fi
+        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} $CMAKE_C_STANDARD_LIBRARIES ../
         cmake --build . --config Release -- -j {threads}
         cp flappie ../../../{output.bin}
         """
@@ -364,13 +377,16 @@ rule guppy:
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_2.3.7_linux64.tar.gz &&
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.0.3_linux64.tar.gz &&
         # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.1.5_linux64.tar.gz &&
-        mkdir -p src/guppy && cd src/guppy
-        wget -q https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz && \
-        tar -xzf ont-guppy-cpu_3.4.4_linux64.tar.gz -C ./ --strip 1 && \
-        rm ont-guppy-cpu_3.4.4_linux64.tar.gz
-        ln -fs $(pwd)/bin/guppy_basecaller ../../bin/guppy_basecaller
-        ln -fs $(pwd)/bin/guppy_barcoder ../../bin/guppy_barcoder
-        ln -fs $(pwd)/bin/guppy_basecall_server ../../bin/guppy_basecall_server
+        # wget https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_3.4.4_linux64.tar.gz &&
+        mkdir -p src/guppy && cd src/guppy && rm -rf *
+        wget -q https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_4.0.11_linux64.tar.gz
+        tar -xzkf ont-guppy-cpu_4.0.11_linux64.tar.gz -C ./ --strip 1 && \
+        rm ont-guppy-cpu_4.0.11_linux64.tar.gz
+        # copy everything except toplevel softlinks e.g.
+        # skip libhdf5.so
+        # copy libhdf5.so.1.8.11
+        rsync --files-from=<(find . ! \( -type l -and -regex '^.*so$' \) -print) --links . ../../
+        rm -r *
         """
 
 rule pychopper:
@@ -380,16 +396,16 @@ rule pychopper:
         """
         mkdir -p src && cd src
         if [ ! -d pychopper ]; then
-            git clone https://github.com/nanoporetech/pychopper --branch v2.2.2 && cd pychopper
+            git clone https://github.com/nanoporetech/pychopper --branch v2.4.0 && cd pychopper
         else
-            cd pychopper && git fetch --all --tags --prune && git checkout v2.2.2
+            cd pychopper && git fetch --all --tags --prune && git checkout v2.4.0
         fi
         {config[python]} -m pip install --upgrade incremental
         {config[python]} -m pip install --upgrade certifi
         {config[python]} -m pip install parasail --upgrade
         {config[python]} -m pip install "matplotlib<3.1" --upgrade
-        {config[python]} setup.py install
-        cp $(pwd)/scripts/cdna_classifier.py ../../{output.bin}
+        {config[python]} setup.py install --prefix $(pwd)/../../
+        #cp $(pwd)/scripts/cdna_classifier.py ../../{output.bin}
         """
 
 rule racon:
@@ -457,7 +473,7 @@ rule strique:
             cd STRique && git fetch --all --tags --prune && git checkout v0.3.0
         fi
         {config[python]} -m pip install -r requirements.txt --upgrade
-        {config[python]} setup.py install
+        {config[python]} setup.py install --prefix $(pwd)/../../
         cp scripts/STRique.py ../../bin/
         """
 
@@ -465,15 +481,16 @@ rule flye:
     output:
         bin = "bin/flye"
     params:
-        prefix = lambda wildcards : sys.prefix
+        pth_file = lambda wildcards : os.path.join(site.getsitepackages()[0], 'flye.pth'),
+        pth_content = lambda wildcards : 'import os; os.environ["PYTHONPATH"] = "{dir}" + os.pathsep + os.environ["PYTHONPATH"]'.format(dir=os.getcwd())
     shell:
         """
         mkdir -p src && cd src
         if [ ! -d Flye ]; then
-            git clone https://github.com/fenderglass/Flye --branch 2.6 && cd Flye
+            git clone https://github.com/fenderglass/Flye --branch 2.7 && cd Flye
         else
-            cd Flye && git fetch --all --tags --prune && git checkout 2.6
+            cd Flye && git fetch --all --tags --prune && git checkout 2.7
         fi
-        {config[python]} setup.py install --prefix {params.prefix}
-        ln -s {params.prefix}/bin/flye ../../{output.bin}
+        make
+        {config[python]} setup.py install --prefix $(pwd)/../..
         """

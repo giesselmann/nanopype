@@ -54,8 +54,8 @@ basecalling_flappie_flags: ''
 alignment_samtools_flags: ''
 # command line flags for minimap2 DNA alignment
 alignment_minimap2_flags: '-ax map-ont -L'
-# command line flags for graphmap
-alignment_graphmap_flags: '-B 100'
+# command line flags for graphmap2
+alignment_graphmap2_flags: '-B 100'
 # command line flags for ngmlr
 alignment_ngmlr_flags: '-x ont --bam-fix'
 

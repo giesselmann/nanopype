@@ -10,8 +10,8 @@ basecalling:
 alignment:
     - alignments/minimap2/guppy/batches/tag/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda/batch0.NC_001416_1.bam
     - alignments/minimap2/guppy/tag.NC_001416_1.bam
-    - alignments/graphmap/guppy/batches/tag/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda/batch0.NC_001416_1.bam
-    - alignments/graphmap/guppy/tag.NC_001416_1.bam
+    - alignments/graphmap2/guppy/batches/tag/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda/batch0.NC_001416_1.bam
+    - alignments/graphmap2/guppy/tag.NC_001416_1.bam
     - ref/NC_001416.1.fasta.gmidx
     - alignments/ngmlr/guppy/batches/tag/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda/batch0.NC_001416_1.bam
     - alignments/ngmlr/guppy/tag.NC_001416_1.bam
