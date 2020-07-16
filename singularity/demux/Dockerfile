@@ -35,8 +35,8 @@
 ARG TAG=latest
 FROM nanopype/build_bionic:$TAG as build_stage
 
-RUN export LANG="en_US.utf8" && \
-    export LC_CTYPE="en_US.UTF-8"
+ENV LANG "en_US.utf8"
+ENV LC_CTYPE "en_US.UTF-8"
 
 ## run setup rules
 RUN mkdir /build
