@@ -42,7 +42,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
     && update-ca-certificates
 
-RUN export LANG="en_US.utf8"\
+RUN export LANG="en_US.utf8" && \
     export LC_CTYPE="en_US.UTF-8"
 
 
@@ -73,5 +73,5 @@ RUN python3 -m pip install --upgrade pip && \
 FROM ubuntu:bionic
 COPY --from=build / /
 
-RUN export LANG="en_US.utf8"\
+RUN export LANG="en_US.utf8" && \
     export LC_CTYPE="en_US.UTF-8"
