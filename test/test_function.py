@@ -47,8 +47,9 @@ base_url = 'https://owww.molgen.mpg.de/~nanopype/unit/{}'
 
 
 def init_test_dir(repo_dir, test_dir='.'):
-    if not os.path.exists(test_dir):
-        os.makedirs(test_dir)
+    #if os.path.exists(test_dir) and os.listdir(test_dir):
+    #    raise RuntimeError("Test directory {} is not empty.".format(test_dir))
+    os.makedirs(test_dir, exist_ok=True)
     os.chdir(test_dir)
     # get list of filenames
     fofn_url = base_url.format('index.fofn')
@@ -85,10 +86,15 @@ def reset_test_dir(test_dir='.'):
 
 
 class test_case_src(test_case_base):
-    def __init__(self, snakefile, test_file, test_dir='.', methodName='none'):
+    def __init__(self, snakefile, test_file,
+                test_dir='.', threads=1, singularity=False,
+                methodName='none'):
         self.test_dir = test_dir
-        base_cmd = 'snakemake -q -j 4 --snakefile {snakefile} --directory {test_dir} '.format(
-            snakefile=snakefile, test_dir=test_dir)
+        base_cmd = 'snakemake -q -j {threads}{flags} --snakefile {snakefile} --directory {test_dir} '.format(
+            threads=max(2, threads),
+            flags=' --use-singularity' if singularity else '',
+            snakefile=snakefile,
+            test_dir=test_dir)
         def fn(self):
             # move expected output file if present
             exp = False
@@ -122,9 +128,18 @@ class test_case_src(test_case_base):
 
 # main function
 if __name__ == '__main__':
+    # cmd arguments
+    parser = argparse.ArgumentParser(description="Nanopype raw data import script",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("module", choices=['all', 'storage', 'basecalling', 'alignment', 'methylation', 'sv'],
+        help="Export directory")
+    parser.add_argument("dir", help="Working directory for tests")
+    parser.add_argument('-t', '--threads', type=int, default=1, help="Threads for parallel tests")
+    parser.add_argument("--singularity", action="store_true", help="Use singularity version")
+    args = parser.parse_args()
     cwd = os.getcwd()
     repo_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
-    test_dir = 'test/test_src'
+    test_dir = args.dir
     snakefile = os.path.join(repo_dir, 'Snakefile')
     test_dir = init_test_dir(repo_dir, test_dir)
     reset_test_dir(test_dir)
@@ -134,10 +149,14 @@ if __name__ == '__main__':
             test_cases = yaml.safe_load(fp)
         except yaml.YAMLError as exc:
             print(exc)
+            exit(-1)
     suite = unittest.TestSuite()
     for module, module_tests in test_cases.items():
-        for module_test in module_tests:
-            suite.addTest(test_case_src(snakefile, module_test, methodName='test_{}_{}'.format(module, module_test)))
+        if args.module == 'all' or args.module == module:
+            for module_test in module_tests:
+                suite.addTest(test_case_src(snakefile, module_test,
+                    threads=args.threads, singularity=args.singularity,
+                    methodName='test_{}_{}'.format(module, module_test)))
     runner = unittest.TextTestRunner()
     runner.run(suite)
 

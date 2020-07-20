@@ -1,5 +1,5 @@
-#storage:
-#    - data/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda/reads.fofn
+storage:
+    - data/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda/reads.fofn
 basecalling:
     - sequences/albacore/batches/tag/20190225_FAH93688_FLO-MIN106_SQK-LSK109_lambda/batch0.fastq.gz
     - sequences/albacore/tag.fastq.gz
