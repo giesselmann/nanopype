@@ -49,7 +49,7 @@ rule storage_index_batch:
     input:
         batch = lambda wildcards : get_signal_batch(wildcards, config)
     output:
-        temp("{data_raw}/{{runname}}/reads/{{batch}}.fofn".format(data_raw = config["storage_data_raw"]))
+        temp("{data_raw}/{{runname, [^.\/]*}}/reads/{{batch}}.fofn".format(data_raw = config["storage_data_raw"]))
     shadow: "minimal"
     threads: 1
     resources:
@@ -65,7 +65,7 @@ rule storage_index_run:
     input:
         batches = get_batches_indexing
     output:
-        fofn = "{data_raw}/{{runname}}/reads.fofn".format(data_raw = config["storage_data_raw"])
+        fofn = "{data_raw}/{{runname, [^.\/]*}}/reads.fofn".format(data_raw = config["storage_data_raw"])
     run:
         with open(output[0], 'w') as fp:
             for f in input.batches:

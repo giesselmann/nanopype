@@ -40,6 +40,7 @@ jobs:
           stage: base
           env:
               - MODULE=base_alpine
+          install: skip
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
         - <<: *base
@@ -50,6 +51,7 @@ jobs:
           stage: build
           env:
               - MODULE=build_alpine
+          install: skip
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
         - <<: *build

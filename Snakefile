@@ -59,16 +59,16 @@ def get_tag():
         cmd = 'git rev-parse --abbrev-ref HEAD'
         branch = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
     except subprocess.CalledProcessError:
-        print('[WARNING] Unable to get branch from git.', file=sys.stderr)
-        branch = ''
+        print('[WARNING] Unable to get branch from git. Pulling development.', file=sys.stderr)
+        branch = 'development'
     if '-' in version:
         if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
             print("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container.", file=sys.stderr)
         if branch == 'master':
             return 'latest', version
         else:
-            return 'development', version
-    else:
+            return branch, version
+    else:   # clean tag checkout
         return version, version
 
 
@@ -128,7 +128,8 @@ if 'bin' in nanopype_env:
         config['bin_singularity'] = {}
     for name, loc in nanopype_env['bin'].items():
         loc_sys = None
-        loc_singularity = os.path.join('/usr/bin', os.path.basename(loc))
+        #loc_singularity = os.path.join('/usr/bin', os.path.basename(loc))
+        loc_singularity = os.path.basename(loc)
         if os.path.isfile(loc):
             # absolute path is given
             loc_sys = loc
@@ -143,7 +144,7 @@ if 'bin' in nanopype_env:
                     loc_sys = f
         # save executable path depending on singularity usage
         if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
-            # within singularity everything is accessible through /bin
+            # within singularity everything is accessible through /bin and /usr/bin
             config['bin_singularity'][name] = loc_singularity
             if loc_sys:
                 config['bin'][name] = loc_sys
@@ -225,6 +226,7 @@ config['runnames'] = runnames
 if not os.path.exists(config['storage_data_raw']):
     raise RuntimeError("[ERROR] Raw data archive not found.")
 else:
+    config['storage_data_raw'] = config['storage_data_raw'].rstrip('/')
     for runname in config['runnames']:
         loc = os.path.join(config['storage_data_raw'], runname)
         if not os.path.exists(loc):

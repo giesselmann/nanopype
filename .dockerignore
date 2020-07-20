@@ -5,6 +5,9 @@
 !rules/install.smk
 !singularity/requirements.txt
 
+# Include helper scripts
+!rules/utils/*.py
+
 # Include tests
 !test/test_base.py
 !test/test_install.py
