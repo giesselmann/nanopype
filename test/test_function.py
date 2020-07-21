@@ -46,6 +46,7 @@ base_url = 'https://owww.molgen.mpg.de/~nanopype/unit/{}'
 
 
 
+# initialize test dir with git repo to restore original state after each test
 def init_test_dir(repo_dir, test_dir='.'):
     #if os.path.exists(test_dir) and os.listdir(test_dir):
     #    raise RuntimeError("Test directory {} is not empty.".format(test_dir))
@@ -78,6 +79,7 @@ def init_test_dir(repo_dir, test_dir='.'):
 
 
 
+# reset test dir to downloaded state
 def reset_test_dir(test_dir='.'):
     subprocess.run('git reset --hard', check=True, shell=True, stdout=subprocess.PIPE)
     subprocess.run('git clean -f -d', check=True, shell=True, stdout=subprocess.PIPE)
@@ -85,6 +87,7 @@ def reset_test_dir(test_dir='.'):
 
 
 
+# test case
 class test_case_src(test_case_base):
     def __init__(self, snakefile, test_file,
                 test_dir='.', threads=1, singularity=False,
@@ -92,7 +95,7 @@ class test_case_src(test_case_base):
         self.test_dir = test_dir
         base_cmd = 'snakemake -q -j {threads}{flags} --snakefile {snakefile} --directory {test_dir} '.format(
             threads=max(2, threads),
-            flags=' --use-singularity' if singularity else '',
+            flags=' --use-singularity --singularity-args=" -u"' if singularity else '',
             snakefile=snakefile,
             test_dir=test_dir)
         def fn(self):
@@ -110,20 +113,12 @@ class test_case_src(test_case_base):
         super(test_case_src, self).__init__(fn, methodName)
 
     def setUp(self):
-        pass
+        reset_test_dir(self.test_dir)
 
     def tearDown(self):
         pass
-        reset_test_dir(self.test_dir)
 
 
-
-
-# same tests but run within singularity
-#class test_unit_singularity(test_unit_src):
-#    def setUp(self):
-#        super().setUp()
-#        self.snk_cmd = 'snakemake -j 4 --use-singularity --snakefile {snakefile} --directory {workdir} '.format(snakefile=os.path.join(self.repo_dir, 'Snakefile'), workdir=self.test_dir)
 
 
 # main function
@@ -137,12 +132,13 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--threads', type=int, default=1, help="Threads for parallel tests")
     parser.add_argument("--singularity", action="store_true", help="Use singularity version")
     args = parser.parse_args()
+    # save current workdir
     cwd = os.getcwd()
+    # init and reset test dir with data and git repository
     repo_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
     test_dir = args.dir
     snakefile = os.path.join(repo_dir, 'Snakefile')
     test_dir = init_test_dir(repo_dir, test_dir)
-    reset_test_dir(test_dir)
     # load test cases
     with open(os.path.join(repo_dir, 'test', 'test_files.yaml'), 'r') as fp:
         try:
@@ -157,8 +153,9 @@ if __name__ == '__main__':
                 suite.addTest(test_case_src(snakefile, module_test,
                     threads=args.threads, singularity=args.singularity,
                     methodName='test_{}_{}'.format(module, module_test)))
+    # execute tests
     runner = unittest.TextTestRunner()
     runner.run(suite)
-
+    # back to initial workdir
     os.chdir(cwd)
     #unittest.main()

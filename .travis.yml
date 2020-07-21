@@ -87,8 +87,12 @@ jobs:
         - stage: test
           install:
               - pip install -r requirements.txt
+              - snakemake --snakefile rules/install.smk --directory $HOME singularity
+              - export PATH=$HOME/bin:$PATH
           script:
-              - docker run --rm $DOCKER_USERNAME/base_bionic:$DOCKER_TAG python3 -c "import h5py"
+              - python3 test/test_function.py storage $HOME/unit_tests --singularity
+              - python3 test/test_function.py basecalling $HOME/unit_tests --singularity
+              - python3 test/test_function.py alignment $HOME/unit_tests --singularity
           before_cache: skip
           deploy: skip
 

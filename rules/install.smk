@@ -119,6 +119,56 @@ if not 'build_generator' in config:
 if not 'flappie_src' in config:
     config['flappie_src'] = False
 
+rule golang:
+    output:
+        go = "src/go/bin/go"
+    shell:
+        """
+        mkdir -p src && cd src
+        wget -q -nc https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz
+        tar -xzf go1.13.4.linux-amd64.tar.gz
+        """
+
+rule squashfs:
+    output:
+        "bin/mksquashfs"
+    shell:
+        """
+        install_prefix=`pwd`
+        mkdir -p src && cd src
+        if [ ! -d squashfs-tools ]; then
+            git clone https://github.com/plougher/squashfs-tools --branch 4.4 --depth=1 && cd squashfs-tools
+        else
+            cd squashfs-tools && git fetch --all --tags --prune && git checkout tags/4.4
+        fi
+        cd squashfs-tools
+        make
+        cp *squashfs $install_prefix/bin/
+        """
+
+rule singularity:
+    input:
+        go = lambda wildcards : find_go() if find_go() is not None else rules.golang.output.go
+    output:
+        "bin/singularity"
+    shell:
+        """
+        install_prefix=`pwd`
+        mkdir -p src/gocode
+        export GOPATH=$(pwd)/src/gocode
+        export PATH=$(basename {input.go}):$PATH
+        which go
+        cd src
+        if [ ! -d singularity ]; then
+            git clone https://github.com/sylabs/singularity.git --branch v3.3.0 --depth=1 && cd singularity
+        else
+            cd singularity && git fetch --all --tags --prune && git checkout tags/v3.3.0
+        fi
+        ./mconfig --without-suid --prefix=$install_prefix --localstatedir=$install_prefix/
+        make -C ./builddir
+        make -C ./builddir install
+        """
+
 # detailed build rules
 rule UCSCtools:
     output:
@@ -277,16 +327,6 @@ rule deepbinner:
         {config[python]} -m pip install "tensorflow==1.15" "keras==2.2.5"
         {config[python]} -m pip install . --prefix $(pwd)/../../
         #ln -s $(pwd)/deepbinner-runner.py ../../{output.bin}
-        """
-
-rule golang:
-    output:
-        go = "src/go/bin/go"
-    shell:
-        """
-        mkdir -p src && cd src
-        wget -q -nc https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz
-        tar -xzf go1.13.4.linux-amd64.tar.gz
         """
 
 rule gitlfs:
