@@ -157,9 +157,8 @@ rule singularity:
         install_prefix=`pwd`
         mkdir -p src/gocode
         export GOPATH=$(pwd)/src/gocode
+        export GOROOT=$(pwd)/src/go
         export PATH=$(pwd)/$(dirname {input.go}):$PATH
-        echo $PATH
-        go version
         cd src
         if [ ! -d singularity ]; then
             git clone https://github.com/sylabs/singularity.git --branch v3.3.0 --depth=1 && cd singularity

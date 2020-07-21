@@ -95,7 +95,8 @@ jobs:
                   - libseccomp-dev
                   - pkg-config
           install:
-              - pip install -r requirements.txt
+              - pip install -r requirements.txt --upgrade
+              - rm -rf /home/travis/.gimme/versions/go1.*
               - snakemake --snakefile rules/install.smk --directory $HOME singularity
               - export PATH=$HOME/bin:$PATH
           script:

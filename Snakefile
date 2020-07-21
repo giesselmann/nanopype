@@ -61,7 +61,7 @@ def get_tag():
     except subprocess.CalledProcessError:
         print('[WARNING] Unable to get branch from git. Pulling development.', file=sys.stderr)
         branch = 'development'
-    if '-' in version:
+    if '-' in version or 'HEAD' in version:
         if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
             print("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container.", file=sys.stderr)
         if branch == 'master':
@@ -148,9 +148,9 @@ if 'bin' in nanopype_env:
             config['bin_singularity'][name] = loc_singularity
             if loc_sys:
                 config['bin'][name] = loc_sys
-            else:
-                print("[WARNING] {name} not found as {loc} and is only available in singularity rules.".format(
-                    name=name, loc=loc), file=sys.stderr)
+            #else:
+            #    print("[WARNING] {name} not found as {loc} and is only available in singularity rules.".format(
+            #        name=name, loc=loc), file=sys.stderr)
         else:
             # singularity rules use system wide executables
             if loc_sys:
