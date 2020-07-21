@@ -107,6 +107,7 @@ jobs:
               - python3 test/test_function.py methylation $HOME/unit_tests --singularity
               - python3 test/test_function.py sv $HOME/unit_tests --singularity
           before_cache: skip
+          deploy: skip
 
 after_success:
     - bash <(curl -s https://codecov.io/bash)
@@ -124,7 +125,6 @@ deploy:
           tag: false
           branch: master
           repo: giesselmann/nanopype
-          condition: env(MODULE) IS present
     - provider: script
       skip_cleanup: true
       script: docker tag $MODULE $DOCKER_USERNAME/$MODULE:$TRAVIS_TAG &&
@@ -134,7 +134,6 @@ deploy:
           tag: true
           branch: master
           repo: giesselmann/nanopype
-          condition: env(MODULE) IS present
     - provider: script
       skip_cleanup: true
       script: docker tag $MODULE $DOCKER_USERNAME/$MODULE:$TRAVIS_BRANCH &&
@@ -144,4 +143,4 @@ deploy:
           tag: false
           all_branches: true
           repo: giesselmann/nanopype
-          condition: $TRAVIS_BRANCH != "master" AND env(MODULE) IS present
+          condition: $TRAVIS_BRANCH != "master"
