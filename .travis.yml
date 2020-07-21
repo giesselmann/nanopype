@@ -84,7 +84,8 @@ jobs:
           env:
               - MODULE=transcript
         # Unit tests per module
-        - stage: test
+        - &tests
+          stage: tests
           addons:
             apt:
               packages:
@@ -95,19 +96,29 @@ jobs:
                   - libseccomp-dev
                   - pkg-config
                   - squashfs-tools
+          env:
+              - MODULE=storage
           install:
               - pip install -r requirements.txt --upgrade
               - rm -rf /home/travis/.gimme/versions/go1.*
               - snakemake --snakefile rules/install.smk --directory $HOME singularity
               - export PATH=$HOME/bin:$PATH
           script:
-              - python3 test/test_function.py storage $HOME/unit_tests --singularity
-              - python3 test/test_function.py basecalling $HOME/unit_tests --singularity
-              - python3 test/test_function.py alignment $HOME/unit_tests --singularity
-              - python3 test/test_function.py methylation $HOME/unit_tests --singularity
-              - python3 test/test_function.py sv $HOME/unit_tests --singularity
+              - python3 test/test_function.py $MODULE $HOME/unit_tests --singularity
           before_cache: skip
           deploy: skip
+        - <<: *tests
+          env:
+              - MODULE=basecalling
+        - <<: *tests
+          env:
+              - MODULE=alignment
+        - <<: *tests
+          env:
+              - MODULE=methylation
+        - <<: *tests
+          env:
+              - MODULE=sv
 
 after_success:
     - bash <(curl -s https://codecov.io/bash)
