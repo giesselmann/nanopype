@@ -131,7 +131,7 @@ rule golang:
 
 rule squashfs:
     output:
-        mksquashfs = "bin/mksquashfs"
+        mksquashfs = "bin/mksquashfs",
         unsquashfs = "bin/unsquashfs"
     shell:
         """
