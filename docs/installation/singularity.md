@@ -17,37 +17,13 @@ conda create -n nanopype python=3.4 anaconda
 source activate nanopype
 ```
 
-## Snakemake
-
-Nanopype is based on the Snakemake pipeline engine. With python3.4 onward pip is already installed and you get Snakemake by executing:
-
-```
-python3 -m pip install --upgrade snakemake
-```
-
-Alternatively you might use the conda package manager:
-
-```
-conda install -c bioconda -c conda-forge snakemake
-```
-
-Nanopype relies on latest Snakemake features, please consider updating your Snakemake from the bitbucket repository. From your home or project directory run:
-
-```
-mkdir -p src && cd src
-git clone https://bitbucket.org/snakemake/snakemake.git
-cd snakemake
-python3 -m pip install . --upgrade
-cd ..
-```
-
 ## Nanopype
 Finally install Nanopype from [github.com/giesselmann](https://github.com/giesselmann/nanopype/). If you use conda you find pip in the *bin/* folder of the conda installation. If you use a conda virtual environment use the pip from the *envs/nanopype/bin*.
 
 ```
 git clone https://github.com/giesselmann/nanopype
 cd nanopype
-python3 -m pip install . --upgrade
+python3 -m pip install -r requirements.txt
 cd ..
 ```
 
@@ -81,21 +57,14 @@ If a system wide singularity installation is not available and can not be set up
 The following steps clone the repository and build singularity without the setuid functionality, relying on kernel namespaces at runtime.
 The *--prefix* is the installation prefix and must be a writeable path. The *localstatedir* will be created by the make script on the current server. In a cluster environment *localstatedir* needs to be available on a local hard drive on each node!
 
+Singularity requires mksquasfs and unsquashfs from squashfs-tools. Currently these are only found when installed in system paths i.e. ```/bin, /usr/bin, /sbin, /usr/sbin, /usr/local/bin, /usr/local/sbin```. Please contact your IT to install the squashfs-tools package.
+
 ```
 git clone https://github.com/sylabs/singularity.git
 cd singularity && git checkout v3.3.0
 ./mconfig --without-suid --prefix=/path/to/prefix --localstatedir="/scratch/nanopype_singularity"
 make -C ./builddir
 make -C ./builddir install
-```
-
-Singularity requires mksquasfs from squashfs-tools. If not available build and install it using:
-
-```
-git clone https://github.com/plougher/squashfs-tools
-cd squashfs-tools/squashfs-tools
-make
-cp *squashfs /path/to/prefix/bin/
 ```
 
 **Note:** Singularity and mksquasfs must be visible to Snakemake e.g. through the users PATH variable. In a cluster setup this must hold true on every compute node. If your .bashrc becomes sourced on the compute nodes you can simply:
@@ -108,8 +77,6 @@ Alternatively if you installed Nanopype and Snakemake to a virtual python enviro
 
 ```
 ln -s /path/to/prefix/bin/singularity /path/to/your/environment/bin/singularity
-ln -s /path/to/prefix/bin/mksquasfs /path/to/your/environment/bin/mksquasfs
-ln -s /path/to/prefix/bin/unsquashfs /path/to/your/environment/bin/unsquashfs
 ```
 
 The exact approach depends on the local setup and might differ in details.

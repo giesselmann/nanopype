@@ -10,7 +10,7 @@ Independant of the installation method, the repository of the pipeline needs to 
 cd /path/to/nanopype
 git fetch --tags
 git checkout -f v0.7.0 && git clean -dfx && git gc --auto
-python3 -m pip install . --upgrade
+python3 -m pip install -r requirements.txt --upgrade
 ```
 
 The pipeline repository is now in a default state, changes made to the environment configuration in **env.yaml** need to be restored. Please also note that workflow configurations might change between pipeline releases. Compare the default **nanopype.yaml** in the repository with the one in the working directory to identify additional options.

@@ -1,7 +1,7 @@
 # Release notes
 
-#### v0.11.2 - 2020
-Maintenance release:
+#### v1.0.0 - 2020
+Main release:
 
 :   * Rewrite unit tests for src and singularity
     * Move Docker builds to travis-ci
