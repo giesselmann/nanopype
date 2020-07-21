@@ -37,7 +37,6 @@ import argparse
 import itertools
 import numpy as np
 import timeit
-from tqdm import tqdm
 from collections import defaultdict, namedtuple
 from signal import signal, SIGPIPE, SIG_DFL
 
