@@ -132,6 +132,7 @@ rule golang:
 rule squashfs:
     output:
         mksquashfs = "bin/mksquashfs"
+        unsquashfs = "bin/unsquashfs"
     shell:
         """
         install_prefix=`pwd`
@@ -148,7 +149,6 @@ rule squashfs:
 
 rule singularity:
     input:
-        squashfs = rules.squashfs.output.mksquashfs,
         go = rules.golang.output.go
     output:
         "bin/singularity"

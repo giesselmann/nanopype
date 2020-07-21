@@ -94,6 +94,7 @@ jobs:
                   - libgpgme11-dev
                   - libseccomp-dev
                   - pkg-config
+                  - squashfs-tools
           install:
               - pip install -r requirements.txt --upgrade
               - rm -rf /home/travis/.gimme/versions/go1.*
