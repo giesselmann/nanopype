@@ -155,7 +155,12 @@ if __name__ == '__main__':
                     methodName='test_{}_{}'.format(module, module_test)))
     # execute tests
     runner = unittest.TextTestRunner()
-    runner.run(suite)
+    result = runner.run(suite)
     # back to initial workdir
     os.chdir(cwd)
+    # return depending on result
+        if result.wasSuccessful():
+        exit(0)
+    else:
+        exit(1)
     #unittest.main()
