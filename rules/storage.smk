@@ -50,7 +50,7 @@ rule storage_index_batch:
         batch = lambda wildcards : get_signal_batch(wildcards, config)
     output:
         temp("{data_raw}/{{runname, [^.\/]*}}/reads/{{batch}}.fofn".format(data_raw = config["storage_data_raw"]))
-    shadow: "minimal"
+    shadow: "shallow"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 4000),
