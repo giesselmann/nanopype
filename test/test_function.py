@@ -159,7 +159,7 @@ if __name__ == '__main__':
     # back to initial workdir
     os.chdir(cwd)
     # return depending on result
-        if result.wasSuccessful():
+    if result.wasSuccessful():
         exit(0)
     else:
         exit(1)
