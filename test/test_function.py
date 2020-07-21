@@ -151,6 +151,7 @@ if __name__ == '__main__':
         if args.module == 'all' or args.module == module:
             for module_test in module_tests:
                 suite.addTest(test_case_src(snakefile, module_test,
+                    test_dir=test_dir,
                     threads=args.threads, singularity=args.singularity,
                     methodName='test_{}_{}'.format(module, module_test)))
     # execute tests
