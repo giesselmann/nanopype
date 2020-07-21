@@ -148,7 +148,7 @@ rule squashfs:
 
 rule singularity:
     input:
-        go = lambda wildcards : find_go() if find_go() is not None else rules.golang.output.go
+        go = rules.golang.output.go
     output:
         "bin/singularity"
     shell:
@@ -156,8 +156,7 @@ rule singularity:
         install_prefix=`pwd`
         mkdir -p src/gocode
         export GOPATH=$(pwd)/src/gocode
-        export PATH=$(basename {input.go}):$PATH
-        which go
+        export PATH=$(dirname {input.go}):$PATH
         cd src
         if [ ! -d singularity ]; then
             git clone https://github.com/sylabs/singularity.git --branch v3.3.0 --depth=1 && cd singularity
