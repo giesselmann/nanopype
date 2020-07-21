@@ -129,7 +129,7 @@ if __name__ == '__main__':
     parser.add_argument("module", choices=['all', 'storage', 'basecalling', 'alignment', 'methylation', 'sv'],
         help="Export directory")
     parser.add_argument("dir", help="Working directory for tests")
-    parser.add_argument('-t', '--threads', type=int, default=1, help="Threads for parallel tests")
+    parser.add_argument('-t', '--threads', type=int, default=4, help="Threads for parallel tests")
     parser.add_argument("--singularity", action="store_true", help="Use singularity version")
     args = parser.parse_args()
     # save current workdir
