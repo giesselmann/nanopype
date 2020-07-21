@@ -131,7 +131,7 @@ rule golang:
 
 rule squashfs:
     output:
-        "bin/mksquashfs"
+        mksquashfs = "bin/mksquashfs"
     shell:
         """
         install_prefix=`pwd`
@@ -148,6 +148,7 @@ rule squashfs:
 
 rule singularity:
     input:
+        squashfs = rules.squashfs.output.mksquashfs,
         go = rules.golang.output.go
     output:
         "bin/singularity"
@@ -156,7 +157,7 @@ rule singularity:
         install_prefix=`pwd`
         mkdir -p src/gocode
         export GOPATH=$(pwd)/src/gocode
-        export PATH=$(dirname {input.go}):$PATH
+        export PATH=$(pwd)/$(dirname {input.go}):$PATH
         cd src
         if [ ! -d singularity ]; then
             git clone https://github.com/sylabs/singularity.git --branch v3.3.0 --depth=1 && cd singularity
