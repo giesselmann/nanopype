@@ -1,6 +1,6 @@
 # \BUILD\---------------------------------------------------------------
 #
-#  CONTENTS      : Nanopype singularity structural variation
+#  CONTENTS      : Nanopype all-in-one singularity
 #
 #  DESCRIPTION   : Dockerfile
 #
@@ -31,15 +31,15 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-# BUILD STAGE
+# MODULE STAGES
 ARG TAG=latest
-FROM nanopype/build_bionic:$TAG as build_stage
-
-## run setup rules
-RUN mkdir /build
-WORKDIR /app
-# COPY . /app/
-RUN snakemake --snakefile rules/install.smk --directory /build sv
+FROM nanopype/basecalling:$TAG as basecalling
+FROM nanopype/alignment:$TAG as alignment
+FROM nanopype/methylation:$TAG as methylation
+FROM nanopype/sv:$TAG as sv
+FROM nanopype/transcript:$TAG as transcript
+FROM nanopype/assembly:$TAG as assembly
+FROM nanopype/demux:$TAG as demux
 
 
 # PACKAGE STAGE
@@ -47,11 +47,38 @@ FROM nanopype/base_bionic:$TAG
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
-COPY --from=build_stage /build/bin/* /usr/bin/
-COPY --from=build_stage /build/lib/* /usr/lib/
-COPY --from=build_stage /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/
-COPY --from=build_stage /build/lib/python3.6/site-packages/ /usr/local/lib/python3.6/site-packages
+RUN mkdir -p /usr/data
+COPY --from=basecalling /usr/bin/* /usr/bin/
+COPY --from=basecalling /usr/lib/* /usr/lib/
+COPY --from=basecalling /usr/data/* /usr/data/
 
+COPY --from=alignment /usr/bin/* /usr/bin/
 
-# WORKDIR /app
+COPY --from=methylation /usr/bin/* /usr/bin/
+
+COPY --from=sv /usr/bin/* /usr/bin/
+COPY --from=sv /usr/lib/* /usr/lib/
+COPY --from=sv /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/
+COPY --from=sv /usr/local/lib/python3.6/site-packages/ /usr/local/lib/python3.6/site-packages/
+
+COPY --from=transcript /usr/bin/* /usr/bin/
+COPY --from=transcript /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/
+
+COPY --from=assembly /usr/bin/* /usr/bin/
+COPY --from=assembly /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/
+
+COPY --from=demux /usr/bin/* /usr/bin/
+COPY --from=demux /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git config --global user.email "nanopype"
+RUN git config --global user.name "nanopype"
+
+WORKDIR /app
+COPY . /app
+RUN pip install -r requirements.txt
+
 # default entrypoint is /bin/sh

@@ -59,7 +59,7 @@ jobs:
         #      - MODULE=build_alpine
         # Modules from build stage, copied into base stage
         - &modules
-          stage: modules
+          stage: module builds
           env:
               - MODULE=basecalling
           install: skip
@@ -85,7 +85,7 @@ jobs:
               - MODULE=transcript
         # Unit tests per module
         - &tests
-          stage: tests
+          stage: module tests
           addons:
             apt:
               packages:
@@ -119,6 +119,17 @@ jobs:
         - <<: *tests
           env:
               - MODULE=sv
+        - stage: nanopype build
+          env:
+              - MODULE=nanopype
+          install: skip
+          script:
+              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
+        - stage: nanopype test
+          before_cache: skip
+          deploy: skip
+          script:
+              - docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:$DOCKER_TAG python3 test/test_function.py all /test
 
 after_success:
     - bash <(curl -s https://codecov.io/bash)

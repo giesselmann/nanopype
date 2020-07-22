@@ -1,6 +1,9 @@
 # Ignore everything
 **
 
+# Include requirements
+!requirements.txt
+
 # Include build rules
 !rules/install.smk
 !singularity/requirements.txt
