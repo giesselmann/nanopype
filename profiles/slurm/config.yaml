@@ -1,5 +1,8 @@
-cluster: slurm_submission_wrapper.py
 jobs: 8
 resources: threads=8
 shadow-prefix: /tmp/nanopype_snakemake
-cluster-status: slurm_status.py
+latency-wait: 60
+restart-times: 1
+cluster: slurm-submit.py
+cluster-status: slurm-status.py
+jobscript: slurm-jobscript.sh
