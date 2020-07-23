@@ -1,5 +1,8 @@
 jobs: 8
-resources: threads=8
+
+## Uncomment to use threads/CPUs as consumable resources
+# resources: threads=8
+
 shadow-prefix: /tmp/nanopype_snakemake
 latency-wait: 60
 restart-times: 1

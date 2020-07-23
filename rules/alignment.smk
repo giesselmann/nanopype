@@ -71,6 +71,7 @@ rule minimap2:
     threads: config['threads_alignment']
     group: "minimap2"
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (config['memory']['minimap2'][0] + config['memory']['minimap2'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['minimap2'])   # 60 min / 16 threads
     singularity:
@@ -91,6 +92,7 @@ rule graphmap2:
     threads: config['threads_alignment']
     group: "graphmap2"
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (config['memory']['graphmap2'][0] + config['memory']['graphmap2'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['graphmap2']),   # 90 min / 16 threads
     singularity:
@@ -119,12 +121,14 @@ rule ngmlr:
         sequence = lambda wildcards: get_sequence_batch(wildcards, config),
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         index = lambda wildcards : directory(os.path.dirname(config['references'][wildcards.reference]['genome'])),
-        index_flag = lambda wildcards: config['references'][wildcards.reference]['genome'] + '.ngm'
+        index_flag = lambda wildcards: config['references'][wildcards.reference]['genome'] + '.ngm',
+        fasta_fai = lambda wildcards: config['references'][wildcards.reference]['genome'] + '.fai'
     output:
         pipe("alignments/ngmlr/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference}.sam")
     threads: config['threads_alignment']
     group: "ngmlr"
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (config['memory']['ngmlr'][0] + config['memory']['ngmlr'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((5760 / threads) * attempt * config['runtime']['ngmlr'])   # 360 min / 16 threads
     singularity:
@@ -148,6 +152,25 @@ rule ngmlr_index:
         touch {output.index}
         """
 
+
+# Samtools index fasta
+rule samtools_index_fasta:
+    input:
+        fasta = "{reference}.{ext}"
+    output:
+        index = "{reference}.{ext, (fa|fasta)}.fai"
+    shadow: 'minimal'
+    threads: config.get('threads_samtools') or 1
+    resources:
+        threads = lambda wildcards, threads: threads
+    singularity:
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
+    shell:
+        """
+        {config[bin_singularity][samtools]} faidx {input.fasta}
+        """
+
+
 # sam to bam conversion and RG tag
 rule aligner_sam2bam:
     input:
@@ -158,6 +181,7 @@ rule aligner_sam2bam:
     shadow: "minimal"
     threads: 1
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 5000)
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
@@ -184,6 +208,8 @@ rule aligner_merge_batches:
         bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.bam.bai"
     threads: config.get('threads_samtools') or 1
+    resources:
+        threads = lambda wildcards, threads: threads,
     params:
         input_prefix = lambda wildcards, input : input.bam[:-4]
     singularity:
@@ -221,6 +247,8 @@ rule aligner_merge_tag:
         bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam.bai"
     threads: config.get('threads_samtools') or 1
+    resources:
+        threads = lambda wildcards, threads: threads,
     params:
         input_prefix = lambda wildcards, input : input.bam[:-4]
     singularity:
@@ -241,6 +269,8 @@ rule aligner_1D2:
         "alignments/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.bam"
     output:
         "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.1D2.tsv"
+    resources:
+        threads = lambda wildcards, threads: threads,
     params:
         buffer = 200,
         tolerance = 200
@@ -258,6 +288,8 @@ rule aligner_stats:
     output:
         "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.hdf5"
     threads: config.get('threads_samtools') or 1
+    resources:
+        threads = lambda wildcards, threads: threads,
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
@@ -274,6 +306,8 @@ rule aligner_coverage:
         bedGraph = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bedGraph",
         bw = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bw"
     threads: config.get('threads_samtools') or 1
+    resources:
+        threads = lambda wildcards, threads: threads,
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:

@@ -45,6 +45,7 @@ rule flye:
         fa = "assembly/flye/{sequence_workflow}/{tag}.fasta"
     threads : config.get('threads_asm') or 1
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['flye'][0] + config['memory']['flye'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((576000 / threads) * attempt * config['runtime']['flye'])   # 120 h / 80 threads
     params:

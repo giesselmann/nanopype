@@ -70,6 +70,7 @@ rule albacore:
     shadow: "shallow"
     threads: config['threads_basecalling']
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['albacore'][0] + config['memory']['albacore'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['albacore']) # 60 min / 16 threads
     params:
@@ -102,6 +103,7 @@ rule guppy:
     shadow: "shallow"
     threads: config['threads_basecalling']
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['guppy_basecaller'][0] + config['memory']['guppy_basecaller'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['guppy_basecaller']), # 90 min / 16 threads
         GPU = 1
@@ -143,6 +145,7 @@ rule flappie:
     shadow: "shallow"
     threads: config['threads_basecalling']
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['flappie'][0] + config['memory']['flappie'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((5760 / threads) * attempt * config['runtime']['flappie']) # 360 min / 16 threads
     params:

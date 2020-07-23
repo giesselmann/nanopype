@@ -61,6 +61,7 @@ rule deepbinner:
     shadow: "minimal"
     threads: config['threads_demux']
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['deepbinner'][0] + config['memory']['deepbinner'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['deepbinner']) # 60 min / 16 threads
     singularity:
@@ -79,6 +80,7 @@ checkpoint guppy_barcode_batches:
         batches = directory("demux/guppy/batches/{runname}")
     threads: config['threads_demux']
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['guppy_barcoder'][0] + config['memory']['guppy_barcoder'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['guppy_barcoder']) # 60 min / 16 threads
     params:
@@ -99,6 +101,7 @@ checkpoint guppy_barcode:
         barcodes = directory("demux/guppy/barcodes/{runname}")
     threads: config['threads_demux']
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['guppy_barcoder'][0] + config['memory']['guppy_barcoder'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['guppy_barcoder']) # 60 min / 16 threads
     params:

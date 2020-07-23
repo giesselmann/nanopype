@@ -28,4 +28,5 @@ Following the steps in the [general](general.md) workflow documentation, the usa
 **-j or --jobs or --core**
 :   In cluster mode the maximum number of jobs submitted to the queue.
 
-
+**--resources threads=N**
+:   \[OPTIONAL\] In cluster mode, define threads as consumable resources that shall constrain the scheduling to a maximum N threads in usage. This can be specified in *config.yaml* file found inside the *profile* directory.
