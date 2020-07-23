@@ -121,7 +121,8 @@ rule ngmlr:
         sequence = lambda wildcards: get_sequence_batch(wildcards, config),
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         index = lambda wildcards : directory(os.path.dirname(config['references'][wildcards.reference]['genome'])),
-        index_flag = lambda wildcards: config['references'][wildcards.reference]['genome'] + '.ngm'
+        index_flag = lambda wildcards: config['references'][wildcards.reference]['genome'] + '.ngm',
+        fasta_fai = lambda wildcards: config['references'][wildcards.reference]['genome'] + '.fai'
     output:
         pipe("alignments/ngmlr/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference}.sam")
     threads: config['threads_alignment']
@@ -150,6 +151,25 @@ rule ngmlr_index:
         echo '' | {config[bin_singularity][ngmlr]} -r {input.fasta}
         touch {output.index}
         """
+
+
+# Samtools index fasta
+rule samtools_index_fasta:
+    input:
+        fasta = "{reference}.{ext}"
+    output:
+        index = "{reference}.{ext, (fa|fasta)}.fai"
+    shadow: 'minimal'
+    threads: config.get('threads_samtools') or 1
+    resources:
+        threads = lambda wildcards, threads: threads
+    singularity:
+        "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
+    shell:
+        """
+        {config[bin_singularity][samtools]} faidx {input.fasta}
+        """
+
 
 # sam to bam conversion and RG tag
 rule aligner_sam2bam:

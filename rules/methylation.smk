@@ -80,7 +80,8 @@ rule methylation_nanopolish:
         sequences = lambda wildcards : get_sequence_batch(wildcards, config),
         bam = lambda wildcards : get_alignment_batch(wildcards, config),
         bai = lambda wildcards : get_alignment_batch(wildcards, config) + '.bai',
-        reference = lambda wildcards: config['references'][wildcards.reference]['genome']
+        reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
+        fasta_fai = lambda wildcards: config['references'][wildcards.reference]['genome'] + '.fai'
     output:
         "methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.tsv.gz"
     shadow: "shallow"
