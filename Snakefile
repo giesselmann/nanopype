@@ -35,6 +35,7 @@
 import os, sys, collections
 import itertools
 import yaml, subprocess
+import snakemake.common
 from datetime import datetime
 from snakemake.utils import min_version
 
@@ -47,6 +48,12 @@ min_version("5.5.2")
 configfile: "nanopype.yaml"
 
 
+# filter output depending on run mode
+def print_(*args, **kwargs):
+    if workflow.mode == snakemake.common.Mode.default:
+        print(*args, **kwargs)
+
+
 # get pipeline version
 def get_tag():
     if 'TRAVIS_BRANCH' in os.environ and 'TRAVIS_TAG' in os.environ:
@@ -57,17 +64,17 @@ def get_tag():
             cmd = 'git describe --tags'
             version = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
         except subprocess.CalledProcessError:
-            print('[WARNING] Unable to get version from git tags.', file=sys.stderr)
+            print_('[WARNING] Unable to get version from git tags.', file=sys.stderr)
             version = '-'
         try:
             cmd = 'git rev-parse --abbrev-ref HEAD'
             branch = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
         except subprocess.CalledProcessError:
-            print('[WARNING] Unable to get branch from git. Pulling development.', file=sys.stderr)
+            print_('[WARNING] Unable to get branch from git. Pulling development.', file=sys.stderr)
             branch = 'development'
     if '-' in version:
         if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
-            print("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container.", file=sys.stderr)
+            print_("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container.", file=sys.stderr)
         if branch == 'master':
             return 'latest', version
         else:
@@ -93,7 +100,7 @@ if hasattr(workflow, "shadow_prefix") and workflow.shadow_prefix:
     shadow_prefix = workflow.shadow_prefix
     if not os.environ['USER'] in shadow_prefix:
         shadow_prefix = os.path.join(shadow_prefix, os.environ['USER'])
-        print("[INFO] Shadow prefix is changed from {p1} to {p2} to be user-specific".format(
+        print_("[INFO] Shadow prefix is changed from {p1} to {p2} to be user-specific".format(
             p1=workflow.shadow_prefix, p2=shadow_prefix), file=sys.stderr)
     workflow.shadow_prefix = shadow_prefix
 
@@ -112,16 +119,16 @@ if 'references' in nanopype_env:
         genome = values['genome']
         chr_sizes = values['chr_sizes'] if 'chr_sizes' in values else ''
         if not os.path.isfile(genome):
-            print("[WARNING] Genome for {name} not found in {genome}, skipping entry.".format(
+            print_("[WARNING] Genome for {name} not found in {genome}, skipping entry.".format(
                 name=name, genome=genome), file=sys.stderr)
             continue
         if chr_sizes and not os.path.isfile(chr_sizes):
-            print("[WARNING] Chromosome sizes for {name} not found in {chr_sizes}, skipping entry.".format(
+            print_("[WARNING] Chromosome sizes for {name} not found in {chr_sizes}, skipping entry.".format(
                 name=name, chr_sizes=chr_sizes), file=sys.stderr)
             continue
         config['references'][name] = {"genome":genome, "chr_sizes":chr_sizes}
 else:
-    print("[WARNING] No references in env.yaml. The alignment and downstream tools will not work.", file=sys.stderr)
+    print_("[WARNING] No references in env.yaml. The alignment and downstream tools will not work.", file=sys.stderr)
 
 
 # verify given binaries
@@ -153,7 +160,7 @@ if 'bin' in nanopype_env:
             if loc_sys:
                 config['bin'][name] = loc_sys
             #else:
-            #    print("[WARNING] {name} not found as {loc} and is only available in singularity rules.".format(
+            #    print_("[WARNING] {name} not found as {loc} and is only available in singularity rules.".format(
             #        name=name, loc=loc), file=sys.stderr)
         else:
             # singularity rules use system wide executables
@@ -161,7 +168,7 @@ if 'bin' in nanopype_env:
                 config['bin_singularity'][name] = loc_sys
                 config['bin'][name] = loc_sys
             else:
-                print("[WARNING] {name} not found as {loc} and is not available in the workflow.".format(
+                print_("[WARNING] {name} not found as {loc} and is not available in the workflow.".format(
                     name=name, loc=loc), file=sys.stderr)
 else:
     raise RuntimeError("[ERROR] No binaries in environment configuration.")
@@ -196,7 +203,7 @@ if 'singularity_images' in nanopype_env:
     for module, container_path in nanopype_env['singularity_images'].items():
         config['singularity_images'][module] = container_path
         if not os.path.isfile(container_path):
-            print("[WARNING] The container for {module} was overridden as {loc} but not found in the filesystem.".format(
+            print_("[WARNING] The container for {module} was overridden as {loc} but not found in the filesystem.".format(
                 module=module, loc=container_path), file=sys.stderr)
 
 
@@ -249,10 +256,10 @@ else:
     for runname in config['runnames']:
         loc = os.path.join(config['storage_data_raw'], runname)
         if not os.path.exists(loc):
-            print("[WARNING] {runname} not found at {loc} and is not available in the workflow.".format(
+            print_("[WARNING] {runname} not found at {loc} and is not available in the workflow.".format(
                 runname=runname, loc=loc), file=sys.stderr)
         elif not os.path.exists(os.path.join(loc, 'reads')) or not os.listdir(os.path.join(loc, 'reads')):
-            print("[WARNING] {runname} configured but with missing/empty reads directory.".format(
+            print_("[WARNING] {runname} configured but with missing/empty reads directory.".format(
                 runname=runname), file=sys.stderr)
 
 
@@ -345,8 +352,9 @@ def print_log(status='SUCCESS'):
     return log_name
 
 onsuccess:
-    log_name = print_log(status='SUCCESS')
-    print("""
+    if workflow.mode == snakemake.common.Mode.default:
+        log_name = print_log(status='SUCCESS')
+        print("""
 Nanopype completed successfully.
 The log file was written to {}.
 
@@ -355,8 +363,9 @@ Giesselmann, P. et al., Nanopype: a modular and scalable nanopore data processin
 
 
 onerror:
-    log_name = print_log(status='ERROR')
-    print("""
+    if workflow.mode == snakemake.common.Mode.default:
+        log_name = print_log(status='ERROR')
+        print("""
 Nanopype exited with an error.
 The log file was written to {}.
 
