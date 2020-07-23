@@ -1,4 +1,5 @@
-#!/bin/sh
+#! /usr/bin/env bash
+
 # \HEADER\-------------------------------------------------------------------------
 #
 #  CONTENTS      : snakemake jobscript
@@ -30,12 +31,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# Written by Pay Giesselmann
+# Written by Miguel Machado
 # ---------------------------------------------------------------------------------
-# properties = {properties}
-H=${{HOSTNAME/.molgen.mpg.de/}}
-J=${{MXQ_JOBID:-${{PID}}}}
-DATE=`date +%Y%m%d`
 
-mkdir -p log/cluster
-({exec_job}) &> log/cluster/${{DATE}}_${{H}}_${{J}}.log
+# properties = {properties}
+{exec_job}

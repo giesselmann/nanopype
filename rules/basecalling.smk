@@ -97,6 +97,7 @@ rule guppy:
         run = lambda wildcards : [os.path.join(config['storage_data_raw'], wildcards.runname)] + ([os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')] if get_signal_batch(wildcards, config).endswith('.txt') else [])
     output:
         ["sequences/guppy/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.fastq.gz"] +
+        ["sequences/guppy/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.sequencing_summary.txt"] +
         (["sequences/guppy/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.hdf5"] if config.get('basecalling_guppy_config') and 'modbases' in config['basecalling_guppy_config'] else [])
     shadow: "shallow"
     threads: config['threads_basecalling']
@@ -112,7 +113,7 @@ rule guppy:
         guppy_flags = lambda wildcards : config.get('basecalling_guppy_flags') or '',
         filtering = lambda wildcards : '--qscore_filtering --min_qscore {score}'.format(score = config['basecalling_guppy_qscore_filter']) if config['basecalling_guppy_qscore_filter'] > 0 else '',
         index = lambda wildcards : '--index ' + os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn') if get_signal_batch(wildcards, config).endswith('.txt') else '',
-        mod_table = lambda wildcards, input, output : output[1] if len(output) == 2 else ''
+        mod_table = lambda wildcards, input, output : output[2] if len(output) == 3 else ''
     singularity:
         "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
     shell:
@@ -125,6 +126,7 @@ rule guppy:
             FASTQ_DIR='workspace'
         fi
         find ${{FASTQ_DIR}} -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; | gzip > {output[0]}
+        find ${{FASTQ_DIR}} -name 'sequencing_summary.txt' -exec mv {{}} {output[1]} \;
         if [ \'{params.mod_table}\' != '' ]; then
             {config[bin_singularity][python]} {config[sbin_singularity][basecalling_guppy_mod.py]} extract `find workspace/ -name '*.fast5'` {params.mod_table}
         fi
