@@ -61,6 +61,7 @@ rule sniffles:
     shadow: "minimal"
     threads: config['threads_sv']
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['sniffles'][0] + config['memory']['sniffles'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((3840 / threads) * attempt * config['runtime']['sniffles'])   # 240 min / 16 threads
     singularity:
@@ -77,6 +78,8 @@ rule sv_compress:
     output:
         "sv/sniffles/{aligner, [^.\/]*}/{sequence_workflow, [^.\/]*}/{tag, [^\/]*}.{reference, [^.\/]*}.vcf.gz"
     threads: 1
+    resources:
+        threads = lambda wildcards, threads: threads,
     singularity:
         "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
     shell:
@@ -94,6 +97,8 @@ rule strique:
         "sv/strique/{aligner, [^\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^\/]*}/{batch, [^.\/]*}.{reference}.tsv"
     shadow: "minimal"
     threads: config['threads_sv']
+    resources:
+        threads = lambda wildcards, threads: threads,
     params:
         model = config['sv_STRique_model'] if 'sv_STRique_model' in config else '',
         mod_model = '--mod_model {}'.format(config['sv_STRique_mod_model']) if 'sv_STRique_mod_model' in config else ''

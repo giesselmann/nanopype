@@ -53,6 +53,7 @@ rule storage_index_batch:
     shadow: "shallow"
     threads: 1
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.1 * (attempt - 1))) * 4000),
         time_min = 15
     shell:

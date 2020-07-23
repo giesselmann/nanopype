@@ -71,6 +71,7 @@ rule minimap2:
     threads: config['threads_alignment']
     group: "minimap2"
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (config['memory']['minimap2'][0] + config['memory']['minimap2'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['minimap2'])   # 60 min / 16 threads
     singularity:
@@ -91,6 +92,7 @@ rule graphmap2:
     threads: config['threads_alignment']
     group: "graphmap2"
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (config['memory']['graphmap2'][0] + config['memory']['graphmap2'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['graphmap2']),   # 90 min / 16 threads
     singularity:
@@ -125,6 +127,7 @@ rule ngmlr:
     threads: config['threads_alignment']
     group: "ngmlr"
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (config['memory']['ngmlr'][0] + config['memory']['ngmlr'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((5760 / threads) * attempt * config['runtime']['ngmlr'])   # 360 min / 16 threads
     singularity:
@@ -158,6 +161,7 @@ rule aligner_sam2bam:
     shadow: "minimal"
     threads: 1
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, attempt: int((1.0 + (0.2 * (attempt - 1))) * 5000)
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
@@ -184,6 +188,8 @@ rule aligner_merge_batches:
         bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.bam.bai"
     threads: config.get('threads_samtools') or 1
+    resources:
+        threads = lambda wildcards, threads: threads,
     params:
         input_prefix = lambda wildcards, input : input.bam[:-4]
     singularity:
@@ -221,6 +227,8 @@ rule aligner_merge_tag:
         bam = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam",
         bai = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bam.bai"
     threads: config.get('threads_samtools') or 1
+    resources:
+        threads = lambda wildcards, threads: threads,
     params:
         input_prefix = lambda wildcards, input : input.bam[:-4]
     singularity:
@@ -241,6 +249,8 @@ rule aligner_1D2:
         "alignments/{aligner}/{sequence_workflow}/batches/{tag}/{runname}.{reference}.bam"
     output:
         "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.1D2.tsv"
+    resources:
+        threads = lambda wildcards, threads: threads,
     params:
         buffer = 200,
         tolerance = 200
@@ -258,6 +268,8 @@ rule aligner_stats:
     output:
         "alignments/{aligner, [^.\/]*}/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.]*}.hdf5"
     threads: config.get('threads_samtools') or 1
+    resources:
+        threads = lambda wildcards, threads: threads,
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
@@ -274,6 +286,8 @@ rule aligner_coverage:
         bedGraph = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bedGraph",
         bw = "alignments/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.]*}.bw"
     threads: config.get('threads_samtools') or 1
+    resources:
+        threads = lambda wildcards, threads: threads,
     singularity:
         "docker://nanopype/alignment:{tag}".format(tag=config['version']['tag'])
     shell:
