@@ -54,7 +54,7 @@ rule flye:
         flye_preset = config.get('asm_flye_preset') or '--nano-raw',
         genome_size = lambda wildcards : config.get('asm_genome_size') or '3.0g'
     singularity:
-        "docker://nanopype/assembly:{tag}".format(tag=config['version']['tag'])
+        config['singularity_images']['assembly']
     shell:
         """
         flye_dir=`dirname {config[bin_singularity][python]}`

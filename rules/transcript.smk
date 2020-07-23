@@ -46,7 +46,7 @@ checkpoint pychopper:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (3000 + 1000 * threads)),
         time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt) # 90 min / 16 threads
     singularity:
-        "docker://nanopype/transcript:{tag}".format(tag=config['version']['tag'])
+        config['singularity_images']['transcript']
     shell:
         """
         mkfifo input_seq
@@ -71,7 +71,7 @@ rule pinfish:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['pinfish'][0] + config['memory']['pinfish'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((1440 / threads) * attempt * config['runtime']['pinfish']) # 90 min / 16 threads
     singularity:
-        "docker://nanopype/transcript:{tag}".format(tag=config['version']['tag'])
+        config['singularity_images']['transcript']
     shell:
         """
         racon_dir=`dirname {config[bin_singularity][racon]}`
