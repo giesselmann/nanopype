@@ -117,7 +117,7 @@ rule guppy:
         index = lambda wildcards : '--index ' + os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn') if get_signal_batch(wildcards, config).endswith('.txt') else '',
         mod_table = lambda wildcards, input, output : output[2] if len(output) == 3 else ''
     singularity:
-        "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
+        config['singularity_images']['basecalling']
     shell:
         """
         mkdir -p raw
@@ -151,7 +151,7 @@ rule flappie:
     params:
         index = lambda wildcards : '--index ' + os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn') if get_signal_batch(wildcards, config).endswith('.txt') else ''
     singularity:
-        "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
+        config['singularity_images']['basecalling']
     shell:
         """
         export OPENBLAS_NUM_THREADS=1

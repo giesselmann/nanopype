@@ -65,7 +65,7 @@ rule deepbinner:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['deepbinner'][0] + config['memory']['deepbinner'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['deepbinner']) # 60 min / 16 threads
     singularity:
-        "docker://nanopype/demux:{tag}".format(tag=config['version']['tag'])
+        config['singularity_images']['demux']
     shell:
         """
         mkdir -p raw
@@ -87,7 +87,7 @@ checkpoint guppy_barcode_batches:
         seq_dir = lambda wildcards, input : os.path.dirname(input.sequences[0]),
         kits = lambda wildcards: '--barcode_kits "{}"'.format(config['demux_guppy_kits'].strip('"')) if 'demux_guppy_kits' in config else ''
     singularity:
-        "docker://nanopype/basecalling:{tag}".format(tag=config['version']['tag'])
+        config['singularity_images']['basecalling']
     shell:
         """
         {config[bin_singularity][guppy_barcoder]} -i {params.seq_dir} -s {output.batches} -t {threads} -q {config[demux_batch_size]} --compress_fastq --{params.kits}
