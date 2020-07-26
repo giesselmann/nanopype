@@ -329,7 +329,7 @@ rule svim:
             cd svim && git fetch --all --tags --prune && git checkout tags/v1.4.0
         fi
         {config[python]} -m pip install .
-        find {params.prefix}/bin {params.prefix}/local/bin -name svim -exec cp {} ../../{output.bin} \;
+        find {params.prefix}/bin {params.prefix}/local/bin -name svim -exec cp {{}} ../../{output.bin} \;
         """
 
 rule deepbinner:
@@ -347,7 +347,7 @@ rule deepbinner:
         fi
         {config[python]} -m pip install "tensorflow==1.15" "keras==2.2.5"
         {config[python]} -m pip install .
-        find {params.prefix}/bin {params.prefix}/local/bin -name deepbinner -exec cp {} ../../{output.bin} \;
+        find {params.prefix}/bin {params.prefix}/local/bin -name deepbinner -exec cp {{}} ../../{output.bin} \;
         """
 
 rule gitlfs:
@@ -468,7 +468,7 @@ rule pychopper:
         {config[python]} -m pip install parasail --upgrade
         {config[python]} -m pip install "matplotlib<3.1" --upgrade
         {config[python]} setup.py install
-        find {params.prefix}/bin {params.prefix}/local/bin -name cdna_classifier.py -exec cp {} ../../{output.bin} \;
+        find {params.prefix}/bin {params.prefix}/local/bin -name cdna_classifier.py -exec cp {{}} ../../{output.bin} \;
         """
 
 rule racon:
@@ -557,7 +557,7 @@ rule flye:
         fi
         make
         {config[python]} setup.py install
-        find {params.prefix}/bin {params.prefix}/local/bin -name flye -exec cp {} ../../{output.bin} \;
+        find {params.prefix}/bin {params.prefix}/local/bin -name flye -exec cp {{}} ../../{output.bin} \;
         """
 
 rule wtdbg2:
