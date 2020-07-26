@@ -82,6 +82,7 @@ demux_guppy_kits : 'EXP-NBD104'
 # structural variation
 # command line flags directly passed to the sniffles execution
 sv_sniffles_flags: '-s 10 -l 30 -r 2000 --genotype'
+sv_svim_flags: ''
 sv_STRique_config: 'STRique.tsv'
 sv_STRique_model: 'r9_4_450bps.mpi.model'
 sv_STRique_mod_model: 'r9_4_450bps_mCpG.mpi.model'

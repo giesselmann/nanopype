@@ -34,6 +34,8 @@ methylation:
     - methylation/flappie/minimap2/flappie/tag.NC_001416_1.bam
 sv:
     - sv/sniffles/ngmlr/guppy/tag.NC_001416_1.vcf
+    - sv/sniffles/ngmlr/guppy/tag.NC_001416_1.vcf.gz
+    - sv/svim/ngmlr/guppy/tag.NC_001416_1.vcf
 #assembly:
 #    - assembly/flye/guppy/tag.fasta
 #report:
