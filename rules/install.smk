@@ -64,7 +64,8 @@ rule methylation:
 
 rule assembly:
     input:
-        "bin/flye"
+        "bin/flye",
+        "bin/wtdbg2"
 
 rule sv:
     input:
@@ -193,7 +194,7 @@ rule bedtools:
             cd bedtools2 && git fetch --all --tags --prune && git checkout tags/v2.27.1
         fi
         make clean && make
-        cp bin/bedtools ../../bin/
+        cp bin/bedtools ../../{output.bin}
         """
 
 rule htslib:
@@ -226,7 +227,7 @@ rule samtools:
             cd samtools && git fetch --all --tags --prune && git checkout tags/1.9
         fi
         autoheader --warning=none && autoconf -Wno-syntax && ./configure && make -j{threads}
-        cp samtools ../../bin/
+        cp samtools ../../{output.bin}
         """
 
 rule minimap2:
@@ -242,7 +243,7 @@ rule minimap2:
             cd minimap2 && git fetch --all --tags --prune && git checkout tags/v2.14
         fi
         make clean && make -j{threads}
-        cp minimap2 ../../bin
+        cp minimap2 ../../{output.bin}
         """
 
 rule graphmap:
@@ -313,10 +314,29 @@ rule sniffles:
         cp ../bin/*/sniffles ../../../bin
         """
 
+rule svim:
+    output:
+        bin = "bin/svim"
+    params:
+        prefix = lambda wildcards : sys.prefix
+    shell:
+        """
+        prefix=`pwd`
+        mkdir -p src && cd src
+        if [ ! -d svim ]; then
+            git clone https://github.com/eldariont/svim.git --branch v1.4.0 --depth=1 && cd svim
+        else
+            cd svim && git fetch --all --tags --prune && git checkout tags/v1.4.0
+        fi
+        {config[python]} -m pip install .
+        cp {params.prefix}/bin/svim ../../{output.bin}
+        """
+
 rule deepbinner:
     output:
-        #bin = "bin/deepbinner-runner.py"
         bin = 'bin/deepbinner'
+    params:
+        prefix = lambda wildcards : sys.prefix
     shell:
         """
         mkdir -p src && cd src
@@ -326,8 +346,8 @@ rule deepbinner:
             cd Deepbinner && git fetch --all --tags --prune && git checkout tags/v0.2.0
         fi
         {config[python]} -m pip install "tensorflow==1.15" "keras==2.2.5"
-        {config[python]} -m pip install . --prefix $(pwd)/../../
-        #ln -s $(pwd)/deepbinner-runner.py ../../{output.bin}
+        {config[python]} -m pip install .
+        cp {params.prefix}/bin/deepbinner ../../{output.bin}
         """
 
 rule gitlfs:
@@ -433,20 +453,22 @@ rule guppy:
 rule pychopper:
     output:
         bin = "bin/cdna_classifier.py"
+    params:
+        prefix = lambda wildcards : sys.prefix
     shell:
         """
         mkdir -p src && cd src
         if [ ! -d pychopper ]; then
             git clone https://github.com/nanoporetech/pychopper --branch v2.4.0 && cd pychopper
         else
-            cd pychopper && git fetch --all --tags --prune && git checkout v2.4.0
+            cd pychopper && git fetch --all --tags --prune && git checkout tags/v2.4.0
         fi
         {config[python]} -m pip install --upgrade incremental
         {config[python]} -m pip install --upgrade certifi
         {config[python]} -m pip install parasail --upgrade
         {config[python]} -m pip install "matplotlib<3.1" --upgrade
-        {config[python]} setup.py install --prefix $(pwd)/../../
-        #cp $(pwd)/scripts/cdna_classifier.py ../../{output.bin}
+        {config[python]} setup.py install
+        cp {params.prefix}/bin/cdna_classifier.py ../../{output.bin}
         """
 
 rule racon:
@@ -458,7 +480,7 @@ rule racon:
         if [ ! -d racon ]; then
             git clone https://github.com/isovic/racon --recursive --branch 1.3.2 && cd racon
         else
-            cd racon && git fetch --all --tags --prune && git checkout 1.3.2
+            cd racon && git fetch --all --tags --prune && git checkout tags/1.3.2
         fi
         mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release ..
         make
@@ -505,16 +527,18 @@ rule pinfish:
 rule strique:
     output:
         "bin/STRique.py"
+    params:
+        prefix = lambda wildcards : sys.prefix
     shell:
         """
         mkdir -p src && cd src
         if [ ! -d STRique ]; then
             git clone --recursive https://github.com/giesselmann/STRique --branch v0.3.0 && cd STRique
         else
-            cd STRique && git fetch --all --tags --prune && git checkout v0.3.0
+            cd STRique && git fetch --all --tags --prune && git checkout tags/v0.3.0
         fi
         {config[python]} -m pip install -r requirements.txt --upgrade
-        {config[python]} setup.py install --prefix $(pwd)/../../
+        {config[python]} setup.py install
         cp scripts/STRique.py ../../bin/
         """
 
@@ -522,16 +546,35 @@ rule flye:
     output:
         bin = "bin/flye"
     params:
-        pth_file = lambda wildcards : os.path.join(site.getsitepackages()[0], 'flye.pth'),
-        pth_content = lambda wildcards : 'import os; os.environ["PYTHONPATH"] = "{dir}" + os.pathsep + os.environ["PYTHONPATH"]'.format(dir=os.getcwd())
+        prefix = lambda wildcards : sys.prefix
     shell:
         """
         mkdir -p src && cd src
         if [ ! -d Flye ]; then
             git clone https://github.com/fenderglass/Flye --branch 2.7 && cd Flye
         else
-            cd Flye && git fetch --all --tags --prune && git checkout 2.7
+            cd Flye && git fetch --all --tags --prune && git checkout tags/2.7
         fi
         make
-        {config[python]} setup.py install --prefix $(pwd)/../..
+        {config[python]} setup.py install
+        cp {params.prefix}/bin/flye ../../bin/
+        """
+
+rule wtdbg2:
+    input:
+        "bin/minimap2"
+    output:
+        asm = "bin/wtdbg2",
+        cns = "bin/wtpoa-cns"
+    shell:
+        """
+        mkdir -p src && cd src
+        if [ ! -d wtdbg2 ]; then
+            git clone https://github.com/ruanjue/wtdbg2 --branch v2.5 && cd wtdbg2
+        else
+            cd wtdbg2 && git fetch --all --tags --prune && git checkout tags/v2.5
+        fi
+        make
+        cp wtdbg2 ../../{output.asm}
+        cp wtpoa-cns ../../{output.cns}
         """
