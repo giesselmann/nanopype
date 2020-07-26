@@ -64,12 +64,15 @@ rule methylation:
 
 rule assembly:
     input:
+        "bin/minimap2",
+        "bin/samtools",
         "bin/flye",
         "bin/wtdbg2"
 
 rule sv:
     input:
         "bin/sniffles",
+        "bin/svim",
         "bin/STRique.py"
 
 rule transcript_core:

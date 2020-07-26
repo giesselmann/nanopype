@@ -126,7 +126,8 @@ if __name__ == '__main__':
     # cmd arguments
     parser = argparse.ArgumentParser(description="Nanopype raw data import script",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("module", choices=['all', 'storage', 'basecalling', 'alignment', 'methylation', 'sv', 'report'],
+    parser.add_argument("module", choices=
+        ['all', 'storage', 'basecalling', 'alignment', 'methylation', 'sv', 'assembly', 'report'],
         help="Export directory")
     parser.add_argument("dir", help="Working directory for tests")
     parser.add_argument('-t', '--threads', type=int, default=4, help="Threads for parallel tests")
