@@ -49,7 +49,6 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 ## packages
 COPY --from=build_stage /build/bin/* /usr/bin/
 COPY --from=build_stage /usr/local/lib/python3.6/dist-packages /usr/local/lib/python3.6/dist-packages
-COPY --from=build_stage /build/lib/python3.6/site-packages/ /usr/local/lib/python3.6/dist-packages
 
 WORKDIR /app
 # default entrypoint is /bin/sh
