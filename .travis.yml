@@ -97,6 +97,9 @@ jobs:
                   - pkg-config
                   - squashfs-tools
           env:
+              - SUITE=cDNA
+              - SUITE=mRNA
+              - SUITE=DNA
               - MODULE=storage
           install:
               - pip install -r requirements.txt --upgrade
@@ -104,7 +107,7 @@ jobs:
               - snakemake --snakefile rules/install.smk --directory $HOME singularity
               - export PATH=$HOME/bin:$PATH
           script:
-              - python3 test/test_function.py $MODULE $HOME/unit_tests --singularity
+              - python3 test/test_function.py $SUITE $MODULE $HOME/unit_tests --singularity
           before_cache: skip
           deploy: skip
         - <<: *tests
@@ -121,18 +124,22 @@ jobs:
               - MODULE=sv
         - <<: *tests
           env:
-              - MODULE=assembly
+              - MODULE=report
+        # Build all-in-one Docker from module container
         - stage: nanopype build
           env:
               - MODULE=nanopype
           install: skip
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
+        # Test all-in-one Docker
         - stage: nanopype test
           before_cache: skip
           deploy: skip
           script:
-              - docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:$DOCKER_TAG python3 test/test_function.py all /test
+              - docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:$DOCKER_TAG python3 test/test_function.py DNA all /test
+              - docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:$DOCKER_TAG python3 test/test_function.py cDNA all /test
+              - docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:$DOCKER_TAG python3 test/test_function.py mRNA all /test
 
 after_success:
     - bash <(curl -s https://codecov.io/bash)

@@ -95,9 +95,9 @@ rule svim:
 # compress vcf file
 rule sv_compress:
     input:
-        "sv/sniffles/{aligner}/{sequence_workflow}/{tag}.{reference}.vcf"
+        "sv/{caller}/{aligner}/{sequence_workflow}/{tag}.{reference}.vcf"
     output:
-        "sv/sniffles/{aligner, [^.\/]*}/{sequence_workflow, [^.\/]*}/{tag, [^\/]*}.{reference, [^.\/]*}.vcf.gz"
+        "sv/{caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, [^.\/]*}/{tag, [^\/]*}.{reference, [^.\/]*}.vcf.gz"
     threads: 1
     resources:
         threads = lambda wildcards, threads: threads,

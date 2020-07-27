@@ -91,9 +91,9 @@ sv_STRique_mod_model: 'r9_4_450bps_mCpG.mpi.model'
 # transcriptome
 transcript_use_pychopper: True
 transcript_spliced_bam2gff_flags: ''
-transcript_cluster_gff_flags: '-c 10 -d 10 -e 30'
-transcript_collapse_partials: '-d 5 -f 5000 -e 30'
-transcript_polish_clusters: '-c 10'
+transcript_cluster_gff_flags: ''
+transcript_collapse_partials: ''
+transcript_polish_clusters: ''
 
 
 # Assembly

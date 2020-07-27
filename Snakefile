@@ -153,6 +153,7 @@ if 'bin' in nanopype_env:
                 f = os.path.join(path, os.path.basename(loc))
                 if os.path.isfile(f):
                     loc_sys = f
+                    break
         # save executable path depending on singularity usage
         if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
             # within singularity everything is accessible through /bin and /usr/bin
