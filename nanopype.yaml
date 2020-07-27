@@ -62,7 +62,7 @@ alignment_ngmlr_flags: '-x ont --bam-fix'
 
 # methylation detection
 # Abs. log-likelyhood ratio to treat sites as methylated or unmethylated.
-methylation_nanopolish_logp_threshold: 2.5
+methylation_nanopolish_logp_threshold: 2.0
 # Sequence quality threshold on CG sites to trust flappie methylation calls
 methylation_flappie_qval_threshold: 3
 
