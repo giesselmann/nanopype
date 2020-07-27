@@ -48,14 +48,14 @@ snakemake --snakefile rules/install.smk --directory ~/ all --forceall
 The docker update is straightforward, just pull any updated version with e.g.:
 
 ```
-docker pull giesselmann/nanopype:v0.7.0
+docker pull nanopype/nanopype:v0.7.0
 ```
 
 You can remove previous installations by running
 
 ```
-docker images                               # list all images
-docker rmi giesselmann/nanopype:v0.6.0      # remove tagged version
+docker images                            # list all images
+docker rmi nanopype/nanopype:v0.6.0      # remove tagged version
 ```
 
 

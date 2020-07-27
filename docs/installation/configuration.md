@@ -40,7 +40,7 @@ memory:
     guppy: [8000,4000]
 ```
 
-??? info "example env.yaml"
+??? info "example env.yaml (Refer to the git repository for the most recent config)"
     ```
     # Reference genomes
     references:
@@ -259,12 +259,12 @@ Logging can also be set up independent of Snakemake by modifying the job script 
 
 ??? info "example jobscript.sh for MXQ logging"
     ```
-    H=${{HOSTNAME}}
+    H=${{HOSTNAME/.molgen.mpg.de/}}
     J=${{MXQ_JOBID:-${{PID}}}}
     DATE=`date +%Y%m%d`
 
-    mkdir -p log
-    ({exec_job}) &> log/${{DATE}}_${{H}}_${{J}}.log
+    mkdir -p log/cluster
+    ({exec_job}) &> log/cluster/${{DATE}}_${{H}}_${{J}}.log
     ```
 
 Snakemake will replace the *{exec_job}* wildcard with the temporary job script (Double curly brackets are needed for generic environment variables to escape the Snakemake substitution). Note that the environment variables *MXQ_JOBID* and *PID* are specific to the mxq scheduler. The above wrapper will create log files with timestamp and hostname in the filename without overwriting previous logs.

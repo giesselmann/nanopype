@@ -11,7 +11,7 @@ The folder structure for packeaged single read fast5 files is:
          |--0.tar                                     # Packed .fast5
          |--1.tar
           ...
-      |--reads.fofn                                # Index file
+      |--reads.fofn                                   # Index file
 ```
 
 For bulk-fast5 output from recent MinKNOW versions, the batches can be directly copied to the reads folder.
@@ -23,7 +23,7 @@ For bulk-fast5 output from recent MinKNOW versions, the batches can be directly 
          |--batch_0.fast5                             # Bulk-fast5
          |--batch_1.fast5
           ...
-      |--reads.fofn                                # Index file
+      |--reads.fofn                                   # Index file
 ```
 
 Nanopype expects all batches to be found in the *reads* folder of a run. Restarting an experiment in MinKNOW results in a new raw output folder with batch numbers starting from zero. In current versions of MinKNOW a unique run-ID is part of the batch name, therefore bulk-fast5 files from multiple restarts can be copied into the same directory. After updating MinKNOW the output naming should be verified to avoid overwriting batches with equal names.

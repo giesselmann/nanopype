@@ -9,63 +9,63 @@ An initial test validates the presence of all required tools. This is only requi
 If a tool is not correctly installed, the output lists failed test cases. If you don't plan to use these, you can safely ignore the messages.
 
 ```
+F.......................
 ======================================================================
 FAIL: test_binary_albacore (__main__.test_case_binary)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "test/test_install.py", line 57, in fn
-    self.fail('{} is not executable'.format(self.binary_path))
-AssertionError: /project/minion/bin/read_fast5_basecaller.py is not executable
+  File "test/test_install.py", line 66, in fn
+    self.fail('{} is not executable or found in PATH'.format(self.binary_path))
+AssertionError: read_fast5_basecaller.py is not executable or found in PATH
+
+----------------------------------------------------------------------
+Ran 24 tests in 0.119s
+
+FAILED (failures=1)
 ```
 
-Secondly the functionality of the pipeline itself is tested on a small sample data set. The command is slightly different depending on the installation method:
+Secondly the functionality of the pipeline itself can be tested on a small sample data set. This process is automated on [Travis-CI](https://travis-ci.org/github/giesselmann/nanopype), the commands below are meant to troubleshoot local installations.
+
+[![Build Status](https://travis-ci.org/giesselmann/nanopype.svg?branch=master)](https://travis-ci.org/giesselmann/nanopype)
+
+The tests are grouped by sequencing data type and pipeline module. The available data types are:
+
+* DNA
+* cDNA
+* mRNA
+
+The available test modules are:
+
+* storage
+* basecalling
+* alignments
+* methylation
+* sv
+* transcript_isoforms
+* report
+
+Not every module is tested for each data type. To run the tests a small dataset (~40MB) and the expected pipeline output are downloaded from our [webserver](https://owww.molgen.mpg.de/~nanopype/unit_tests/).
 
 **Singularity**
 
 ```
 cd /path/to/nanopype
-python3 test/test_rules.py test_unit_singularity.<CASE>
+python3 test/test_function.py DNA basecalling ~/tmp/nanopype_unit_tests --singularity
+python3 test/test_function.py cDNA all ~/tmp/nanopype_unit_tests --singularity
 ```
 
 **Source**
 
 ```
 cd /path/to/nanopype
-python3 test/test_rules.py test_unit_src.<CASE>
+python3 test/test_function.py DNA basecalling ~/tmp/nanopype_unit_tests
+python3 test/test_function.py mRNA all ~/tmp/nanopype_unit_tests
 ```
 
 **Docker**
 
 ```
-docker run -it giesselmann/nanopype
-python3 /app/test/test_rules.py test_unit_src.<CASE>
+cd /path/to/nanopype
+docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:latest python3 test/test_function.py DNA basecalling /test
+docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:latest python3 test/test_function.py mRNA all /test
 ```
-
-Available test cases are:
-
-**Storage**
-:   * test_storage
-
-**Basecalling**
-:   * test_guppy
-    * test_albacore
-    * test_flappie
-
-**Alignment**
-:   * test_minimap2
-    * test_graphmap
-    * test_ngmlr
-
-**Methylation**
-:   * test_nanopolish
-
-**Structural Variation**
-:   * test_sniffles
-
-To run all tests call the script without any test case e.g.:
-
-```
-python3 test/test_rules.py test_unit_src
-```
-
-The tests takes ~20 min on 4 cores and downloads ~54 MB reference sequence for the alignment module. Tests cover all modules of the pipeline, if some tools (e.g. albacore in the Docker container) are not installed, the associated tests will fail. Independent parts of the pipeline will however still work. Note that test run times are not representative due to very small batch sizes.

@@ -3,15 +3,19 @@
 #### v1.0.0 - 2020
 Main release:
 
-:   * Rewrite unit tests for src and singularity
+:   * Rewrite and automate unit tests for source, Singularity and Docker
     * Move Docker builds to travis-ci
+    * The all-in-one Docker has moved to docker://nanopype/nanopype
     * Update Guppy to v4.0.11
     * Update GraphMap to GraphMap2 v0.6.4
     * Update Pychopper to v2.4.0
+    * Add wtdbg2 v2.5 (closes #8)
+    * Add svim v1.4.0
     * Fix snakemake file exists error in case of raw data relative to workdir
     * Fix Flappie basecalling "cat: methyl_marks.tsv: No such file or directory"
     * Fix Flappie basecalling with fastq output
     * Fix GraphMap and NGMLR index for .fasta extension (worked for .fa only)
+    * Fix methylation detection re-running in NGMLR workflow (fixes #9)
     * Fix single read methylation .bam for references with whitespace in name
 
 #### v0.11.1 - 2020-06-18

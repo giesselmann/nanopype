@@ -1,13 +1,14 @@
 # Source
 
-Nanopype can be installed without root privileges as it's maintaining most of its dependencies by building required tools from source in a user accessible path. Currently the following list of system wide packages is required to build all included software packages (names on MacOS might be different):
+Nanopype can be installed without root privileges as it's maintaining most of its dependencies by building required tools from source in a user accessible path. Currently the following list of system wide packages is required to build all included software packages (starting with ubuntu 18.04 LTS, names on MacOS might be different):
 
-* git wget
-* gcc g++
-* binutils autoconf make cmake
-* zlib1g-dev bzip2 libbz2-dev
-* libhdf5-100 libidn11 libopenblas-base libgssapi-krb5-2
-* liblzma-dev libncurses5-dev libcunit1-dev
+* git gcc g++ wget rsync
+* libgomp1
+* zlib1g-dev
+* bzip2 libbz2-dev
+* liblzma-dev libncurses5-dev
+* libcunit1 libhdf5-100 libidn11 libopenblas-base
+* libgssapi-krb5-2
 
 These packages are likely present in most production environments. Please also refer to the Dockerfiles in the singularity folder of the pipeline repository. If you need only a subset of the provided tools the number of dependencies might decrease.
 
@@ -24,7 +25,7 @@ source bin/activate
 Or using conda:
 
 ```
-conda create -n nanopype python=3.4 anaconda
+conda create -n nanopype python=3.6 anaconda
 source activate nanopype
 
 ```
@@ -37,6 +38,7 @@ Install Nanopype from [github.com/giesselmann](https://github.com/giesselmann/na
 ```
 git clone https://github.com/giesselmann/nanopype
 cd nanopype
+python3 -m pip install --upgrade pip
 python3 -m pip install -r requirements.txt
 cd ..
 ```
@@ -104,7 +106,7 @@ Mission accomplished! Everything else is solved at run time by Snakemake and Nan
 There are some common errors that could arise during the installation process. If you encounter one of the following error messages, please consider the respective solution attempts.
 
 **not a supported wheel on this platform**
-:   Nanopype requires at least python3.4 (The Docker image uses python3.6). If you install additional packages (e.g. albacore) from python wheels, make sure the downloaded binary packages matches the local python version.
+:   Nanopype requires at least python3.6. If you install additional packages (e.g. albacore) from python wheels, make sure the downloaded binary packages matches the local python version.
 
 **terminated by signal 4**
 :   Nanopype is mostly compiling integrated tools from source. In heterogeneous cluster environments this can lead to errors if the compilation takes place on a machine supporting modern vector instructions (SSE, AVX, etc.) but execution also uses less recent computers. The error message *terminated by signal 4* indicates an instruction in the software not supported by the underlying hardware. Please re-compile and install the tools from a machine with a common subset of vector instructions in this case.

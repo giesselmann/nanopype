@@ -13,7 +13,7 @@ source bin/activate
 Or using conda:
 
 ```
-conda create -n nanopype python=3.4 anaconda
+conda create -n nanopype python=3.6 anaconda
 source activate nanopype
 ```
 
@@ -23,6 +23,7 @@ Finally install Nanopype from [github.com/giesselmann](https://github.com/giesse
 ```
 git clone https://github.com/giesselmann/nanopype
 cd nanopype
+python3 -m pip install --upgrade pip
 python3 -m pip install -r requirements.txt
 cd ..
 ```
@@ -33,6 +34,7 @@ It is recommended to install a tagged version of Nanopype. Using the 'latest' fr
 git clone --recursive https://github.com/giesselmann/nanopype
 cd nanopype
 git fetch --tags && git checkout v0.6.0
+python3 -m pip install --upgrade pip
 python3 -m pip install -r requirements.txt
 cd ..
 ```
@@ -67,7 +69,7 @@ make -C ./builddir
 make -C ./builddir install
 ```
 
-**Note:** Singularity and mksquasfs must be visible to Snakemake e.g. through the users PATH variable. In a cluster setup this must hold true on every compute node. If your .bashrc becomes sourced on the compute nodes you can simply:
+**Note:** Singularity and mksquasfs/unsquashfs must be visible to Snakemake e.g. through the users PATH variable. In a cluster setup this must hold true on every compute node. If your .bashrc becomes sourced on the compute nodes you can simply:
 
 ```
 echo 'export PATH=/path/to/prefix/bin:${PATH}' >> ~/.bashrc

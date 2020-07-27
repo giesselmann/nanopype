@@ -7,6 +7,8 @@ Assemblies are made from the output of multiple flow-cells with names provided v
 
 The tag *WA01* is arbitrary and may describe a corresponding experiment or cell line.
 
+**NOTE**: The assembly module is currently not automatically tested on Travis-CI.
+
 ## Folder structure
 
 The assembly module can create the following file structure relative to the working directory:
@@ -17,7 +19,12 @@ The assembly module can create the following file structure relative to the work
       |--guppy/                 # Guppy basecalling
          |--WA01/
             |-- ...             # Assembler specific files
-         |--WA01.fasta          # Contigs
+         |--WA01.fasta          # Polished Contigs
+   |--wtdbg2/                   # wtdbg2 assembler
+      |--guppy/                 # Guppy basecalling
+         |--WA01/
+            |-- ...             # Assembler specific files
+         |--WA01.fasta          # Polished contigs
 ```
 
 
@@ -30,8 +37,8 @@ The assembly module does not have automatic clean up rules at the moment.
 Depending on the application you can choose from one of the following assemblers, listed with their associated configuration options. All tools share the following configuration options:
 
 ```
-threads_asm: 80
-asm_genome_size : '3.0g'
+threads_asm: 4
+asm_genome_size : '48k'
 ```
 
 ### Flye
@@ -43,7 +50,17 @@ asm_flye_preset : '--nano-raw'
 asm_flye_flags : '--asm-coverage 35'
 ```
 
+### Wtdbg2
+
+Wtdbg2 is a very fast de novo assembler for PacBio and Oxford Nanopore reads.
+
+```
+asm_wtdbg2_preset : 'ont'
+asm_wtdbg2_flags : ''
+```
 
 ## References
 
 >Mikhail Kolmogorov, Jeffrey Yuan, Yu Lin and Pavel Pevzner, Assembly of Long Error-Prone Reads Using Repeat Graphs, Nature Biotechnology, 2019 doi:10.1038/s41587-019-0072-8
+
+>Ruan, J., Li, H. Fast and accurate long-read assembly with wtdbg2. Nat Methods 17, 155–158 (2020).

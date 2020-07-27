@@ -112,8 +112,10 @@ nav:
     - Report: rules/report.md
   - Tutorial:
     - Intro : examples/intro.md
-    - Data import: examples/import.md
+    - Data Import: examples/import.md
     - Alignment : examples/align.md
+    - Structural Variation: examples/sv.md
+    - Isoform Detection: examples/iso.md
 #    - Nanopolish: examples/nanopolish.md
 #    - Barcoding: examples/demux.md
   - Release notes: release-notes.md

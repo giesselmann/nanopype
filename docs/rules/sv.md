@@ -13,7 +13,11 @@ The structural variation module can create the following file structure relative
    |--sniffles/
       |--ngmlr/
          |--guppy/
-            |--WA01.hg38.vcf/
+            |--WA01.hg38.vcf.gz
+    |--svim/
+       |--minimap2/
+          |--guppy/
+             |--WA01.hg38.vcf.gz
 ```
 
 ## Cleanup
@@ -30,7 +34,6 @@ The structural variation module requires a merged alignment file of one or multi
                   |--0.hg38.bam                                             # keep
                   |--1.hg38.bam                                             # keep
                   ...
-               |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam     # delete
          |--WA01.hg38.bam                                                   # delete
 ```
 
@@ -43,6 +46,14 @@ Sniffles is reported to work best with the NGMLR aligner also included in this p
 
 :   * sv_sniffles_flags: '-s 10 -l 30 -r 2000 --genotype'
 
+### SVIM
+
+SVIM is an alternative structural variation caller working with both, minimap2 and NGMLR alignments. You can configure SVIM by setting any of its command line flags:
+
+:   * sv_svim_flags: '--min_sv_size 40'
+
 ### References
 
 > Sedlazeck, F. J. et al. Accurate detection of complex structural variations using single-molecule sequencing. Nature Methods 15, 461-468 (2018).
+
+>David Heller, Martin Vingron, SVIM: structural variant identification using mapped long reads, Bioinformatics, Volume 35, Issue 17, (2019).
