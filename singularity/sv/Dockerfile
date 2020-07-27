@@ -38,7 +38,7 @@ FROM nanopype/build_bionic:$TAG as build_stage
 ## run setup rules
 RUN mkdir /build
 WORKDIR /app
-COPY . /app/
+# COPY . /app/
 RUN snakemake --snakefile rules/install.smk --directory /build sv
 
 
