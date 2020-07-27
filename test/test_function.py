@@ -138,7 +138,7 @@ if __name__ == '__main__':
     parser.add_argument("suite", choices=['DNA', 'cDNA', 'mRNA'], help='Test suite to load')
     parser.add_argument("module", choices=
         ['all', 'storage',
-         'basecalling', 'alignments', 'methylation',
+         'basecalling', 'alignment', 'methylation',
          'sv', 'assembly',
          'transcript_isoforms',
          'report'],
