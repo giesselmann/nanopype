@@ -71,6 +71,27 @@ rule sniffles:
         {config[bin_singularity][sniffles]} -m {input} -v {output} -t {threads} {config[sv_sniffles_flags]}
         """
 
+# sniffles sv detection
+rule svim:
+    input:
+        alignment = "alignments/{aligner}/{sequence_workflow}/{tag}.{reference}.bam",
+        reference = lambda wildcards: config['references'][wildcards.reference]['genome']
+    output:
+        temp("sv/svim/{aligner, [^.\/]*}/{sequence_workflow}/{tag, [^\/]*}.{reference, [^.\/]*}.vcf")
+    shadow: "minimal"
+    threads: config['threads_sv']
+    resources:
+        threads = lambda wildcards, threads: threads,
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['svim'][0] + config['memory']['svim'][1] * threads)),
+        time_min = lambda wildcards, threads, attempt: int((3840 / threads) * attempt * config['runtime']['svim'])   # 240 min / 16 threads
+    singularity:
+        config['singularity_images']['sv']
+    shell:
+        """
+        {config[bin_singularity][svim]} alignment sample {input.alignment} {input.reference} {config[sv_svim_flags]}
+        mv sample/variants.vcf {output}
+        """
+
 # compress vcf file
 rule sv_compress:
     input:

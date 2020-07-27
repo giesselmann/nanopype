@@ -119,6 +119,9 @@ jobs:
         - <<: *tests
           env:
               - MODULE=sv
+        - <<: *tests
+          env:
+              - MODULE=assembly
         - stage: nanopype build
           env:
               - MODULE=nanopype

@@ -59,7 +59,6 @@ COPY --from=methylation /usr/bin/* /usr/bin/
 COPY --from=sv /usr/bin/* /usr/bin/
 COPY --from=sv /usr/lib/* /usr/lib/
 COPY --from=sv /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/
-COPY --from=sv /usr/local/lib/python3.6/site-packages/ /usr/local/lib/python3.6/site-packages/
 
 COPY --from=transcript /usr/bin/* /usr/bin/
 COPY --from=transcript /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/

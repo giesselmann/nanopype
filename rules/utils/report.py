@@ -31,7 +31,7 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-import os
+import os, sys
 import itertools
 import matplotlib.pyplot as plt
 from io import BytesIO
@@ -119,6 +119,7 @@ class nanopype_report():
     def add_section_sequences(self, plots=[], stats=None):
         section = self.get_section_number()
         subsection = itertools.count(1)
+        plots = sorted(list(plots), key=lambda x : x[1].basecalling)
         if stats is not None:
             self.story.append(Paragraph("{:d} Basecalling".format(section), self.heading_style))
             self.story.append(Spacer(1, 0))

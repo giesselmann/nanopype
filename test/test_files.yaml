@@ -34,7 +34,12 @@ methylation:
     - methylation/flappie/minimap2/flappie/tag.NC_001416_1.bam
 sv:
     - sv/sniffles/ngmlr/guppy/tag.NC_001416_1.vcf
-#assembly:
+    - sv/sniffles/ngmlr/guppy/tag.NC_001416_1.vcf.gz
+    - sv/svim/ngmlr/guppy/tag.NC_001416_1.vcf
+assembly:
 #    - assembly/flye/guppy/tag.fasta
+    - assembly/wtdbg2/guppy/tag.fasta
+# disable report, seem to be broken for very few reads
+# resulting in empty barplot columns
 #report:
 #    - report.pdf

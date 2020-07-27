@@ -38,7 +38,7 @@ FROM nanopype/build_bionic:$TAG as build_stage
 ## run setup rules
 RUN mkdir /build
 WORKDIR /app
-# COPY . /app/
+COPY . /app/
 RUN snakemake --snakefile rules/install.smk --directory /build sv
 
 
@@ -48,9 +48,8 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
 COPY --from=build_stage /build/bin/* /usr/bin/
-COPY --from=build_stage /build/lib/* /usr/lib/
+# COPY --from=build_stage /build/lib/* /usr/lib/
 COPY --from=build_stage /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/
-COPY --from=build_stage /build/lib/python3.6/site-packages/ /usr/local/lib/python3.6/site-packages
 
 
 # WORKDIR /app
