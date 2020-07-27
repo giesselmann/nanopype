@@ -97,8 +97,6 @@ jobs:
                   - pkg-config
                   - squashfs-tools
           env:
-              - SUITE=cDNA
-              - SUITE=mRNA
               - SUITE=DNA
               - MODULE=storage
           install:
@@ -110,21 +108,53 @@ jobs:
               - python3 test/test_function.py $SUITE $MODULE $HOME/unit_tests --singularity
           before_cache: skip
           deploy: skip
+        # DNA tests
         - <<: *tests
           env:
+              - SUITE=DNA
               - MODULE=basecalling
         - <<: *tests
           env:
+              - SUITE=DNA
               - MODULE=alignment
         - <<: *tests
           env:
+              - SUITE=DNA
               - MODULE=methylation
         - <<: *tests
           env:
+              - SUITE=DNA
               - MODULE=sv
         - <<: *tests
           env:
+              - SUITE=DNA
               - MODULE=report
+        # cDNA tests
+        - <<: *tests
+          env:
+              - SUITE=cDNA
+              - MODULE=basecalling
+        - <<: *tests
+          env:
+              - SUITE=cDNA
+              - MODULE=alignment
+        - <<: *tests
+          env:
+              - SUITE=cDNA
+              - MODULE=transcript_isoforms
+        # mRNA tests
+        - <<: *tests
+          env:
+              - SUITE=mRNA
+              - MODULE=basecalling
+        - <<: *tests
+          env:
+              - SUITE=mRNA
+              - MODULE=alignment
+        - <<: *tests
+          env:
+              - SUITE=mRNA
+              - MODULE=transcript_isoforms
         # Build all-in-one Docker from module container
         - stage: nanopype build
           env:
