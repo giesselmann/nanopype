@@ -192,7 +192,7 @@ deploy:
           tags: false
           branch: master
           repo: giesselmann/nanopype
-          condition: env(STAGE) =~ ^(base|build|modules|nanopype)$
+          condition: env(STAGE) IN (base, build, modules, nanopype)
     - provider: script
       skip_cleanup: true
       script: docker tag $MODULE $DOCKER_USERNAME/$MODULE:$TRAVIS_TAG &&
@@ -202,7 +202,7 @@ deploy:
           tags: true
           branch: master
           repo: giesselmann/nanopype
-          condition: env(STAGE) =~ ^(base|build|modules|nanopype)$
+          condition: env(STAGE) IN (base, build, modules, nanopype)
     - provider: script
       skip_cleanup: true
       script: docker tag $MODULE $DOCKER_USERNAME/$MODULE:$TRAVIS_BRANCH &&
@@ -212,4 +212,4 @@ deploy:
           tags: false
           all_branches: true
           repo: giesselmann/nanopype
-          condition: $TRAVIS_BRANCH != "master" AND env(STAGE) =~ ^(base|build|modules|nanopype)$
+          condition: $TRAVIS_BRANCH != "master" AND env(STAGE) IN (base, build, modules, nanopype)
