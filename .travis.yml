@@ -40,9 +40,9 @@ jobs:
           stage: base
           env:
               - MODULE=base_bionic
-              - STAGE=base
           install: skip
           script:
+              - export STAGE=base
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
         #- <<: *base
         #  env:
@@ -52,9 +52,9 @@ jobs:
           stage: build
           env:
               - MODULE=build_bionic
-              - STAGE=build
           install: skip
           script:
+              - export STAGE=build
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
         #- <<: *build
         #  env:
@@ -64,9 +64,9 @@ jobs:
           stage: module builds
           env:
               - MODULE=basecalling
-              - STAGE=modules
           install: skip
           script:
+              - export STAGE=modules
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
         - <<: *modules
           env:
@@ -109,6 +109,7 @@ jobs:
               - snakemake --snakefile rules/install.smk --directory $HOME singularity
               - export PATH=$HOME/bin:$PATH
           script:
+              - export STAGE=test
               - python3 test/test_function.py $SUITE $MODULE $HOME/unit_tests --singularity
           before_cache: skip
         # DNA tests
@@ -162,16 +163,15 @@ jobs:
         - stage: nanopype build
           env:
               - MODULE=nanopype
-              - STAGe=nanopype
           install: skip
           script:
+              - export STAGE=nanopype
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
         # Test all-in-one Docker
         - stage: nanopype test
           before_cache: skip
-          env:
-              - STAGE=test
           script:
+              - export STAGE=test
               - docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:$DOCKER_TAG python3 test/test_function.py DNA all /test
               - docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:$DOCKER_TAG python3 test/test_function.py cDNA all /test
               - docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:$DOCKER_TAG python3 test/test_function.py mRNA all /test
