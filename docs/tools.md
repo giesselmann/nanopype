@@ -20,6 +20,7 @@ Nanopype integrates a growing number of different tools merged into processing w
 **Assembly**
 
 :   * Flye *https://github.com/fenderglass/Flye*
+    * Wtdbg2 *https://github.com/ruanjue/wtdbg2*
 
 **Methylation detection**
 
@@ -33,6 +34,7 @@ Nanopype integrates a growing number of different tools merged into processing w
 **Structural variation**
 
 :   * Sniffles *https://github.com/fritzsedlazeck/Sniffles*
+    * SVIM *https://github.com/eldariont/svim*
 
 **Demultiplexing**
 

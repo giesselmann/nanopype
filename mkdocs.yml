@@ -118,6 +118,7 @@ nav:
     - Isoform Detection: examples/iso.md
 #    - Nanopolish: examples/nanopolish.md
 #    - Barcoding: examples/demux.md
-  - Release notes: release-notes.md
+  - Contribution: contribute.md
+  - Release Notes: release-notes.md
   - Citation: citation.md
   - License: license.md

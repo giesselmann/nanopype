@@ -1,16 +1,18 @@
 # Release notes
 
-#### v1.0.0 - 2020
+#### v1.0.0 - 2020-07-28
 Main release:
 
 :   * Rewrite and automate unit tests for source, Singularity and Docker
     * Move Docker builds to travis-ci
-    * The all-in-one Docker has moved to docker://nanopype/nanopype
+    * The all-in-one Docker has moved to **docker://nanopype/nanopype**
     * Update Guppy to v4.0.11
     * Update GraphMap to GraphMap2 v0.6.4
     * Update Pychopper to v2.4.0
     * Add wtdbg2 v2.5 (closes #8)
     * Add svim v1.4.0
+    * Improve and extend the tutorial
+    * Add contributions section
     * Fix snakemake file exists error in case of raw data relative to workdir
     * Fix Flappie basecalling "cat: methyl_marks.tsv: No such file or directory"
     * Fix Flappie basecalling with fastq output
