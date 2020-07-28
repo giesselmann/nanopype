@@ -6,11 +6,11 @@ The all-in-one Docker image of Nanopype contains all its dependencies and is bui
 
 The container is tagged with the pipeline version. To obtain a specific version run e.g.:
 
-    docker pull nanopype/nanopype:v0.7.0
+    docker pull nanopype/nanopype:v1.0.0
 
 Docker images can get access to the hosts file system with mounts of type *bind*. Test the container by mounting your current directory:
 
-    docker run -it --mount type=bind,source=$(pwd),target=/host nanopype/nanopype:v0.7.0
+    docker run -it --mount type=bind,source=$(pwd),target=/host nanopype/nanopype:v1.0.0
 
 Inside of the container type
 
@@ -28,7 +28,7 @@ Changes made to the file system of the container are not persistent. For configu
 Adjust the version of the *git checkout* according to the one used with *docker pull* e.g.:
 
 ```
-docker pull nanopype/nanopype:v0.7.0
+docker pull nanopype/nanopype:v1.0.0
 ```
 
 and
@@ -36,7 +36,7 @@ and
 ```
 mkdir -p ~/src && cd ~/src
 git clone --recursive https://github.com/giesselmann/nanopype
-cd nanopype && git checkout v0.7.0
+cd nanopype && git checkout v1.0.0
 python3 -m pip install -r requirements.txt
 ```
 
@@ -46,7 +46,7 @@ docker run -it --mount type=bind,source=$(pwd),target=/app \
 --mount type=bind,source=/path/to/miniondata,target=/data/raw \
 --mount type=bind,source=/path/to/project,target=/processing \
 --user $(id -u):$(id -g) \
-nanopype/nanopype:v0.7.0
+nanopype/nanopype:v1.0.0
 ```
 
 The *--user* argument reads user and group id from the current user. This is important since otherwise files created from inside the container are owned by **root**. The system in the container does not know about your outside user, the shell will therefore look like this:

@@ -31,9 +31,9 @@ cd ..
 It is recommended to install a tagged version of Nanopype. Using the 'latest' from master will always pull the most recent Singularity images. If the remaining pipeline is then not regularly updated via ``` git pull ```, pipeline code and container code can diverge. To install a specific version modify the above commands to:
 
 ```
-git clone --recursive https://github.com/giesselmann/nanopype
+git clone https://github.com/giesselmann/nanopype
 cd nanopype
-git fetch --tags && git checkout v0.6.0
+git fetch --tags && git checkout v1.0.0
 python3 -m pip install --upgrade pip
 python3 -m pip install -r requirements.txt
 cd ..
