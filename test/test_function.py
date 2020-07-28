@@ -101,7 +101,7 @@ class test_case_src(test_case_base):
                 methodName='none', keep=False):
         self.test_dir = test_dir
         self.keep = keep
-        base_cmd = 'snakemake -j {threads}{flags} --snakefile {snakefile} --directory {test_dir} '.format(
+        base_cmd = 'snakemake -q -j {threads}{flags} --snakefile {snakefile} --directory {test_dir} '.format(
             threads=max(2, threads),
             flags=' --use-singularity --singularity-args=" -u"' if singularity else '',
             snakefile=snakefile,
