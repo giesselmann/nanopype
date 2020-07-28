@@ -40,6 +40,7 @@ jobs:
           stage: base
           env:
               - MODULE=base_bionic
+              - STAGE=base
           install: skip
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
@@ -51,6 +52,7 @@ jobs:
           stage: build
           env:
               - MODULE=build_bionic
+              - STAGE=build
           install: skip
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
@@ -62,6 +64,7 @@ jobs:
           stage: module builds
           env:
               - MODULE=basecalling
+              - STAGE=modules
           install: skip
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
@@ -99,6 +102,7 @@ jobs:
           env:
               - SUITE=DNA
               - MODULE=storage
+              - STAGE=test
           install:
               - pip install -r requirements.txt --upgrade
               - rm -rf /home/travis/.gimme/versions/go1.*
@@ -107,7 +111,6 @@ jobs:
           script:
               - python3 test/test_function.py $SUITE $MODULE $HOME/unit_tests --singularity
           before_cache: skip
-          deploy: skip
         # DNA tests
         - <<: *tests
           env:
@@ -159,13 +162,15 @@ jobs:
         - stage: nanopype build
           env:
               - MODULE=nanopype
+              - STAGe=nanopype
           install: skip
           script:
               - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
         # Test all-in-one Docker
         - stage: nanopype test
           before_cache: skip
-          deploy: skip
+          env:
+              - STAGE=test
           script:
               - docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:$DOCKER_TAG python3 test/test_function.py DNA all /test
               - docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:$DOCKER_TAG python3 test/test_function.py cDNA all /test
@@ -187,6 +192,7 @@ deploy:
           tags: false
           branch: master
           repo: giesselmann/nanopype
+          condition: env(STAGE) =~ ^(base|build|modules|nanopype)$
     - provider: script
       skip_cleanup: true
       script: docker tag $MODULE $DOCKER_USERNAME/$MODULE:$TRAVIS_TAG &&
@@ -196,6 +202,7 @@ deploy:
           tags: true
           branch: master
           repo: giesselmann/nanopype
+          condition: env(STAGE) =~ ^(base|build|modules|nanopype)$
     - provider: script
       skip_cleanup: true
       script: docker tag $MODULE $DOCKER_USERNAME/$MODULE:$TRAVIS_BRANCH &&
@@ -205,4 +212,4 @@ deploy:
           tags: false
           all_branches: true
           repo: giesselmann/nanopype
-          condition: $TRAVIS_BRANCH != "master"
+          condition: $TRAVIS_BRANCH != "master" AND env(STAGE) =~ ^(base|build|modules|nanopype)$
