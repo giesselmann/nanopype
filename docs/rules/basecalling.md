@@ -10,9 +10,7 @@ Providing a *runnames.txt* with one run name per line it is possible to process 
 
     snakemake --snakefile /path/to/nanopype/Snakefile sequences/guppy/WA01.fastq.gz
 
-The tag *WA01* is arbitrary and may describe a corresponding experiment or cell line. Furthermore a basic quality control of the flow cell can be obtained by running:
-
-    snakemake --snakefile /path/to/nanopype/Snakefile sequences/guppy/WA01.fastq.pdf
+The tag *WA01* is arbitrary and may describe a corresponding experiment or cell line.
 
 ## Folder structure
 
@@ -20,18 +18,16 @@ The basecalling module can create the following file structure relative to the w
 
 ```sh
 |--sequences/
-   |--guppy/                                                 # Albacore basecaller
+   |--guppy/                                                 # Guppy basecaller
       |--batches/
          |--WA01/
             |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
-               |--0.fastq.gz                                       # Sequence batches
+               |--0.fastq.gz                                 # Sequence batches
                |--1.fastq.gz
                 ...
             |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.gz
-            |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.fastq.pdf
       |--WA01.fastq.gz
-      |--WA01.fastq.pdf
-   |--albacore/                                                    # Guppy basecaller
+   |--flappie/                                               # Flappie basecaller
       |--...
 ```
 

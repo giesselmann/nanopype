@@ -61,24 +61,48 @@ rule sniffles:
     shadow: "minimal"
     threads: config['threads_sv']
     resources:
+        threads = lambda wildcards, threads: threads,
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['sniffles'][0] + config['memory']['sniffles'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((3840 / threads) * attempt * config['runtime']['sniffles'])   # 240 min / 16 threads
     singularity:
-        "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
+        config['singularity_images']['sv']
     shell:
         """
         {config[bin_singularity][sniffles]} -m {input} -v {output} -t {threads} {config[sv_sniffles_flags]}
         """
 
+# sniffles sv detection
+rule svim:
+    input:
+        alignment = "alignments/{aligner}/{sequence_workflow}/{tag}.{reference}.bam",
+        reference = lambda wildcards: config['references'][wildcards.reference]['genome']
+    output:
+        temp("sv/svim/{aligner, [^.\/]*}/{sequence_workflow}/{tag, [^\/]*}.{reference, [^.\/]*}.vcf")
+    shadow: "minimal"
+    threads: config['threads_sv']
+    resources:
+        threads = lambda wildcards, threads: threads,
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['svim'][0] + config['memory']['svim'][1] * threads)),
+        time_min = lambda wildcards, threads, attempt: int((3840 / threads) * attempt * config['runtime']['svim'])   # 240 min / 16 threads
+    singularity:
+        config['singularity_images']['sv']
+    shell:
+        """
+        {config[bin_singularity][svim]} alignment sample {input.alignment} {input.reference} {config[sv_svim_flags]}
+        mv sample/variants.vcf {output}
+        """
+
 # compress vcf file
 rule sv_compress:
     input:
-        "sv/sniffles/{aligner}/{sequence_workflow}/{tag}.{reference}.vcf"
+        "sv/{caller}/{aligner}/{sequence_workflow}/{tag}.{reference}.vcf"
     output:
-        "sv/sniffles/{aligner, [^.\/]*}/{sequence_workflow, [^.\/]*}/{tag, [^\/]*}.{reference, [^.\/]*}.vcf.gz"
+        "sv/{caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, [^.\/]*}/{tag, [^\/]*}.{reference, [^.\/]*}.vcf.gz"
     threads: 1
+    resources:
+        threads = lambda wildcards, threads: threads,
     singularity:
-        "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
+        config['singularity_images']['sv']
     shell:
         """
         cat {input} | gzip > {output}
@@ -94,6 +118,8 @@ rule strique:
         "sv/strique/{aligner, [^\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^\/]*}/{batch, [^.\/]*}.{reference}.tsv"
     shadow: "minimal"
     threads: config['threads_sv']
+    resources:
+        threads = lambda wildcards, threads: threads,
     params:
         model = config['sv_STRique_model'] if 'sv_STRique_model' in config else '',
         mod_model = '--mod_model {}'.format(config['sv_STRique_mod_model']) if 'sv_STRique_mod_model' in config else ''
@@ -101,7 +127,7 @@ rule strique:
         mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['strique'][0] + config['memory']['strique'][1] * threads)),
         time_min = lambda wildcards, threads, attempt: int((3840 / threads) * attempt * config['runtime']['strique'])   # 240 min / 16 threads
     singularity:
-        "docker://nanopype/sv:{tag}".format(tag=config['version']['tag'])
+        config['singularity_images']['sv']
     shell:
         """
         export TMPDIR=$(pwd)

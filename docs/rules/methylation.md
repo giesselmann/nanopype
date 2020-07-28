@@ -20,8 +20,8 @@ If not already present, this will trigger basecalling and alignment of the raw d
             |--batches/
                |--WA01/
                   |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
-                     |--0.hg38.tsv                                # Single read batches
-                     |--1.hg38.tsv
+                     |--0.hg38.tsv.gz                             # Single read batches
+                     |--1.hg38.tsv.gz
                       ...
                   |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
             |--WA01.1x.hg38.bedGraph                              # Mean methylation level
@@ -32,8 +32,8 @@ If not already present, this will trigger basecalling and alignment of the raw d
             |--batches/
                |--WA01/
                   |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
-                     |--0.hg38.tsv                                # Single read batches
-                     |--1.hg38.tsv
+                     |--0.hg38.tsv.gz                              # Single read batches
+                     |--1.hg38.tsv.gz
                   |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.tsv.gz
             |--WA01.1x.hg38.bedGraph
             |--WA01.1x.hg38.bw
@@ -67,7 +67,7 @@ To directly get the single read methylation levels of a single flow cell you can
 
 Nanopolish specific configuration parameters are:
 
-:   * methylation_nanopolish_logp_threshold: 2.5
+:   * methylation_nanopolish_logp_threshold: 2.0
 
 ### Flappie
 

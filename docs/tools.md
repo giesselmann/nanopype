@@ -12,7 +12,7 @@ Nanopype integrates a growing number of different tools merged into processing w
 **Alignment**
 
 :   * Minimap2 *https://github.com/lh3/minimap2*
-    * Graphmap *https://github.com/isovic/graphmap*
+    * Graphmap2 *https://github.com/lbcb-sci/graphmap2*
     * Ngmlr *https://github.com/philres/ngmlr*
 
 ## Analysis
@@ -20,6 +20,7 @@ Nanopype integrates a growing number of different tools merged into processing w
 **Assembly**
 
 :   * Flye *https://github.com/fenderglass/Flye*
+    * Wtdbg2 *https://github.com/ruanjue/wtdbg2*
 
 **Methylation detection**
 
@@ -33,6 +34,7 @@ Nanopype integrates a growing number of different tools merged into processing w
 **Structural variation**
 
 :   * Sniffles *https://github.com/fritzsedlazeck/Sniffles*
+    * SVIM *https://github.com/eldariont/svim*
 
 **Demultiplexing**
 

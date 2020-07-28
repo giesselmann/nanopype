@@ -1,5 +1,5 @@
 # Raw sequencing data parent directory containing one folder per flow cell
-storage_data_raw : /data/raw
+storage_data_raw : data/
 
 
 # How to parse the folders found in 'storage_data_raw'. A 'reads' subfolder is
@@ -25,7 +25,7 @@ threads_sv: 4
 threads_demux: 4
 threads_transcript: 4
 threads_transcript_batch: 4
-threads_asm: 80
+threads_asm: 4
 
 
 # basecalling
@@ -54,15 +54,15 @@ basecalling_flappie_flags: ''
 alignment_samtools_flags: ''
 # command line flags for minimap2 DNA alignment
 alignment_minimap2_flags: '-ax map-ont -L'
-# command line flags for graphmap
-alignment_graphmap_flags: '-B 100'
+# command line flags for graphmap2
+alignment_graphmap2_flags: '-B 100'
 # command line flags for ngmlr
 alignment_ngmlr_flags: '-x ont --bam-fix'
 
 
 # methylation detection
 # Abs. log-likelyhood ratio to treat sites as methylated or unmethylated.
-methylation_nanopolish_logp_threshold: 2.5
+methylation_nanopolish_logp_threshold: 2.0
 # Sequence quality threshold on CG sites to trust flappie methylation calls
 methylation_flappie_qval_threshold: 3
 
@@ -82,6 +82,7 @@ demux_guppy_kits : 'EXP-NBD104'
 # structural variation
 # command line flags directly passed to the sniffles execution
 sv_sniffles_flags: '-s 10 -l 30 -r 2000 --genotype'
+sv_svim_flags: ''
 sv_STRique_config: 'STRique.tsv'
 sv_STRique_model: 'r9_4_450bps.mpi.model'
 sv_STRique_mod_model: 'r9_4_450bps_mCpG.mpi.model'
@@ -90,12 +91,14 @@ sv_STRique_mod_model: 'r9_4_450bps_mCpG.mpi.model'
 # transcriptome
 transcript_use_pychopper: True
 transcript_spliced_bam2gff_flags: ''
-transcript_cluster_gff_flags: '-c 10 -d 10 -e 30'
-transcript_collapse_partials: '-d 5 -f 5000 -e 30'
-transcript_polish_clusters: '-c 10'
+transcript_cluster_gff_flags: ''
+transcript_collapse_partials: ''
+transcript_polish_clusters: ''
 
 
 # Assembly
-asm_genome_size : '3.0g'
+asm_genome_size : '48k'
 asm_flye_preset : '--nano-raw'
 asm_flye_flags : '--asm-coverage 35'
+asm_wtdbg2_preset : 'ont'
+asm_wtdbg2_flags : ''

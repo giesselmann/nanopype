@@ -28,9 +28,6 @@ The transcript module can create the following example file structure relative t
    |--pinfish
      |--minimap2/                                                 # Minimap2 alignment
         |--guppy/                                                 # Using guppy basecalling
-           |--batches/
-              |--WA01/
-                 |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.gff
            |--WA01.hg38.gff
 
 ```

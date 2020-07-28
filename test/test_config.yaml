@@ -1,0 +1,94 @@
+test_suites:
+    DNA:
+        runnames:
+            - 20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample
+        config:
+            basecalling_guppy_config: 'dna_r9.4.1_450bps_fast.cfg'
+        test_cases:
+            storage:
+                - data/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/reads.fofn
+            basecalling:
+            # albacore is not part of the singularity container
+            #    - sequences/albacore/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.fastq.gz
+            #    - sequences/albacore/DNA.fastq.gz
+            # flappie is not producing output for >10mins and killed by Travis-CI
+            #    - sequences/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.fastq.gz
+            #    - sequences/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample.fastq.gz
+            #    - sequences/flappie/DNA.fastq.gz
+                - sequences/guppy/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.fastq.gz
+                - sequences/guppy/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample.fastq.gz
+                - sequences/guppy/DNA.fastq.gz
+            alignment:
+                - ref/NC_001416.1.fasta.gmidx
+                - ref/NC_001416.1.fasta.ngm
+                - ref/NC_001416.1.fasta.fai
+                - alignments/minimap2/guppy/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.bam
+                - alignments/minimap2/guppy/DNA.NC_001416_1.bam
+                - alignments/graphmap2/guppy/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.bam
+                - alignments/graphmap2/guppy/DNA.NC_001416_1.bam
+                - alignments/ngmlr/guppy/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.bam
+                - alignments/ngmlr/guppy/DNA.NC_001416_1.bam
+                - alignments/minimap2/guppy/DNA.NC_001416_1.bw
+            methylation:
+                - methylation/nanopolish/minimap2/guppy/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.tsv.gz
+                - methylation/nanopolish/minimap2/guppy/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.bam
+                - methylation/nanopolish/minimap2/guppy/DNA.NC_001416_1.frequencies.tsv.gz
+                - methylation/nanopolish/minimap2/guppy/DNA.1x.NC_001416_1.bedGraph
+                - methylation/nanopolish/minimap2/guppy/DNA.1x.NC_001416_1.bw
+                - methylation/nanopolish/minimap2/guppy/DNA.NC_001416_1.bam
+                - methylation/flappie/minimap2/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.tsv.gz
+                - methylation/flappie/minimap2/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.bam
+                - methylation/flappie/minimap2/flappie/DNA.NC_001416_1.frequencies.tsv.gz
+                - methylation/flappie/minimap2/flappie/DNA.1x.NC_001416_1.bedGraph
+                - methylation/flappie/minimap2/flappie/DNA.1x.NC_001416_1.bw
+                - methylation/flappie/minimap2/flappie/DNA.NC_001416_1.bam
+            sv:
+                - sv/sniffles/ngmlr/guppy/DNA.NC_001416_1.vcf
+                - sv/sniffles/ngmlr/guppy/DNA.NC_001416_1.vcf.gz
+                - sv/svim/ngmlr/guppy/DNA.NC_001416_1.vcf
+                - sv/svim/ngmlr/guppy/DNA.NC_001416_1.vcf.gz
+            #assembly:
+                # segmentation fault
+                #- assembly/wtdbg2/guppy/DNA.fasta
+                # Assembled 0 disjointigs
+                #- assembly/flye/guppy/DNA.fasta
+            report:
+                - sequences/guppy/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample.hdf5
+                - alignments/minimap2/guppy/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample.NC_001416_1.hdf5
+                # disable report, seem to be broken for very few reads
+                # resulting in empty barplot columns
+                #- report.pdf
+    cDNA:
+        runnames:
+            - 20200624_FAN48644_FLO-MIN106_SQK-DCS109_sample
+        config:
+            basecalling_guppy_config: 'dna_r9.4.1_450bps_fast.cfg'
+            alignment_samtools_flags: '-F 2308'
+            alignment_minimap2_flags: '-ax splice'
+            transcript_cluster_gff_flags: '-c 1'
+        test_cases:
+            basecalling:
+                - sequences/guppy/batches/cDNA/20200624_FAN48644_FLO-MIN106_SQK-DCS109_sample/batch0.fastq.gz
+                - sequences/guppy/cDNA.fastq.gz
+            alignment:
+                - alignments/minimap2/guppy/batches/cDNA/20200624_FAN48644_FLO-MIN106_SQK-DCS109_sample/batch0.hg38_DNMT1.bam
+                - alignments/minimap2/guppy/cDNA.hg38_DNMT1.bam
+            transcript_isoforms:
+                - transcript_isoforms/pinfish/minimap2/guppy/cDNA.hg38_DNMT1.gff
+    mRNA:
+        runnames:
+            - 20200227_FAL08241_FLO-MIN106_SQK-RNA002_sample
+        config:
+            basecalling_guppy_config: 'rna_r9.4.1_70bps_fast.cfg'
+            alignment_samtools_flags: '-F 2308'
+            alignment_minimap2_flags: '-ax splice'
+            transcript_cluster_gff_flags: '-c 1'
+        test_cases:
+            basecalling:
+                - sequences/guppy/batches/mRNA/20200227_FAL08241_FLO-MIN106_SQK-RNA002_sample/batch0.fastq.gz
+                - sequences/guppy/mRNA.fastq.gz
+            alignment:
+                - alignments/minimap2/guppy/batches/mRNA/20200227_FAL08241_FLO-MIN106_SQK-RNA002_sample/batch0.hg38_DNMT1.bam
+                - alignments/minimap2/guppy/mRNA.hg38_DNMT1.bam
+            transcript_isoforms:
+                - transcript_isoforms/pinfish/minimap2/guppy/mRNA.hg38_DNMT1.gff

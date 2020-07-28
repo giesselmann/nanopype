@@ -40,7 +40,7 @@ memory:
     guppy: [8000,4000]
 ```
 
-??? info "example env.yaml"
+??? info "example env.yaml (Refer to the git repository for the most recent config)"
     ```
     # Reference genomes
     references:
@@ -63,7 +63,7 @@ memory:
         flappie: ~/bin/flappie
         guppy: ~/bin/guppy_basecaller
         bedtools: ~/bin/bedtools
-        graphmap: ~/bin/graphmap
+        graphmap2: ~/bin/graphmap2
         minimap2: ~/bin/minimap2
         nanopolish: ~/bin/nanopolish
         ngmlr: ~/bin/ngmlr
@@ -85,7 +85,7 @@ memory:
         albacore: 1.0
         flappie: 1.0
         guppy: 2.0
-        graphmap: 1.0
+        graphmap2: 1.0
         minimap2: 1.0
         ngmlr: 1.0
         nanopolish: 1.0
@@ -100,7 +100,7 @@ memory:
         albacore: [4000,1000]
         flappie: [4000,5000]
         guppy: [8000,4000]
-        graphmap: [80000,500]
+        graphmap2: [80000,500]
         minimap2: [8000,500]
         ngmlr: [32000,500]
         nanopolish: [8000,500]
@@ -259,12 +259,12 @@ Logging can also be set up independent of Snakemake by modifying the job script 
 
 ??? info "example jobscript.sh for MXQ logging"
     ```
-    H=${{HOSTNAME}}
+    H=${{HOSTNAME/.molgen.mpg.de/}}
     J=${{MXQ_JOBID:-${{PID}}}}
     DATE=`date +%Y%m%d`
 
-    mkdir -p log
-    ({exec_job}) &> log/${{DATE}}_${{H}}_${{J}}.log
+    mkdir -p log/cluster
+    ({exec_job}) &> log/cluster/${{DATE}}_${{H}}_${{J}}.log
     ```
 
 Snakemake will replace the *{exec_job}* wildcard with the temporary job script (Double curly brackets are needed for generic environment variables to escape the Snakemake substitution). Note that the environment variables *MXQ_JOBID* and *PID* are specific to the mxq scheduler. The above wrapper will create log files with timestamp and hostname in the filename without overwriting previous logs.

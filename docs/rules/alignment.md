@@ -36,7 +36,7 @@ The alignment module can create the following file structure relative to the wor
                |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01.hg38.bam
          |--WA01.hg38.bam                                       # Merged flow-cells
          |--WA01.hg38.bw                                        # Coverage track
-   |--graphmap/                                                 # GraphMap alignment
+   |--graphmap2/                                                 # GraphMap2 alignment
       |--guppy/                                                 # Using guppy basecalling
          |--batches/
             |--WA01/
@@ -68,11 +68,11 @@ Pairwise alignment for nucleotide sequences. Any given command line arguments ar
 
 :   * alignment_minimap2_flags: '-ax map-ont -L'
 
-### GraphMap
+### GraphMap2
 
-Fast and sensitive mapping of nanopore sequencing reads with GraphMap. Any given command line arguments are directly passed to the aligner:
+Fast and sensitive mapping of nanopore sequencing reads with GraphMap2. Any given command line arguments are directly passed to the aligner:
 
-:   * alignment_graphmap_flags: '-B 100'
+:   * alignment_graphmap2_flags: '-B 100'
 
 ### NGMLR
 
@@ -85,5 +85,7 @@ Accurate detection of complex structural variations using single-molecule sequen
 >Li, H. Minimap2: pairwise alignment for nucleotide sequences. Bioinformatics. doi:10.1093/bioinformatics/bty191 (2018).
 
 >Sovic, I. et al. Fast and sensitive mapping of nanopore sequencing reads with GraphMap. Nat. Commun. 7:11307 doi: 10.1038/ncomms11307 (2016).
+
+>Sović, I., Šikić, M., Wilm, A. et al. Fast and sensitive mapping of nanopore sequencing reads with GraphMap. Nat Commun 7, 11307 (2016)
 
 >Sedlazeck, F. J. et al. Accurate detection of complex structural variations using single-molecule sequencing. Nature Methods 15, 461-468 (2018).

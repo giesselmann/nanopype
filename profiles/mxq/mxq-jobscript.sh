@@ -37,5 +37,5 @@ H=${{HOSTNAME/.molgen.mpg.de/}}
 J=${{MXQ_JOBID:-${{PID}}}}
 DATE=`date +%Y%m%d`
 
-mkdir -p log
-({exec_job}) &> log/${{DATE}}_${{H}}_${{J}}.log
+mkdir -p log/cluster
+({exec_job}) &> log/cluster/${{DATE}}_${{H}}_${{J}}.log

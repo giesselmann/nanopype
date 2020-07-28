@@ -1,0 +1,208 @@
+os: linux
+dist: trusty
+language: python
+
+notifications:
+  email:
+    if: branch = master
+    recipients:
+      - giesselmann@molgen.mpg.de
+    on_success: never
+    on_failure: always
+
+python:
+    - "3.6"
+
+cache:
+  directories:
+    - $HOME/docker
+
+
+
+
+before_install:
+    # tag for docker from branch
+    - if [[ $TRAVIS_BRANCH == "master" ]]; then export DOCKER_TAG=latest;
+      else export DOCKER_TAG=$TRAVIS_BRANCH; fi
+    # Load cached docker images
+    # - if [[ -d $HOME/docker ]]; then ls $HOME/docker/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
+
+# before_cache:
+#   # Save tagged docker images
+#     - >
+#       mkdir -p $HOME/docker && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}'
+#       | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
+
+jobs:
+    include:
+        # Base stage with python3 and shared libs
+        - &base
+          stage: base
+          env:
+              - MODULE=base_bionic
+          install: skip
+          script:
+              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile .
+        #- <<: *base
+        #  env:
+        #      - MODULE=base_alpine
+        # Build stage from base with gcc/g++ toolchain
+        - &build
+          stage: build
+          env:
+              - MODULE=build_bionic
+          install: skip
+          script:
+              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
+        #- <<: *build
+        #  env:
+        #      - MODULE=build_alpine
+        # Modules from build stage, copied into base stage
+        - &modules
+          stage: module builds
+          env:
+              - MODULE=basecalling
+          install: skip
+          script:
+              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
+        - <<: *modules
+          env:
+              - MODULE=alignment
+        - <<: *modules
+          env:
+              - MODULE=methylation
+        - <<: *modules
+          env:
+              - MODULE=assembly
+        - <<: *modules
+          env:
+              - MODULE=demux
+        - <<: *modules
+          env:
+              - MODULE=sv
+        - <<: *modules
+          env:
+              - MODULE=transcript
+        # Unit tests per module
+        - &tests
+          stage: module tests
+          addons:
+            apt:
+              packages:
+                  - build-essential
+                  - libssl-dev
+                  - uuid-dev
+                  - libgpgme11-dev
+                  - libseccomp-dev
+                  - pkg-config
+                  - squashfs-tools
+          env:
+              - SUITE=DNA
+              - MODULE=storage
+          install:
+              - pip install -r requirements.txt --upgrade
+              - rm -rf /home/travis/.gimme/versions/go1.*
+              - snakemake --snakefile rules/install.smk --directory $HOME singularity
+              - export PATH=$HOME/bin:$PATH
+          script:
+              - python3 test/test_function.py $SUITE $MODULE $HOME/unit_tests --singularity
+          before_cache: skip
+          deploy: skip
+        # DNA tests
+        - <<: *tests
+          env:
+              - SUITE=DNA
+              - MODULE=basecalling
+        - <<: *tests
+          env:
+              - SUITE=DNA
+              - MODULE=alignment
+        - <<: *tests
+          env:
+              - SUITE=DNA
+              - MODULE=methylation
+        - <<: *tests
+          env:
+              - SUITE=DNA
+              - MODULE=sv
+        - <<: *tests
+          env:
+              - SUITE=DNA
+              - MODULE=report
+        # cDNA tests
+        - <<: *tests
+          env:
+              - SUITE=cDNA
+              - MODULE=basecalling
+        - <<: *tests
+          env:
+              - SUITE=cDNA
+              - MODULE=alignment
+        - <<: *tests
+          env:
+              - SUITE=cDNA
+              - MODULE=transcript_isoforms
+        # mRNA tests
+        - <<: *tests
+          env:
+              - SUITE=mRNA
+              - MODULE=basecalling
+        - <<: *tests
+          env:
+              - SUITE=mRNA
+              - MODULE=alignment
+        - <<: *tests
+          env:
+              - SUITE=mRNA
+              - MODULE=transcript_isoforms
+        # Build all-in-one Docker from module container
+        - stage: nanopype build
+          env:
+              - MODULE=nanopype
+          install: skip
+          script:
+              - docker build -t $MODULE -f singularity/$MODULE/Dockerfile --build-arg TAG=$DOCKER_TAG .
+        # Test all-in-one Docker
+        - stage: nanopype test
+          before_cache: skip
+          deploy: skip
+          script:
+              - docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:$DOCKER_TAG python3 test/test_function.py DNA all /test
+              - docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:$DOCKER_TAG python3 test/test_function.py cDNA all /test
+              - docker run --mount type=bind,source=$(pwd),target=/app nanopype/nanopype:$DOCKER_TAG python3 test/test_function.py mRNA all /test
+
+after_success:
+    - bash <(curl -s https://codecov.io/bash)
+
+before_deploy:
+    - echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
+
+deploy:
+    - provider: script
+      skip_cleanup: true
+      script: docker tag $MODULE $DOCKER_USERNAME/$MODULE &&
+              docker push $DOCKER_USERNAME/$MODULE &&
+              docker images
+      on:
+          tag: false
+          branch: master
+          repo: giesselmann/nanopype
+    - provider: script
+      skip_cleanup: true
+      script: docker tag $MODULE $DOCKER_USERNAME/$MODULE:$TRAVIS_TAG &&
+              docker push $DOCKER_USERNAME/$MODULE:$TRAVIS_TAG &&
+              docker images
+      on:
+          tag: true
+          branch: master
+          repo: giesselmann/nanopype
+    - provider: script
+      skip_cleanup: true
+      script: docker tag $MODULE $DOCKER_USERNAME/$MODULE:$TRAVIS_BRANCH &&
+              docker push $DOCKER_USERNAME/$MODULE:$TRAVIS_BRANCH &&
+              docker images
+      on:
+          tag: false
+          all_branches: true
+          repo: giesselmann/nanopype
+          condition: $TRAVIS_BRANCH != "master"

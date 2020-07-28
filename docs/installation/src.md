@@ -1,13 +1,14 @@
 # Source
 
-Nanopype can be installed without root privileges as it's maintaining most of its dependencies by building required tools from source in a user accessible path. Currently the following list of system wide packages is required to build all included software packages (names on MacOS might be different):
+Nanopype can be installed without root privileges as it's maintaining most of its dependencies by building required tools from source in a user accessible path. Currently the following list of system wide packages is required to build all included software packages (starting with ubuntu 18.04 LTS, names on MacOS might be different):
 
-* git wget
-* gcc g++
-* binutils autoconf make cmake
-* zlib1g-dev bzip2 libbz2-dev
-* libhdf5-100 libidn11 libopenblas-base libgssapi-krb5-2
-* liblzma-dev libncurses5-dev libcunit1-dev
+* git gcc g++ wget rsync
+* libgomp1
+* zlib1g-dev
+* bzip2 libbz2-dev
+* liblzma-dev libncurses5-dev
+* libcunit1 libhdf5-100 libidn11 libopenblas-base
+* libgssapi-krb5-2
 
 These packages are likely present in most production environments. Please also refer to the Dockerfiles in the singularity folder of the pipeline repository. If you need only a subset of the provided tools the number of dependencies might decrease.
 
@@ -24,42 +25,32 @@ source bin/activate
 Or using conda:
 
 ```
-conda create -n nanopype python=3.4 anaconda
+conda create -n nanopype python=3.6 anaconda
 source activate nanopype
 
 ```
 
-## Snakemake
-
-Nanopype is based on the Snakemake pipeline engine. With python3.4 pip is already installed and you get Snakemake by executing:
-
-```
-python3 -m pip install --upgrade snakemake
-```
-
-Alternatively you might use the conda package manager:
-
-```
-conda install -c bioconda -c conda-forge snakemake
-```
-
-Nanopype relies on latest Snakemake features, please consider updating your Snakemake from the bitbucket repository. From your home or project directory run:
-
-```
-mkdir -p src && cd src
-git clone https://bitbucket.org/snakemake/snakemake.git
-cd snakemake
-python3 -m pip install . --upgrade
-cd ..
-```
 
 ## Nanopype
-Finally install Nanopype from [github.com/giesselmann](https://github.com/giesselmann/nanopype/). If you use conda you find pip in the *bin/* folder of the conda installation. If you use a conda virtual environment use the pip from the *envs/nanopype/bin*.
+
+Install Nanopype from [github.com/giesselmann](https://github.com/giesselmann/nanopype/). If you use conda you find pip in the *bin/* folder of the conda installation. If you use a conda virtual environment use the pip from the *envs/nanopype/bin*.
 
 ```
 git clone https://github.com/giesselmann/nanopype
 cd nanopype
-python3 -m pip install . --upgrade
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
+cd ..
+```
+
+It is recommended to install a tagged version of Nanopype. Using the 'latest' from master will always pull the most recent Singularity images. If the remaining pipeline is then not regularly updated via ``` git pull ```, pipeline code and container code can diverge. To install a specific version modify the above commands to:
+
+```
+git clone https://github.com/giesselmann/nanopype
+cd nanopype
+git fetch --tags && git checkout v1.0.0
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
 cd ..
 ```
 
@@ -126,7 +117,7 @@ Mission accomplished! Everything else is solved at run time by Snakemake and Nan
 There are some common errors that could arise during the installation process. If you encounter one of the following error messages, please consider the respective solution attempts.
 
 **not a supported wheel on this platform**
-:   Nanopype requires at least python3.4 (The Docker image uses python3.6). If you install additional packages (e.g. albacore) from python wheels, make sure the downloaded binary packages matches the local python version.
+:   Nanopype requires at least python3.6. If you install additional packages (e.g. albacore) from python wheels, make sure the downloaded binary packages matches the local python version.
 
 **terminated by signal 4**
 :   Nanopype is mostly compiling integrated tools from source. In heterogeneous cluster environments this can lead to errors if the compilation takes place on a machine supporting modern vector instructions (SSE, AVX, etc.) but execution also uses less recent computers. The error message *terminated by signal 4* indicates an instruction in the software not supported by the underlying hardware. Please re-compile and install the tools from a machine with a common subset of vector instructions in this case.

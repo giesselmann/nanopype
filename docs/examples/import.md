@@ -1,59 +1,33 @@
 # Data Import
 
-Raw data from the sequencer in *fast5* format needs to be imported into Nanopype compatible batches. Each batch contains a configurable number of reads. This tutorial covers the import and indexing of multiple runs.
+Sequencing data from MinION, GridION or PromethION needs to be imported into a Nanopype compatible raw data folder structure. Recent MinKNOW versions write the reads into 4k batches per file. Nanopype expects a flat folder structure of sequencing runs with a **reads** subfolder containing the batches.
 
-Since the provided test data is already properly packaged, we need to restore the original MinKNOW output.
-
-```
-mkdir -p data/import
-for d in data/raw/*; do\
-    run=$(basename $d);
-    mkdir -p data/import/$run;
-    echo $run;
-    ls $d/reads/*.tar | xargs -n 1 tar -C data/import/$run -xf;
-done
-```
-
-### Packaging
-The next steps use the import script of Nanopype to pack single reads into *tar* archives. First we reproduce the test data archives:
+The provided test data contains three runs with one .fast5 batch each:
 
 ```
-mkdir -p data/raw2
-for d in data/import/*; do\
-    run=$(basename $d);
-    python3 ~/src/nanopype/scripts/nanopype_import.py data/raw2/$run $d \
-     --recursive --batch_size 4;
-done
+ls -l data/*/
+ls -l data/*/reads
 ```
 
-An import session is generating detailed output similar to the following:
+Note that each run contains a **reads** subfolder and one run is already indexed and contains a file **reads.fofn**. This read index is for instance needed by the demultiplexing module, where reads per barcode are extracted from the raw data archive and processed together.
 
-    19.12.2018 00:23:35 [INFO] Logger created
-    19.12.2018 00:23:35 [INFO] Writing output to /home/devel/nanopype_test/data/raw2/20180221_FAH48596_FLO-MIN107_SQK-LSK108_human_Hues64/reads
-    19.12.2018 00:23:35 [INFO] Inspect existing files and archives
-    19.12.2018 00:23:35 [INFO] 0 raw files already archived
-    19.12.2018 00:23:35 [INFO] 12 raw files to be archived
-    19.12.2018 00:23:35 [INFO] Archived 4 reads in /home/devel/nanopype_test/data/raw2/20180221_FAH48596_FLO-MIN107_SQK-LSK108_human_Hues64/reads/0.tar
-    19.12.2018 00:23:35 [INFO] Archived 4 reads in /home/devel/nanopype_test/data/raw2/20180221_FAH48596_FLO-MIN107_SQK-LSK108_human_Hues64/reads/1.tar
-    19.12.2018 00:23:35 [INFO] Archived 4 reads in /home/devel/nanopype_test/data/raw2/20180221_FAH48596_FLO-MIN107_SQK-LSK108_human_Hues64/reads/2.tar
-    19.12.2018 00:23:35 [INFO] Mission accomplished
-
-### Verification
-
-To compare the Nanopype test archives to the newly created ones you could run:
+For the remaining two runs create the read index as follows. Check the todo-list with a dry-run first:
 
 ```
-run=20180221_FAH48596_FLO-MIN107_SQK-LSK108_human_Hues64
-cmp --silent data/raw2/$run/reads/0.tar data/raw/$run/reads/0.tar &&\
- echo 'Archives identical!'
+snakemake --snakefile ~/src/nanopype/Snakefile data/20200227_FAL08241_FLO-MIN106_SQK-RNA002_sample/reads.fofn -n
 ```
 
-Re-running the archive script will detect already existing data and create new batches if the source directory contains files not yet present in the output folder.
+With the *-n, --dry-run* flag, snakemake plots a list of jobs to execute without doing anything. You will see two types of jobs, **storage_index_batch** and **storage_index_run**. The first one(s) can be executed in parallel, the last one merges the results. Launch the snakemake command without *-n* to index the raw data:
 
 ```
-run=20180221_FAH48596_FLO-MIN107_SQK-LSK108_human_Hues64
-python3 ~/src/nanopype/scripts/nanopype_import.py data/raw2/$run data/import/$run \
- --recursive --batch_size 4;
+snakemake --snakefile ~/src/nanopype/Snakefile data/20200227_FAL08241_FLO-MIN106_SQK-RNA002_sample/reads.fofn
+snakemake --snakefile ~/src/nanopype/Snakefile data/20200624_FAN48644_FLO-MIN106_SQK-DCS109_sample/reads.fofn
 ```
 
-It is recommend to always run the verification after an import process to ensure all reads from the sequencer are successfully archived.
+The created indices map each read ID to a batch file:
+
+```
+head data/20200624_FAN48644_FLO-MIN106_SQK-DCS109_sample/reads.fofn
+```
+
+Mission accomplished! You executed your very first Nanopype workflow!

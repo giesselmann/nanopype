@@ -40,7 +40,7 @@ import threading
 import queue
 from collections import deque
 from multiprocessing import Process, Queue
-
+from watchdog.events import RegexMatchingEventHandler
 
 
 
