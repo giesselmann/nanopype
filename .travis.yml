@@ -184,7 +184,7 @@ deploy:
               docker push $DOCKER_USERNAME/$MODULE &&
               docker images
       on:
-          tag: false
+          tags: false
           branch: master
           repo: giesselmann/nanopype
     - provider: script
@@ -193,7 +193,7 @@ deploy:
               docker push $DOCKER_USERNAME/$MODULE:$TRAVIS_TAG &&
               docker images
       on:
-          tag: true
+          tags: true
           branch: master
           repo: giesselmann/nanopype
     - provider: script
@@ -202,7 +202,7 @@ deploy:
               docker push $DOCKER_USERNAME/$MODULE:$TRAVIS_BRANCH &&
               docker images
       on:
-          tag: false
+          tags: false
           all_branches: true
           repo: giesselmann/nanopype
           condition: $TRAVIS_BRANCH != "master"
