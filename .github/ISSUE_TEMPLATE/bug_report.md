@@ -1,3 +1,9 @@
+---
+name: Bug report
+about: Use this template to report bugs.
+title: "[BUG]: [ERROR TITLE]"
+labels: bug
+---
 <!--
 
 Have you read Nanopype's Code of Conduct? By filing an Issue, you are expected to comply with it, including treating everyone with respect: https://github.com/nanopype/.github/blob/master/CODE_OF_CONDUCT.md

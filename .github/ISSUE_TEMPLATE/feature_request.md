@@ -1,3 +1,9 @@
+---
+name: Feature request
+about: Use this template to propose new features.
+title: "[FEATURE]: [FEATURE NAME]"
+labels: enhancement
+---
 <!--
 
 Have you read Nanopype's Code of Conduct? By filing an Issue, you are expected to comply with it, including treating everyone with respect: https://github.com/giesselmann/nanopype/blob/master/.github/CODE_OF_CONDUCT.md
