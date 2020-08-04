@@ -1,5 +1,11 @@
 # Release notes
 
+#### v1.0.1 - 2020-08-04
+Maintenance release:
+
+:   * Fix data & reference mount in singularity container
+    * Fix python module installations in source mode (affects deepbinner, svim, flye and pychopper)
+
 #### v1.0.0 - 2020-07-28
 Main release:
 
