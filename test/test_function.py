@@ -94,7 +94,50 @@ def reset_test_dir(test_dir='.'):
 
 
 
-# test case
+# test raw data for relative and absolut paths
+class test_case_raw(unittest.TestCase):
+    def __init__(self, snakefile,
+                test_dir='.',
+                runnames=[],
+                singularity=False):
+        self.test_dir = test_dir
+        self.runnames = runnames
+        self.base_cmd = 'snakemake -q{flags} --snakefile {snakefile} --directory {test_dir} '.format(
+            flags=' --use-singularity --singularity-args=" -u"' if singularity else '',
+            snakefile=snakefile,
+            test_dir=test_dir)
+        super(test_case_raw, self).__init__('absolute_raw_path')
+
+    def setUp(self):
+        reset_test_dir(self.test_dir)
+
+    def absolute_raw_path(self):
+        with open('nanopype.yaml', 'r') as fp:
+            config = yaml.safe_load(fp)
+        config['storage_data_raw'] = os.path.abspath(config['storage_data_raw'])
+        with open('nanopype.yaml', 'w') as fp:
+            print(yaml.dump(config, sort_keys=True), file=fp)
+        for runname in self.runnames:
+            test_file = os.path.join(config['storage_data_raw'], runname, 'reads.fofn')
+            if os.path.isfile(test_file):
+                shutil.move(test_file, test_file + '.expected_output')
+            subprocess.run(self.base_cmd + test_file, check=True, shell=True, stdout=subprocess.PIPE)
+
+    def relative_raw_path(self):
+        with open('nanopype.yaml', 'r') as fp:
+            config = yaml.safe_load(fp)
+        config['storage_data_raw'] = os.path.relpath(config['storage_data_raw'], start=os.getcwd())
+        with open('nanopype.yaml', 'w') as fp:
+            print(yaml.dump(config, sort_keys=True), file=fp)
+        for runname in self.runnames:
+            test_file = os.path.join(config['storage_data_raw'], runname, 'reads.fofn')
+            if os.path.isfile(test_file):
+                shutil.move(test_file, test_file + '.expected_output')
+            subprocess.run(self.base_cmd + test_file, check=True, shell=True, stdout=subprocess.PIPE)
+
+
+
+# test case for output files
 class test_case_src(test_case_base):
     def __init__(self, snakefile, test_file,
                 test_dir='.', threads=1, singularity=False,
@@ -173,6 +216,12 @@ if __name__ == '__main__':
     runnames = suite_config.get('runnames') or []
     config = suite_config.get('config') or {}
     test_dir = init_test_dir(repo_dir, test_dir, config=config, runnames=runnames)
+    # Base tests
+    suite.addTest(test_case_raw(snakefile,
+                    test_dir=test_dir,
+                    runnames=runnames,
+                    singularity=args.singularity))
+    # Specific tests
     for module, module_tests in suite_config['test_cases'].items():
         if args.module == 'all' or args.module == module:
             for module_test in module_tests:

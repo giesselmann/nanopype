@@ -62,7 +62,7 @@ class CustomInstallCmd(install):
 
 setup(
     name='nanopype',
-    version='1.0.0',
+    version='1.0.1',
     author='Pay Giesselmann',
     author_email='giesselmann@molgen.mpg.de',
     description='Nanopore data processing workflows',

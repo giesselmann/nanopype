@@ -265,23 +265,23 @@ else:
 
 
 # mount raw storage and references if using singularity
-#if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
-#    if os.path.isabs(config['storage_data_raw']):
-#        workflow.singularity_args += " -B {}".format(config['storage_data_raw'])
-#    abs_paths = []
-#    # search for absolute paths, relative ones are below the working directory
-#    # and anyway mounted
-#    for name, ref in config['references'].items():
-#        genome = ref['genome']
-#        chr_sizes = ref['chr_sizes']
-#        abs_paths += [genome] if os.path.isabs(genome) else []
-#        abs_paths += [chr_sizes] if os.path.isabs(chr_sizes) else []
-#    # append paths to singularity mounts
-#    for mnt, paths in itertools.groupby(abs_paths, key=lambda x : x.split(os.path.sep)[0]):
-#        workflow.singularity_args += " -B {}".format(os.path.commonpath(list(paths)))
-#    # mount hosts tmpdir if declared
-#    if 'TMPDIR' in os.environ:
-#        workflow.singularity_args += " -B {}".format(os.environ["TMPDIR"])
+if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
+    if os.path.isabs(config['storage_data_raw']):
+        workflow.singularity_args += " -B {}".format(config['storage_data_raw'])
+    abs_paths = []
+    # search for absolute paths, relative ones are below the working directory
+    # and anyway mounted
+    for name, ref in config['references'].items():
+        genome = ref['genome']
+        chr_sizes = ref['chr_sizes']
+        abs_paths += [genome] if os.path.isabs(genome) else []
+        abs_paths += [chr_sizes] if os.path.isabs(chr_sizes) else []
+    # append paths to singularity mounts
+    for mnt, paths in itertools.groupby(abs_paths, key=lambda x : x.split(os.path.sep)[0]):
+        workflow.singularity_args += " -B {}".format(os.path.commonpath(list(paths)))
+    # mount hosts tmpdir if declared
+    if 'TMPDIR' in os.environ:
+        workflow.singularity_args += " -B {}".format(os.environ["TMPDIR"])
 
 
 # barcode mappings

@@ -102,7 +102,6 @@ jobs:
           env:
               - SUITE=DNA
               - MODULE=storage
-              - STAGE=test
           install:
               - pip install -r requirements.txt --upgrade
               - rm -rf /home/travis/.gimme/versions/go1.*
@@ -184,7 +183,7 @@ before_deploy:
 
 deploy:
     - provider: script
-      skip_cleanup: true
+      cleanup: false
       script: docker tag $MODULE $DOCKER_USERNAME/$MODULE &&
               docker push $DOCKER_USERNAME/$MODULE &&
               docker images
@@ -194,7 +193,7 @@ deploy:
           repo: giesselmann/nanopype
           condition: $STAGE =~ ^(base|build|modules|nanopype)$
     - provider: script
-      skip_cleanup: true
+      cleanup: false
       script: docker tag $MODULE $DOCKER_USERNAME/$MODULE:$TRAVIS_TAG &&
               docker push $DOCKER_USERNAME/$MODULE:$TRAVIS_TAG &&
               docker images
@@ -204,7 +203,7 @@ deploy:
           repo: giesselmann/nanopype
           condition: $STAGE =~ ^(base|build|modules|nanopype)$
     - provider: script
-      skip_cleanup: true
+      cleanup: false
       script: docker tag $MODULE $DOCKER_USERNAME/$MODULE:$TRAVIS_BRANCH &&
               docker push $DOCKER_USERNAME/$MODULE:$TRAVIS_BRANCH &&
               docker images
