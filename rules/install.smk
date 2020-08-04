@@ -72,8 +72,7 @@ rule assembly:
 rule sv:
     input:
         "bin/sniffles",
-        "bin/svim",
-        "bin/STRique.py"
+        "bin/svim"
 
 rule transcript_core:
     input:
