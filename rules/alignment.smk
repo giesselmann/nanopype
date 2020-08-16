@@ -79,7 +79,7 @@ rule minimap2:
     shell:
         """
         {config[bin_singularity][minimap2]} -t {threads} {config[alignment_minimap2_flags]} {input.reference} {input.sequence} 1>> {output} 2> >(tee {output}.log >&2)
-        if [ $(grep 'ERROR' {output}.log | wc -l) -gt 0 ]; then exit 1; fi
+        if [ $(grep 'ERROR' {output}.log | wc -l) -gt 0 ]; then exit 1; else rm {output}.log; fi
         """
 
 # graphmap2 alignment
