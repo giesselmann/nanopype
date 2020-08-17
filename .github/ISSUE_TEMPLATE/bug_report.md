@@ -13,7 +13,7 @@ Have you read Nanopype's Code of Conduct? By filing an Issue, you are expected t
 ### Prerequisites
 
 * [ ] Put an X between the brackets on this line if you have done all of the following:
-    * Read the contributions guide at: <https://nanopype.readthedocs.io/en/latest/contribution>
+    * Read the contributions guide at: <https://nanopype.readthedocs.io/en/latest/contribute>
     * Checked that your issue isn't already filed: <https://github.com/giesselmann/nanopype/issues>
 
 ### Description
