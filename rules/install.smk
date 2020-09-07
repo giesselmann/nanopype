@@ -288,9 +288,11 @@ rule nanopolish:
         """
         mkdir -p src && cd src
         if [ ! -d nanopolish ]; then
-            git clone --recursive https://github.com/jts/nanopolish --branch v0.11.0 --depth=1 && cd nanopolish
+            #git clone --recursive https://github.com/jts/nanopolish --branch v0.11.0 --depth=1 && cd nanopolish
+            git clone --recursive https://github.com/jts/nanopolish --branch 46a029c --depth=1 && cd nanopolish
         else
-            cd nanopolish && git fetch --all --tags --prune && git checkout tags/v0.11.0
+            #cd nanopolish && git fetch --all --tags --prune && git checkout tags/v0.11.0
+            cd nanopolish && git fetch --all --tags --prune && git checkout 46a029c
         fi
         make clean
         set +e
