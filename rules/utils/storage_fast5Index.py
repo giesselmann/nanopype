@@ -194,10 +194,10 @@ class fast5_Index():
                     if len(f5files) > 4000:
                         for i, f5_batch in enumerate(fast5_Index.__chunked__(f5files, 4000)):
                             output_bulk_file = os.path.join(output, os.path.basename(batch_name) + '_{i}.fast5'.format(i=i))
-                            single_to_multi_fast5.create_multi_read_file(f5_batch, output_bulk_file)
+                            single_to_multi_fast5.create_multi_read_file(f5_batch, output_bulk_file, None)
                     else:
                         output_bulk_file = os.path.join(output, os.path.basename(batch_name) + '.fast5')
-                        single_to_multi_fast5.create_multi_read_file(f5files, output_bulk_file)
+                        single_to_multi_fast5.create_multi_read_file(f5files, output_bulk_file, None)
         else:
             raise RuntimeError('[ERROR] Raw fast5 batch extension {} not supported.'.format(batch_ext))
 
