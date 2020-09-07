@@ -4,6 +4,7 @@
 Maintenance release:
 
 :   * Fix nanopolish install (eigen lib moved to gitlab)
+    * Update Nanopolish to v0.13.2
     * Fix single read methylation bam for secondary alignments (minimap2)
     * Fix pdf report alignment part (#20)
 
