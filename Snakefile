@@ -108,7 +108,7 @@ if hasattr(workflow, "shadow_prefix") and workflow.shadow_prefix:
 # parse pipeline environment
 nanopype_env = {}
 with open(os.path.join(os.path.dirname(workflow.snakefile), "env.yaml"), 'r') as fp:
-    nanopype_env = yaml.load(fp)
+    nanopype_env = yaml.safe_load(fp)
 
 
 # verify given references
@@ -235,6 +235,7 @@ else:
 # find the python executable
 # Python executable of the workflow
 config['bin']['python'] = sys.executable
+
 # In the container we just use python3
 if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
 	config['bin_singularity']['python'] = 'python3'
@@ -288,7 +289,7 @@ if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
 barcodes = {}
 if os.path.isfile('barcodes.yaml'):
     with open("barcodes.yaml", 'r') as fp:
-        barcode_map = yaml.load(fp)
+        barcode_map = yaml.safe_load(fp)
         barcodes = barcode_map
 config['barcodes'] = barcodes
 
@@ -297,7 +298,7 @@ config['barcodes'] = barcodes
 roi = {}
 if os.path.isfile('roi.yaml'):
     with open("roi.yaml", 'r') as fp:
-        roi_map = yaml.load(fp)
+        roi_map = yaml.safe_load(fp)
         roi = roi_map
 config['roi'] = roi
 
