@@ -106,6 +106,8 @@ checkpoint report_sequences:
         import snakemake
         import numpy as np
         import pandas as pd
+        import matplotlib as mpl
+        mpl.use('Agg')
         from matplotlib import pyplot as plt
         import seaborn as sns
 
@@ -128,7 +130,9 @@ checkpoint report_sequences:
             values = list(values)
             n_groups = len(values)
             for tag_folder, tag_wildcards in values:
-                tag_inputs = snakemake.utils.listfiles('sequences/{sequence_workflow}/batches/{tag}/{runname}.hdf5'.format(sequence_workflow=sequence_workflow, tag=tag_wildcards.tag, runname='{runname, [^\/]*}'))
+                tag_inputs = list(snakemake.utils.listfiles('sequences/{sequence_workflow}/batches/{tag}/{runname}.hdf5'.format(sequence_workflow=sequence_workflow, tag=tag_wildcards.tag, runname='{runname, [^\/]*}')))
+                if not tag_inputs:
+                    continue
                 df = pd.concat([pd.read_hdf(f).assign(
                         Flowcell=lambda x: run_id[wc.runname],
                         Tag=lambda x: tag_wildcards.tag,
@@ -197,6 +201,8 @@ checkpoint report_alignments_stats:
         import snakemake
         import numpy as np
         import pandas as pd
+        import matplotlib as mpl
+        mpl.use('Agg')
         from matplotlib import pyplot as plt
         import seaborn as sns
 
@@ -236,13 +242,10 @@ checkpoint report_alignments_stats:
         # mapping rate by cumulative length
         df_agg = pd.concat(df_list)
         df_agg['Mapped %'] = df_agg['mapped_length'] / df_agg['length']
-        df_agg_primary = df_agg[df_agg.Mapping != 'secondary'].copy()
+        df_agg_primary = df_agg[df_agg.Mapping == 'primary'].copy()
         df_agg_primary.sort_values(by=['Tag', 'Basecaller', 'Aligner', 'Reference', 'length'], inplace=True)
-        df_agg_primary = pd.concat([df_agg_primary,
-            df_agg_primary.groupby(['Tag', 'Basecaller', 'Aligner', 'Reference'], sort=False).agg(**{
-                "Sequenced Bases" : pd.NamedAgg('length', 'cumsum'),
-                "Mapped Bases" : pd.NamedAgg('mapped_length', 'cumsum')
-            })], axis=1)
+        df_agg_primary_grouper = df_agg_primary.groupby(['Tag', 'Basecaller', 'Aligner', 'Reference'], sort=False)
+        df_agg_primary = df_agg_primary.assign(**{'Sequenced Bases' : df_agg_primary_grouper['length'].cumsum(), 'Mapped Bases': df_agg_primary_grouper['mapped_length'].cumsum()})
         xlim = df_agg_primary[df_agg_primary['Mapped Bases'] > (0.95 * df_agg_primary['Mapped Bases'].max())].length.iloc[0]
         xlim *= 1.1
         df_agg_primary.set_index('Basecaller', inplace=True)
@@ -275,6 +278,8 @@ checkpoint report_alignments_coverage:
     run:
         import re
         import pandas as pd
+        import matplotlib as mpl
+        mpl.use('Agg')
         from matplotlib import pyplot as plt
         import seaborn as sns
 
@@ -316,6 +321,8 @@ checkpoint report_methylation:
         import os, itertools
         import snakemake
         import pandas as pd
+        import matplotlib as mpl
+        mpl.use('Agg')
         from matplotlib import pyplot as plt
         import seaborn as sns
 
