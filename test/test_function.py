@@ -102,7 +102,7 @@ class test_case_raw(unittest.TestCase):
                 singularity=False):
         self.test_dir = test_dir
         self.runnames = runnames
-        self.base_cmd = 'snakemake -q{flags} --snakefile {snakefile} --directory {test_dir} '.format(
+        self.base_cmd = 'snakemake -j1 -q{flags} --snakefile {snakefile} --directory {test_dir} '.format(
             flags=' --use-singularity --singularity-args=" -u"' if singularity else '',
             snakefile=snakefile,
             test_dir=test_dir)
@@ -156,7 +156,7 @@ class test_case_src(test_case_base):
                 shutil.move(test_file, test_file + '.expected_output')
                 exp = True
             # run with --touch since file modification times might be messed up
-            subprocess.run(base_cmd + '--touch ' + test_file, check=False,
+            subprocess.run(base_cmd + '-k --touch ' + test_file, check=False,
                 shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             # run test
             subprocess.run(base_cmd + test_file, check=True, shell=True, stdout=subprocess.PIPE)
