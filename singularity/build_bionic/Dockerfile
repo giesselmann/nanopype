@@ -41,4 +41,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git gcc g++ \
     binutils autoconf make cmake \
     libcunit1-dev libhdf5-dev libopenblas-dev \
+    libzstd-dev \
     && rm -rf /var/lib/apt/lists/*

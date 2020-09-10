@@ -173,6 +173,26 @@ rule singularity:
         make -C ./builddir install
         """
 
+rule vbz_compression:
+    output:
+        lib = "lib/libvbz_hdf_plugin.so.1.0.1"
+    shell:
+        """
+        install_prefix=`pwd`
+        mkdir -p lib
+        mkdir -p src && cd src
+        if [ ! -d singularity ]; then
+            git clone https://github.com/nanoporetech/vbz_compression --recursive --branch v1.0.1 --depth=1 && cd vbz_compression
+        else
+            cd vbz_compression && git fetch --all --tags --prune && git checkout tags/v1.0.1
+        fi
+        rm -rf build
+        mkdir build && cd build
+        cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_CONAN=OFF -D ENABLE_PERF_TESTING=OFF -D ENABLE_PYTHON=OFF ..
+        make
+        cp bin/libvbz_hdf_plugin.so ${{install_prefix}}/{output.lib}
+        """
+
 # detailed build rules
 rule UCSCtools:
     output:
@@ -281,6 +301,8 @@ rule ngmlr:
         """
 
 rule nanopolish:
+    input:
+        rules.vbz_compression.output.lib
     output:
         bin = "bin/nanopolish"
     threads: config['threads_build']
@@ -337,6 +359,8 @@ rule svim:
         """
 
 rule deepbinner:
+    input:
+        rules.vbz_compression.output.lib
     output:
         bin = 'bin/deepbinner'
     params:
@@ -404,7 +428,7 @@ rule hdf5:
 
 rule flappie:
     input:
-        lambda wildcards,config=config: [rules.gitlfs.output.bin] +
+        lambda wildcards,config=config: [rules.vbz_compression.output.lib, rules.gitlfs.output.bin] +
         ([rules.OpenBLAS.output.src] if config['flappie_src'] else []) +
         ([rules.hdf5.output.src] if config['flappie_src'] else [])
     output:
