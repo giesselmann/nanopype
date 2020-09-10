@@ -88,9 +88,10 @@ In case your **bin** directory is not listed in the PATH variable (echo $PATH), 
 
     python3 scripts/setup_path.py /path/to/INSTALL_PREFIX
 
-to make Nanopype aware of the installed tools. This will create a .pth file in your python3 installation, modifying the PATH temporarily on python startup. Alternatively you can run the following line once or append it to your ~/.bashrc. Note that in cluster environments this is not necessarily changing the PATH on all nodes!
+to make Nanopype aware of the installed tools. This will create a .pth file in your python3 installation, modifying some environment variables temporarily on python startup. Alternatively you can run the following line once or append it to your ~/.bashrc. Note that in cluster environments this is not necessarily changing the PATH on all nodes!
 
     export PATH=/path/to/INSTALL_PREFIX/bin:$PATH
+    export HDF5_PLUGIN_PATH=/path/to/INSTALL_PREFIX/lib
 
 To deactivate a virtual python environment after installation or usage of the pipeline just type:
 
