@@ -3,6 +3,7 @@
 Nanopype can be installed without root privileges as it's maintaining most of its dependencies by building required tools from source in a user accessible path. Currently the following list of system wide packages is required to build all included software packages (starting with ubuntu 18.04 LTS, names on MacOS might be different):
 
 * git gcc g++ wget rsync
+* binutils autoconf make cmake
 * libgomp1
 * zlib1g-dev
 * bzip2 libbz2-dev
