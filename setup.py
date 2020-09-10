@@ -57,12 +57,12 @@ class CustomInstallCmd(install):
 
     def run(self):
         install.run(self)
-        run_cstm_cmd(self)
+        #run_cstm_cmd(self)
 
 
 setup(
     name='nanopype',
-    version='1.0.1',
+    version='1.1.0',
     author='Pay Giesselmann',
     author_email='giesselmann@molgen.mpg.de',
     description='Nanopore data processing workflows',
