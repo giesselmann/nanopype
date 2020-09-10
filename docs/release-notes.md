@@ -1,12 +1,13 @@
 # Release notes
 
-#### v1.0.2 - 2020-09-
+#### v1.1.0 - 2020-09-
 Maintenance release:
 
 :   * Fix nanopolish install (eigen lib moved to gitlab)
     * Update Nanopolish to v0.13.2
     * Fix single read methylation bam for secondary alignments (minimap2)
     * Fix pdf report alignment part (#20)
+    * Add standalone vcf compression installation
 
 #### v1.0.1 - 2020-08-04
 Maintenance release:
