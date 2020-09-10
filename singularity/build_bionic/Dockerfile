@@ -42,6 +42,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     binutils autoconf make cmake \
     libcunit1-dev libhdf5-dev libopenblas-dev \
     libzstd-dev \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # update cmake for vbz_compression
