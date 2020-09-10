@@ -43,3 +43,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcunit1-dev libhdf5-dev libopenblas-dev \
     libzstd-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# update cmake for vbz_compression
+RUN apt-get purge cmake
+RUN git clone https://github.com/Kitware/CMake/ --branch v3.18.2 --depth 1 && cd CMake
+
+RUN ./bootstrap && make -j 4 && make install && cd .. && rm -rf CMake
