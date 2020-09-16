@@ -1,6 +1,6 @@
 # Release notes
 
-#### v1.1.0 - 2020-09-
+#### v1.1.0 - 2020-09-16
 Maintenance release:
 
 :   * Fix nanopolish install (eigen lib moved to gitlab)
