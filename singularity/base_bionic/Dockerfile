@@ -51,6 +51,7 @@ RUN apt-get install -y --no-install-recommends \
     python3 python3-pip \
     libgomp1 \
     zlib1g-dev \
+    libzstd-dev \
     bzip2 libbz2-dev \
     liblzma-dev libncurses5-dev \
     libcunit1 libhdf5-100 libidn11 libopenblas-base \

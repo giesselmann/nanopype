@@ -73,10 +73,10 @@ if __name__ == '__main__':
             opt_nm = [f[2] for f in opt_fields if f[0] == 'NM']
             cigar = fields[5]
             length = opsLength(decodeCigar(cigar), recOps='MIS=X') if cigar != "*" else len(fields[9]) if fields[9] != "*" else 0
-            mapped_length = opsLength(decodeCigar(cigar), recOps='MI=X') if cigar != "*" else 0.0
+            mapped_length = opsLength(decodeCigar(cigar), recOps='MI=X') if cigar != "*" else 0
             if opt_nm:
                 nm = int(opt_nm[0])
-                blast_identity = ((mapped_length-nm)/mapped_length) if mapped_length > 0.0 else 0.0
+                blast_identity = ((mapped_length-nm)/float(mapped_length)) if mapped_length > 0 else 0.0
                 yield fields[0], int(fields[1]), length, mapped_length, blast_identity
             else:
                 yield fields[0], int(fields[1]), length, mapped_length

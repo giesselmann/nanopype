@@ -48,6 +48,7 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 ## packages
 RUN mkdir -p /build/src
 COPY --from=build_stage /build/bin/* /usr/bin/
+COPY --from=build_stage /build/lib/* /usr/lib/
 
 WORKDIR /app
 # default entrypoint is /bin/sh

@@ -42,6 +42,14 @@ cd /path/to/nanopype
 snakemake --snakefile rules/install.smk --directory ~/ all --forceall
 ```
 
+Execute
+
+```
+python3 scripts/setup_path.py /path/to/INSTALL_PREFIX
+```
+
+to make Nanopype aware of the installation prefix.
+
 
 ## Docker
 

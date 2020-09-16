@@ -35,5 +35,8 @@ import os, sys, site
 
 
 if __name__ == '__main__':
+    install_prefix = os.path.abspath(sys.argv[1])
+    if not os.path.isdir(install_prefix):
+        raise ValueError("Install prefix {} is not a directory.".format(install_prefix))
     with open(os.path.join(site.getsitepackages()[0], 'nanopype.pth'), 'w') as fp:
-        print('import os; os.environ["PATH"] = "{dir}" + os.pathsep + os.environ["PATH"]'.format(dir=os.path.abspath(sys.argv[1])), file=fp)
+        print('import os; os.environ["PATH"] = "{}/bin" + os.pathsep + os.environ["PATH"]; os.environ["HDF5_PLUGIN_PATH"] = "{}/lib";'.format(install_prefix, install_prefix), file=fp)

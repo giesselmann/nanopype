@@ -96,6 +96,7 @@ rule methylation_nanopolish:
         config['singularity_images']['methylation']
     shell:
         """
+        #export HDF5_PLUGIN_PATH=/project/minion/lib
         mkdir -p raw
         {config[bin_singularity][python]} {config[sbin_singularity][storage_fast5Index.py]} extract {input.batch} raw/ {params.index} --output_format lazy
         zcat {input.sequences} > sequences.fastx
@@ -230,6 +231,7 @@ rule methylation_bigwig:
 rule methylation_single_read:
     input:
         tsv = "methylation/{methylation_caller}/{aligner}/{sequence_workflow}/batches/{tag}/{runname}/{batch}.{reference}.tsv.gz",
+        seq = lambda wildcards, config=config : get_sequence_batch(wildcards, config),
         bam = lambda wildcards : get_alignment_batch(wildcards, config),
     output:
         bam = "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.bam",
@@ -246,7 +248,7 @@ rule methylation_single_read:
         config['singularity_images']['methylation']
     shell:
         """
-        {config[bin_singularity][samtools]} view -hF 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][methylation_sr.py]} {params.reference} {input.tsv} --threshold {params.threshold} --mode IGV --polish | {config[bin_singularity][samtools]} view -b > {output.bam}
+        {config[bin_singularity][samtools]} view -hF 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][methylation_sr.py]} {params.reference} {input.seq} {input.tsv} --threshold {params.threshold} --mode IGV --polish | {config[bin_singularity][samtools]} view -b > {output.bam}
         {config[bin_singularity][samtools]} index {output.bam}
         """
 

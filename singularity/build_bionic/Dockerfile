@@ -41,4 +41,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git gcc g++ \
     binutils autoconf make cmake \
     libcunit1-dev libhdf5-dev libopenblas-dev \
+    libzstd-dev \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# update cmake for vbz_compression
+RUN apt-get purge -y cmake
+RUN git clone https://github.com/Kitware/CMake/ --branch v3.18.2 --depth 1 && cd CMake && ./bootstrap && make -j 4 && make install
+
+RUN rm -rf CMake

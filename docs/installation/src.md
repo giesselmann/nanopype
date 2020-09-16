@@ -3,12 +3,14 @@
 Nanopype can be installed without root privileges as it's maintaining most of its dependencies by building required tools from source in a user accessible path. Currently the following list of system wide packages is required to build all included software packages (starting with ubuntu 18.04 LTS, names on MacOS might be different):
 
 * git gcc g++ wget rsync
+* binutils autoconf make cmake
 * libgomp1
 * zlib1g-dev
 * bzip2 libbz2-dev
 * liblzma-dev libncurses5-dev
 * libcunit1 libhdf5-100 libidn11 libopenblas-base
 * libgssapi-krb5-2
+* libzstd-dev
 
 These packages are likely present in most production environments. Please also refer to the Dockerfiles in the singularity folder of the pipeline repository. If you need only a subset of the provided tools the number of dependencies might decrease.
 
@@ -85,11 +87,12 @@ The --directory argument of Snakemake is used as installation prefix. By running
 
 In case your **bin** directory is not listed in the PATH variable (echo $PATH), execute
 
-    python3 scripts/setup_path.py /path/to/INSTALL_PREFIX/bin
+    python3 scripts/setup_path.py /path/to/INSTALL_PREFIX
 
-to make Nanopype aware of the installed tools. This will create a .pth file in your python3 installation, modifying the PATH temporarily on python startup. Alternatively you can run the following line once or append it to your ~/.bashrc. Note that in cluster environments this is not necessarily changing the PATH on all nodes!
+to make Nanopype aware of the installed tools. This will create a .pth file in your python3 installation, modifying some environment variables temporarily on python startup. Alternatively you can run the following line once or append it to your ~/.bashrc. Note that in cluster environments this is not necessarily changing the PATH on all nodes!
 
     export PATH=/path/to/INSTALL_PREFIX/bin:$PATH
+    export HDF5_PLUGIN_PATH=/path/to/INSTALL_PREFIX/lib
 
 To deactivate a virtual python environment after installation or usage of the pipeline just type:
 

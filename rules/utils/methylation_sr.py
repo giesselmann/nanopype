@@ -141,9 +141,10 @@ class tsv_parser():
 
 # scramble original sequence on modified sites to get IGV/GViz color coding
 class seq_scramble():
-    def __init__(self, ref_index, mod_records, mode='IGV', polish=False):
+    def __init__(self, ref_index, seq_records, mod_records, mode='IGV', polish=False):
         self.ref_index = ref_index
         self.ref_names = set(ref_index.get_record_names())
+        self.seq_records = seq_records
         self.mod_records = mod_records
         self.mode = mode
         self.polish = polish
@@ -191,6 +192,7 @@ class seq_scramble():
         ref_mask = np.array(flatten([[True] * int(x) if x.isdigit() else [False] * len(x.strip('^')) for x in ops]))
         seq_mask = np.array(flatten([[True] * int(x) if x.isdigit() else [False] if not '^' in x else [] for x in ops]))
         ref_seq = np.fromstring(''.join(['-' * int(x) if x.isdigit() else x.strip('^') for x in ops]), dtype=np.uint8)
+        #print('seq len', len(seq), file=sys.stderr)
         seq_masked = np.fromstring(seq, dtype=np.uint8)[self.__cigar_ops_mask__(cigar, include='M=X', exclude='SI')]
         ref_seq[ref_mask] = seq_masked[seq_mask]
         return ref_seq.tostring().decode('utf-8')
@@ -238,6 +240,8 @@ class seq_scramble():
         ref_end = pos + ref_len - 1
         #t.append(('parse cigar', timeit.default_timer() - t_start))
         #t_start = timeit.default_timer()
+        if seq == '*':
+            seq = self.seq_records[ID]
         if md:
             ref_slice = self.__decode_md__(seq, cigar, md)
         else:
@@ -289,6 +293,7 @@ if __name__ == '__main__':
     # cmd line
     parser = argparse.ArgumentParser(description="Single read bisulfite imitation")
     parser.add_argument("ref", help="Reference sequence")
+    parser.add_argument("reads", help="Sequences in fastq(.gz) format")
     parser.add_argument("tsv", help="Methylation level tsv file")
     parser.add_argument("--threshold", type=float, default="2.0", help="Q-value threshold")
     parser.add_argument("--mode", default="IGV", help="Output mode, either IGV or GViz")
@@ -299,7 +304,25 @@ if __name__ == '__main__':
     ref_idx = fasta_index(args.ref)
     #print('[DEBUG] reading methyl records', file=sys.stderr)
     mod_records = tsv_parser(args.tsv, threshold=args.threshold)
-    scrambler = seq_scramble(ref_idx, mod_records, mode=args.mode, polish=args.polish)
+    # read sequences into memory
+    f_open = gzip.GzipFile if os.path.splitext(args.reads)[1] == '.gz' else open
+    def fastq_iter(iterable):
+        it = iter(iterable)
+        while True:
+            try:
+                ID = next(it).decode('utf-8').strip().split()[0]
+            except StopIteration:
+                return
+            if not ID or not ID.startswith('@'):
+                return
+            seq = next(it).decode('utf-8').strip().upper()
+            _ = next(it) # comment
+            _ = next(it) # quality
+            yield ID[1:], seq
+    with f_open(args.reads, 'rb') as fp:
+        seq_records = {ID:seq for ID, seq in fastq_iter(fp)}
+    #print("[DEBUG] Loaded {} sequences into memory.".format(len(seq_records)), file=sys.stderr)
+    scrambler = seq_scramble(ref_idx, seq_records, mod_records, mode=args.mode, polish=args.polish)
     # parse SAM records from stdin and modify seq field
     for line in sys.stdin:
         if line.startswith('@'):
