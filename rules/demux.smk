@@ -114,8 +114,11 @@ checkpoint guppy_barcode:
         def fastq_ID(iterable):
             fq_iter = itertools.islice(iterable, 0, None, 4)
             while True:
-                header = next(fq_iter).decode('utf-8')
-                yield header[1:].split()[0]
+                try:
+                    header = next(fq_iter).decode('utf-8')
+                    yield header[1:].split()[0]
+                except StopIteration:
+                    return
         def touch(fname, times=None):
             with open(fname, 'a'):
                 os.utime(fname, times)
