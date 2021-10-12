@@ -19,4 +19,4 @@ Recurring steps of the nanopore data analysis are covered under **[workflow](htt
 
 The **modules** part covers an in depth description of all available tools and workflows together with their respective configuration options. This section is the main reference of the pipeline.
 
-Finally for new users the **[tutorial](https://nanopype.readthedocs.io/en/latest/examples/intro/)** might be helpful to learn the general concepts and usage of the pipeline. To complete the tutorial the test reads included in the package are sufficient and no separate wet-lab experiemnt is required.
+Finally for new users the **[tutorial](https://nanopype.readthedocs.io/en/latest/examples/intro/)** might be helpful to learn the general concepts and usage of the pipeline. To complete the tutorial the test reads included in the package are sufficient and no separate wet-lab experiment is required.
