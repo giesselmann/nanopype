@@ -579,9 +579,9 @@ rule flye:
         """
         mkdir -p src && cd src
         if [ ! -d Flye ]; then
-            git clone https://github.com/fenderglass/Flye --branch 2.7 && cd Flye
+            git clone https://github.com/fenderglass/Flye --branch 2.8.3 && cd Flye
         else
-            cd Flye && git fetch --all --tags --prune && git checkout tags/2.7
+            cd Flye && git fetch --all --tags --prune && git checkout tags/2.8.3
         fi
         make
         {config[python]} setup.py install
