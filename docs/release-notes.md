@@ -1,5 +1,13 @@
 # Release notes
 
+#### v1.2.0 - 2021-11-04
+Main release:
+
+:   * Add plugin support
+    * Update Flye from 2.7 to 2.8
+    * Add Winnowmap v2.03
+    * 
+
 #### v1.1.0 - 2020-09-16
 Maintenance release:
 

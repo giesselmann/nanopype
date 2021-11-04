@@ -1,0 +1,6 @@
+env: /project/bumblebee/virtual/py3.7/bin/activate
+nproc: 8
+threads: 8
+#device: 0
+model: R94_450Bps_DNA_CG_5mC_v4
+prob_threshold: 0

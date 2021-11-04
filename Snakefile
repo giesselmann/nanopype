@@ -246,7 +246,7 @@ else:
 # names for multi-run rules
 runnames = []
 if os.path.isfile('runnames.txt'):
-    runnames = [line.rstrip() for line in open('runnames.txt') if line.rstrip() and not line.startswith('#')]
+    runnames = [line.rstrip(' /\n') for line in open('runnames.txt') if line.rstrip() and not line.startswith('#')]
 config['runnames'] = runnames
 
 
@@ -254,7 +254,7 @@ config['runnames'] = runnames
 if not os.path.exists(config['storage_data_raw']):
     raise RuntimeError("[ERROR] Raw data archive not found.")
 else:
-    config['storage_data_raw'] = config['storage_data_raw'].rstrip('/')
+    config['storage_data_raw'] = config['storage_data_raw'].rstrip(' /')
     for runname in config['runnames']:
         loc = os.path.join(config['storage_data_raw'], runname)
         if not os.path.exists(loc):
@@ -315,6 +315,52 @@ include : "rules/clean.smk"
 include : "rules/asm.smk"
 include : "rules/report.smk"
 
+
+# load plugins
+plugin_dir = os.path.join(os.path.dirname(workflow.snakefile), 'plugins/')
+def try_load_plugin(plugin):
+    loc = os.path.join(plugin_dir, plugin)
+    if not os.path.isfile("{}/{}.smk".format(loc, plugin)):
+        print_("[WARNING] Plugin {} has no snakefile, skipping.".format(plugin))
+        return False
+    # load config first to be available in snakefile later
+    # load the plugin default configuration
+    default_config_file = os.path.join(loc, 'defaults.yaml')
+    if os.path.isfile(default_config_file):
+        try:
+            with open(default_config_file, 'r') as fp:
+                default_config = yaml.safe_load(fp)
+            for key, value in default_config.items():
+                config['plugin/{}/{}'.format(plugin, key)] = value
+        except Exception as ex:
+            print_("[WARNING] Exception while loading default config for {}".format(plugin))
+    # Load plugin site specific configuration
+    site_config_file = os.path.join(loc, 'site.yaml')
+    if os.path.isfile(site_config_file):
+        try:
+            with open(site_config_file, 'r') as fp:
+                site_config = yaml.safe_load(fp)
+            for key, value in site_config.items():
+                config['plugin/{}/{}'.format(plugin, key)] = value
+        except Exception as ex:
+            print_("[WARNING] Exception while loading site config for {}".format(plugin))
+    # load the plugins Snakefile
+    try:
+        include : "{}/{}.smk".format(loc, plugin)
+    except WorkflowError as ex:
+        print_("[WARNING] Exception while loading plugin {}".format(plugin))
+        print_(ex)
+        return False
+    return True
+
+
+for d in os.scandir(plugin_dir):
+    print_("[INFO] Trying to load plugin {}".format(d.name))
+    success = try_load_plugin(d.name)
+    if success:
+        print_("[INFO] Loaded plugin {}".format(d.name))
+    else:
+        print_("[WARNING] Failed to load plugin {}".format(d.name))
 
 
 
