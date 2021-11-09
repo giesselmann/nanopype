@@ -46,3 +46,7 @@ Nanopype integrates a growing number of different tools merged into processing w
     * Bedtools *https://github.com/arq5x/bedtools2*
     * UCSCTools *http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/*
         * bedGraphToBigWig
+
+
+## Plugins:
+    * Winnowmap: *https://github.com/marbl/Winnowmap*

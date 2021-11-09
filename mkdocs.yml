@@ -110,6 +110,9 @@ nav:
     - Structural Variation: rules/sv.md
     - Demultiplexing: rules/demux.md
     - Report: rules/report.md
+  - Plugins:
+      Intro: plugins/intro.md
+      Winnowmap: plugins/winnowmap.md
   - Tutorial:
     - Intro : examples/intro.md
     - Data Import: examples/import.md
