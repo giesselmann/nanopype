@@ -59,12 +59,12 @@ rule winnowmap:
         kmer_count = lambda wildcards: config['references'][wildcards.reference]['genome'] + '.meryl.txt'
     output:
         pipe("alignments/winnowmap/{sequence_workflow}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference}.sam")
-    threads: config['threads_alignment']
+    threads: config.get('threads_alignment') or 1
     group: "winnowmap"
     resources:
         threads = lambda wildcards, threads: threads,
-        #mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (config['memory']['winnowmap'][0] + config['memory']['winnowmap'][1] * threads)),
-        #time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['winnowmap']),   # 60 min / 16 threads
+        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (config['plugin/winnowmap/memory'][0] + config['plugin/winnowmap/memory'][1] * threads)),
+        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['plugin/winnowmap/runtime']),   # 60 min / 16 threads
     params:
         flags = lambda wildcards: config.get("alignment_winnowmap_flags") or "-ax map-ont"
     shell:
