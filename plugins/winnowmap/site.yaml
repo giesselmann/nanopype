@@ -1,0 +1,5 @@
+meryl: 'meryl'
+winnowmap: 'winnowmap'
+
+runtime: 1.0
+memory: [8000,500]
