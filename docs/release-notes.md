@@ -4,9 +4,10 @@
 Main release:
 
 :   * Add plugin support
+    * Add plugin dokumentation
     * Update Flye from 2.7 to 2.8
-    * Add Winnowmap v2.03
-    * 
+    * Add Winnowmap plugin (tested with v2.03-3-gf9a4c1a)
+    * Add CONDA_PREFIX to cmake paths (#21)
 
 #### v1.1.0 - 2020-09-16
 Maintenance release:
