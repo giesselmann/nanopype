@@ -100,6 +100,10 @@ rule all:
         rules.assembly.input
 
 
+# add conda paths to cmake
+if 'CONDA_PREFIX' in os.environ:
+    os.environ['CMAKE_INCLUDE_PATH'] = os.environ['CONDA_PREFIX/include'] + os.pathsep + os.environ['CMAKE_INCLUDE_PATH']
+    os.environ['CMAKE_LIBRARY_PATH'] = os.environ['CONDA_PREFIX/lib'] + os.pathsep + os.environ['CMAKE_LIBRARY_PATH']
 
 
 # helper functions
@@ -181,7 +185,7 @@ rule vbz_compression:
         install_prefix=`pwd`
         mkdir -p lib
         mkdir -p src && cd src
-        if [ ! -d singularity ]; then
+        if [ ! -d vbz_compression ]; then
             git clone https://github.com/nanoporetech/vbz_compression --recursive --branch v1.0.1 --depth=1 && cd vbz_compression
         else
             cd vbz_compression && git fetch --all --tags --prune && git checkout tags/v1.0.1
