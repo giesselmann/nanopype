@@ -42,13 +42,13 @@ rule meryl_index:
     input:
         fasta = "{reference}.{ext}"
     output:
-        db = "{reference}.{ext, (fa|fasta)}.meryl",
+        db = directory("{reference}.{ext, (fa|fasta)}.meryl"),
         kmer_count = "{reference}.{ext, (fa|fasta)}.meryl.txt"
-    resources:
-        k = config.get('alignment_meryl_k') or 15
+    params:
+        kmer = lambda wildcards: config.get('alignment_meryl_k') or 15
     shell:
         """
-        {config[plugin/winnowmap/meryl]} count k={k} output {output.db}
+        {config[plugin/winnowmap/meryl]} count k={params.kmer} output {output.db} {input.fasta}
         {config[plugin/winnowmap/meryl]} print greater-than distinct=0.9998 {output.db} > {output.kmer_count}
         """
 
@@ -63,10 +63,11 @@ rule winnowmap:
     group: "winnowmap"
     resources:
         threads = lambda wildcards, threads: threads,
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (config['memory']['winnowmap'][0] + config['memory']['winnowmap'][1] * threads)),
-        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['winnowmap']),   # 60 min / 16 threads
-        flags = lambda: config.get("alignment_winnowmap_flags") or "-ax map-ont"
+        #mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.2 * (attempt - 1))) * (config['memory']['winnowmap'][0] + config['memory']['winnowmap'][1] * threads)),
+        #time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['winnowmap']),   # 60 min / 16 threads
+    params:
+        flags = lambda wildcards: config.get("alignment_winnowmap_flags") or "-ax map-ont"
     shell:
         """
-        {config[plugin/winnowmap/winnowmap]} {input.reference} {input.sequence} -t {threads} -W {input.kmer_count} {flags} >> {output}
+        {config[plugin/winnowmap/winnowmap]} {input.reference} {input.sequence} -t {threads} -W {input.kmer_count} {params.flags} >> {output}
         """
