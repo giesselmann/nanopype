@@ -7,12 +7,12 @@ inputs:
     required: true
     type: string
     default: 'base_bionic'
-
-#secrets:
-#  DOCKERHUB_USERNAME:
-#    required: true
-#  DOCKERHUB_TOKEN:
-#    required: true
+  username:
+    required: true
+    type: string
+  password:
+    required: true
+    type: string
 
 runs:
   using: "composite"
@@ -27,8 +27,8 @@ runs:
       name: Login to DockerHub
       uses: docker/login-action@v1
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
     -
       name: Build and push
       uses: docker/build-push-action@v2

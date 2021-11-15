@@ -19,6 +19,5 @@ jobs:
         uses: ./.github/actions/build-docker
         with:
           module: ${{ matrix.module }}
-        #secrets:
-        #  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-        #  DOCKERHUB_TOKEN: ${{ secrets.TOKDOCKERHUB_TOKENEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.TOKDOCKERHUB_TOKENEN }}
