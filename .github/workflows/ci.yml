@@ -10,9 +10,12 @@ jobs:
         module:
           - base_bionic
           - build_bionic
-    uses: giesselmann/nanopype/.github/workflows/build-docker.yml@actions
-    with:
-      module: ${{ matrix.module }}
-    secrets:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.TOKDOCKERHUB_TOKENEN }}
+    steps:
+      -
+        name: Build
+        uses: giesselmann/nanopype/.github/workflows/build-docker.yml@actions
+        with:
+          module: ${{ matrix.module }}
+        secrets:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.TOKDOCKERHUB_TOKENEN }}
