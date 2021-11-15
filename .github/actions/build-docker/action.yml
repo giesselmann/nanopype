@@ -8,11 +8,11 @@ inputs:
     type: string
     default: 'base_bionic'
 
-secrets:
-  DOCKERHUB_USERNAME:
-    required: true
-  DOCKERHUB_TOKEN:
-    required: true
+#secrets:
+#  DOCKERHUB_USERNAME:
+#    required: true
+#  DOCKERHUB_TOKEN:
+#    required: true
 
 runs:
   using: "composite"
