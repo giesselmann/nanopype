@@ -3,13 +3,33 @@ name: ci
 on: [push, workflow_dispatch]
 
 jobs:
-  build-module:
+  build-base:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         module:
           - base_bionic
           - build_bionic
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Build-module
+        uses: ./.github/actions/build-docker
+        with:
+          module: ${{ matrix.module }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  build-module:
+    runs-on: ubuntu-latest
+    needs: build-base
+    strategy:
+      matrix:
+        module:
+          - basecalling
+          - alignment
     steps:
       -
         name: Checkout
