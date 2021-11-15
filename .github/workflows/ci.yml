@@ -20,4 +20,4 @@ jobs:
         with:
           module: ${{ matrix.module }}
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.TOKDOCKERHUB_TOKENEN }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
