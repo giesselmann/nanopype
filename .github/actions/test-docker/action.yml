@@ -7,6 +7,12 @@ inputs:
     required: true
     type: string
     default: 'base_bionic'
+  username:
+    required: true
+    type: string
+  password:
+    required: true
+    type: string
 
 runs:
   using: "composite"
@@ -15,11 +21,18 @@ runs:
       name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
     -
-      name: Build
+      name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
+    -
+      name: Load Images
       uses: docker/build-push-action@v2
       with:
         context: .
         push: false
+        load: true
         file: ./singularity/${{ inputs.module }}/Dockerfile
         tags: nanopype/${{ inputs.module }}:latest
         cache-from: type=gha
