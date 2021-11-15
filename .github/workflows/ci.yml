@@ -10,7 +10,7 @@ jobs:
         module:
           - base_bionic
           - build_bionic
-    uses: ./.github/workflows/build-docker.yml@actions
+    uses: giesselmann/nanopype/.github/workflows/build-docker.yml@actions
     with:
       module: ${{ matrix.module }}
     secrets:
