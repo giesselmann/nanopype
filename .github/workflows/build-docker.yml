@@ -1,15 +1,23 @@
-name: builds
+name: 'Build-Docker'
+description: 'Build Module Docker'
 
-on: [push, workflow_dispatch]
+on:
+  workflow_call:
+    inputs:
+      module:  # pipeline module / tag
+        description: 'Pipeline module to build'
+        required: true
+        type: string
+        default: 'base_bionic'
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
 
 jobs:
   build-module:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        module:
-          - basecalling
-          - alignment
     steps:
       -
         name: Checkout
@@ -31,6 +39,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./singularity/${{ matrix.module }}/Dockerfile
+          file: ./singularity/${{ inputs.module }}/Dockerfile
           push: false
-          tags: nanopype/${{ matrix.module }}:latest
+          tags: nanopype/${{ inputs.module }}:latest
