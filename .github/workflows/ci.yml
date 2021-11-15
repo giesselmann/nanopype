@@ -5,11 +5,11 @@ on: [push, workflow_dispatch]
 jobs:
   build-module:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        module:
-          - base_bionic
-          - build_bionic
+    #strategy:
+    #  matrix:
+    #    module:
+    #      - base_bionic
+    #      - build_bionic
     uses: giesselmann/nanopype/.github/workflows/build-docker.yml@actions
     with:
       module: ${{ matrix.module }}
