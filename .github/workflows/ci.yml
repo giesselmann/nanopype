@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v2
       -
         name: Build-module
-        uses: .github/actions/build-docker
+        uses: ./.github/actions/build-docker
         with:
           module: ${{ matrix.module }}
         secrets:
