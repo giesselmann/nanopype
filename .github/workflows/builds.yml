@@ -1,6 +1,6 @@
 name: builds
 
-on: [workflow_dispatch]
+on: [push]
 
 jobs:
     check-docker-version:
