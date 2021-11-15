@@ -4,15 +4,21 @@ on: [push, workflow_dispatch]
 
 jobs:
   build-module:
-    #runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         module:
           - base_bionic
           - build_bionic
-    uses: giesselmann/nanopype/.github/workflows/build-docker.yml@actions
-    with:
-      module: ${{ matrix.module }}
-    secrets:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.TOKDOCKERHUB_TOKENEN }}
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Build-module
+        uses: .github/actions/build-docker
+        with:
+          module: ${{ matrix.module }}
+        secrets:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.TOKDOCKERHUB_TOKENEN }}
