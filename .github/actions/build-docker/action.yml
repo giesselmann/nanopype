@@ -20,13 +20,14 @@ runs:
       name: Download image artifacts
       uses: actions/download-artifact@v2
       with:
-        path: /tmp
+        path: /tmp/images/
     -
       name: Load images
       run: |
-        ls -1 /tmp/ | grep '.tar' | xargs --no-run-if-empty -L 1 docker load -i
+        ls -1 /tmp/images | grep '.tar' | xargs --no-run-if-empty -L 1 docker load -i || true
         docker images
       shell: bash
+      if:
     -
       name: Build
       uses: docker/build-push-action@v2
@@ -35,10 +36,10 @@ runs:
         load: true
         file: ./singularity/${{ inputs.module }}/Dockerfile
         tags: ${{ inputs.module }}:latest
-        outputs: type=docker,dest=/tmp/${{ inputs.module }}.tar
+        outputs: type=docker,dest=/tmp/images/${{ inputs.module }}.tar
     -
       name: Upload image artifact
       uses: actions/upload-artifact@v2
       with:
         name: ${{ inputs.module }}
-        path: /tmp/${{ inputs.module }}.tar
+        path: /tmp/images/${{ inputs.module }}.tar
