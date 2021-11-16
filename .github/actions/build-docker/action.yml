@@ -20,11 +20,11 @@ runs:
       name: Download image artifacts
       uses: actions/download-artifact@v2
       with:
-        path: /images
+        path: /tmp
     -
       name: Load images
       run: |
-        ls -1 /tmp/*.tar | xargs --no-run-if-empty -L 1 docker load -i
+        ls -1 /tmp/ | grep '.tar' | xargs --no-run-if-empty -L 1 docker load -i
         docker images
       shell: bash
     -
