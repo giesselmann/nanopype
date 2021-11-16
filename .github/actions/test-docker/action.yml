@@ -31,7 +31,6 @@ runs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        push: false
         load: true
         file: ./singularity/${{ inputs.module }}/Dockerfile
         tags: nanopype/${{ inputs.module }}:latest

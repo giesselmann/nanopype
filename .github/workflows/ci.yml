@@ -15,8 +15,6 @@ jobs:
         uses: ./.github/actions/build-docker
         with:
           module: base_bionic
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
   # Module build environment
   build-builder:
@@ -31,8 +29,6 @@ jobs:
         uses: ./.github/actions/build-docker
         with:
           module: build_bionic
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
   # Module builder
   build-module:
