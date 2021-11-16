@@ -33,6 +33,6 @@ runs:
         context: .
         load: true
         file: ./singularity/${{ inputs.module }}/Dockerfile
-        tags: ${{ inputs.module }}:latest
+        tags: user/${{ inputs.module }}:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
