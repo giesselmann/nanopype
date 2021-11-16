@@ -24,8 +24,7 @@ runs:
     -
       name: Load images
       run: |
-        mkdir -p /images
-        ls -1 /images/*.tar | xargs --no-run-if-empty -L 1 docker load -i
+        ls -1 /tmp/*.tar | xargs --no-run-if-empty -L 1 docker load -i
         docker images
       shell: bash
     -
@@ -36,10 +35,10 @@ runs:
         load: true
         file: ./singularity/${{ inputs.module }}/Dockerfile
         tags: ${{ inputs.module }}:latest
-        outputs: type=docker,dest=/images/${{ inputs.module }}.tar
+        outputs: type=docker,dest=/tmp/${{ inputs.module }}.tar
     -
       name: Upload image artifact
       uses: actions/upload-artifact@v2
       with:
         name: ${{ inputs.module }}
-        path: /images/${{ inputs.module }}.tar
+        path: /tmp/${{ inputs.module }}.tar
