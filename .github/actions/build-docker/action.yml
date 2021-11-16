@@ -19,7 +19,6 @@ runs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        push: false
         file: ./singularity/${{ inputs.module }}/Dockerfile
         tags: ${{ inputs.module }}:latest
         cache-from: type=gha
