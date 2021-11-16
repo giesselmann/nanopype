@@ -32,11 +32,12 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 ARG TAG=latest
-FROM nanopype/base_bionic:$TAG
+FROM base_focal
 
 # build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python-minimal python3-dev \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    #python-minimal \
+    python3-dev \
     wget rsync \
     git gcc g++ \
     binutils autoconf make cmake \
@@ -46,7 +47,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # update cmake for vbz_compression
-RUN apt-get purge -y cmake
-RUN git clone https://github.com/Kitware/CMake/ --branch v3.18.2 --depth 1 && cd CMake && ./bootstrap && make -j 4 && make install
+#RUN apt-get purge -y cmake
+#RUN git clone https://github.com/Kitware/CMake/ --branch v3.18.2 --depth 1 && cd CMake && ./bootstrap && make -j 4 && make install
 
-RUN rm -rf CMake
+#RUN rm -rf CMake

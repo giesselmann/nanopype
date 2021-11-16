@@ -21,6 +21,6 @@ runs:
         context: .
         push: false
         file: ./singularity/${{ inputs.module }}/Dockerfile
-        tags: nanopype/${{ inputs.module }}:latest
+        tags: ${{ inputs.module }}:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max

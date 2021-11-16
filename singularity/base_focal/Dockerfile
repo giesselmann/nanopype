@@ -31,7 +31,7 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-FROM ubuntu:bionic as build
+FROM ubuntu:focal as build
 
 # locales
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -54,7 +54,7 @@ RUN apt-get install -y --no-install-recommends \
     libzstd-dev \
     bzip2 libbz2-dev \
     liblzma-dev libncurses5-dev \
-    libcunit1 libhdf5-100 libidn11 libopenblas-base \
+    libcunit1 libhdf5-103 libidn11 libopenblas-base \
     libgssapi-krb5-2 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -71,7 +71,7 @@ RUN python3 -m pip install --upgrade pip && \
 
 
 # Squash into flat image
-FROM ubuntu:bionic
+FROM ubuntu:focal
 COPY --from=build / /
 
 RUN export LANG="en_US.utf8" && \

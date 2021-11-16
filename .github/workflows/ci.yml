@@ -11,29 +11,20 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       -
-        name: Build-module
+        name: Base
         uses: ./.github/actions/build-docker
         with:
-          module: base_bionic
-
-  # Module build environment
-  build-builder:
-    runs-on: ubuntu-latest
-    needs: build-base
-    steps:
+          module: base_focal
       -
-        name: Checkout
-        uses: actions/checkout@v2
-      -
-        name: Build-module
+        name: Builder
         uses: ./.github/actions/build-docker
         with:
-          module: build_bionic
+          module: build_focal
 
   # Module builder
   build-module:
     runs-on: ubuntu-latest
-    needs: build-builder
+    needs: build-base
     strategy:
       matrix:
         module:
