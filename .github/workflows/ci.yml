@@ -16,10 +16,6 @@ jobs:
         with:
           module: base_focal
       -
-        name: Test
-        run: |
-          docker images
-      -
         name: Builder
         uses: ./.github/actions/build-docker
         with:
