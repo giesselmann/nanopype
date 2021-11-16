@@ -26,6 +26,7 @@ runs:
       run: |
         ls -1 /images/*.tar | xargs --no-run-if-empty -L 1 docker load -i
         docker images
+      shell: bash
     -
       name: Build
       uses: docker/build-push-action@v2
