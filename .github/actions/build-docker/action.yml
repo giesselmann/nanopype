@@ -18,6 +18,7 @@ runs:
       name: Test
       run: |
         docker images
+      shell: bash
     -
       name: Build
       uses: docker/build-push-action@v2
