@@ -32,7 +32,7 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 ARG TAG=latest
-FROM base_focal:$TAG
+FROM base_focal
 
 # build dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
