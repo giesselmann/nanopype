@@ -53,7 +53,7 @@ runs:
       name: Test Image
       run: |
         export PATH=$HOME/bin:$PATH
-        singularity build ${{ inputs.module }}.sif docker-deamon://${{ inputs.module }}:latest
+        singularity build ${{ inputs.module }}.sif docker-daemon://${{ inputs.module }}:latest
         python3 test/test_function.py DNA ${{ inputs.module }} $HOME/unit_tests \
             --singularity --container ${{ inputs.module }}.sif
       shell: bash
@@ -64,4 +64,5 @@ runs:
         context: .
         push: false
         file: ./singularity/${{ inputs.module }}/Dockerfile
-        tags: ${{ inputs.module }}:latest
+        tags: |
+          $${{ inputs.username }}/${{ inputs.module }}:latest
