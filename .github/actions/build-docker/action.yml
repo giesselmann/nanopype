@@ -25,7 +25,7 @@ runs:
       name: Load images
       run: |
         mkdir -p /tmp/images
-        ls -1 /tmp/images | grep '.tar' | xargs --no-run-if-empty -L 1 docker load -i || true
+        find /tmp/images/ -type f -name '*.tar' | xargs --no-run-if-empty -L 1 docker load -i || true
         docker images
       shell: bash
     -
@@ -36,8 +36,8 @@ runs:
         load: true
         file: ./singularity/${{ inputs.module }}/Dockerfile
         tags: ${{ inputs.module }}:latest
-      env:
-        DOCKER_BUILDKIT: 0
+      #env:
+    #    DOCKER_BUILDKIT: 0
     -
       name: Export
       run: |
