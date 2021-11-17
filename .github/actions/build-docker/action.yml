@@ -28,7 +28,6 @@ runs:
         ls -1 /tmp/images | grep '.tar' | xargs --no-run-if-empty -L 1 docker load -i || true
         docker images
       shell: bash
-      if:
     -
       name: Build
       uses: docker/build-push-action@v2
@@ -37,7 +36,12 @@ runs:
         load: true
         file: ./singularity/${{ inputs.module }}/Dockerfile
         tags: ${{ inputs.module }}:latest
-        outputs: type=docker,dest=/tmp/images/${{ inputs.module }}.tar
+    -
+      name: Export
+      run: |
+        mkdir -p /tmp/images
+        docker save --output /tmp/images/${{ inputs.module }}.tar ${{ inputs.module }}:latest
+      shell: bash
     -
       name: Upload image artifact
       uses: actions/upload-artifact@v2
