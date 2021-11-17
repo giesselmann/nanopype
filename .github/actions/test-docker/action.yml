@@ -1,12 +1,11 @@
-name: 'Build-Docker'
-description: 'Build Module Docker'
+name: 'Test Module'
+description: 'Test Pipeline Module'
 
 inputs:
   module:  # pipeline module / tag
-    description: 'Pipeline module to build'
+    description: 'Pipeline module to test'
     required: true
     type: string
-    default: 'base_bionic'
   username:
     required: true
     type: string
@@ -47,6 +46,8 @@ runs:
         pip install -r requirements.txt --upgrade
         snakemake --snakefile rules/install.smk --directory $HOME singularity
         export PATH=$HOME/bin:$PATH
+        git config --global user.email "runner@runner.com"
+        git config --global user.name "Github Runner"
       shell: bash
     -
       name: Test Image

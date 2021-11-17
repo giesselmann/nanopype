@@ -1,4 +1,4 @@
-name: 'Build-Docker'
+name: 'Build Docker'
 description: 'Build Module Docker'
 
 inputs:
