@@ -218,8 +218,8 @@ if __name__ == '__main__':
     config = suite_config.get('config') or {}
     test_dir = init_test_dir(repo_dir, test_dir, config=config, runnames=runnames)
     # modify env.yaml with container to use
-    if args.container:
-        env_config_file = os.path.join(report, 'env.yaml')
+    if args.container and os.path.isfile(args.container):
+        env_config_file = os.path.join(repo_dir, 'env.yaml')
         with open(env_config_file, 'r') as fp:
             env_config = yaml.safe_load(fp)
         images = env_config.get('singularity_images') or {}
