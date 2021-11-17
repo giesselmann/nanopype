@@ -27,12 +27,37 @@ runs:
         username: ${{ inputs.username }}
         password: ${{ inputs.password }}
     -
-      name: Load Images
+      name: Download image artifacts
+      uses: actions/download-artifact@v2
+      with:
+        path: /tmp/images/
+    -
+      name: Load images
+      run: |
+        mkdir -p /tmp/images
+        find /tmp/images/ -type f -name '*.tar' | xargs --no-run-if-empty -L 1 docker load -i || true
+        docker images
+      shell: bash
+    -
+      name: Install pipeline
+      run: |
+        sudo apt-get install -y --no-install-recommends \
+                build-essential libssl-dev uuid-dev libgpgme11-dev \
+                libseccomp-dev pkg-config squashfs-tools
+        pip install -r requirements.txt --upgrade
+        snakemake --snakefile rules/install.smk --directory $HOME singularity
+        export PATH=$HOME/bin:$PATH
+      shell: bash
+    -
+      name: Test Image
+      run: |
+        python3 test/test_function.py DNA ${{ inputs.module }} $HOME/unit_tests --singularity
+      shell: bash
+    -
+      name: Push Image
       uses: docker/build-push-action@v2
       with:
         context: .
-        load: true
+        push: false
         file: ./singularity/${{ inputs.module }}/Dockerfile
-        tags: user/${{ inputs.module }}:latest
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        tags: ${{ inputs.module }}:latest

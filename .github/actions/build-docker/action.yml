@@ -36,8 +36,6 @@ runs:
         load: true
         file: ./singularity/${{ inputs.module }}/Dockerfile
         tags: ${{ inputs.module }}:latest
-      #env:
-    #    DOCKER_BUILDKIT: 0
     -
       name: Export
       run: |
