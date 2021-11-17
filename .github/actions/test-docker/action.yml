@@ -31,10 +31,10 @@ runs:
       with:
         path: /tmp/images/
     -
-      name: Load images
+      name: Load image
       run: |
         mkdir -p /tmp/images
-        find /tmp/images/ -type f -name '*.tar' | xargs --no-run-if-empty -L 1 docker load -i || true
+        find /tmp/images/ -type f -name '*.tar' | grep ${{ inputs.module }} | xargs --no-run-if-empty -L 1 docker load -i || true
         docker images
       shell: bash
     -
@@ -45,13 +45,15 @@ runs:
                 libseccomp-dev pkg-config squashfs-tools
         pip install -r requirements.txt --upgrade
         snakemake --snakefile rules/install.smk --directory $HOME singularity
-        export PATH=$HOME/bin:$PATH
         git config --global user.email "runner@runner.com"
         git config --global user.name "Github Runner"
       shell: bash
     -
       name: Test Image
       run: |
+        export PATH=$HOME/bin:$PATH
+        which singularity
+        singularity version
         python3 test/test_function.py DNA ${{ inputs.module }} $HOME/unit_tests --singularity
       shell: bash
     -
