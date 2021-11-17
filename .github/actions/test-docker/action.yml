@@ -26,15 +26,16 @@ runs:
         username: ${{ inputs.username }}
         password: ${{ inputs.password }}
     -
-      name: Download image artifacts
+      name: Download image artifact
       uses: actions/download-artifact@v2
       with:
+        name: ${{ inputs.module }}
         path: /tmp/images/
     -
       name: Load image
       run: |
         mkdir -p /tmp/images
-        find /tmp/images/ -type f -name '*.tar' | grep ${{ inputs.module }} | xargs --no-run-if-empty -L 1 docker load -i || true
+        find /tmp/images/ -type f -name '*.tar' | xargs --no-run-if-empty -L 1 docker load -i || true
         docker images
       shell: bash
     -
@@ -52,9 +53,9 @@ runs:
       name: Test Image
       run: |
         export PATH=$HOME/bin:$PATH
-        which singularity
-        singularity version
-        python3 test/test_function.py DNA ${{ inputs.module }} $HOME/unit_tests --singularity
+        singularity build ${{ inputs.module }}.sif docker-deamon://${{ inputs.module }}:latest
+        python3 test/test_function.py DNA ${{ inputs.module }} $HOME/unit_tests \
+            --singularity --container ${{ inputs.module }}.sif
       shell: bash
     -
       name: Push Image
