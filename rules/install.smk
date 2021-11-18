@@ -44,7 +44,7 @@ rule demux:
 rule basecalling:
     input:
         "bin/guppy_basecaller",
-        "bin/flappie",
+        #"bin/flappie",
 
 rule alignment:
     input:
@@ -392,6 +392,7 @@ rule gitlfs:
         """
         mkdir -p src/gocode
         export GOPATH=$(pwd)/src/gocode
+        {input.go} env -w GO111MODULE=auto
         {input.go} get github.com/github/git-lfs
         cp src/gocode/bin/git-lfs bin/
         """

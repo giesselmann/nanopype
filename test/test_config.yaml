@@ -8,13 +8,6 @@ test_suites:
             storage:
                 - data/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/reads.fofn
             basecalling:
-            # albacore is not part of the singularity container
-            #    - sequences/albacore/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.fastq.gz
-            #    - sequences/albacore/DNA.fastq.gz
-            # flappie is not producing output for >10mins and killed by Travis-CI
-            #    - sequences/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.fastq.gz
-            #    - sequences/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample.fastq.gz
-            #    - sequences/flappie/DNA.fastq.gz
                 - sequences/guppy/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.fastq.gz
                 - sequences/guppy/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample.fastq.gz
                 - sequences/guppy/DNA.fastq.gz
