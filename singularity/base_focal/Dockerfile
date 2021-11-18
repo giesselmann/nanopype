@@ -52,6 +52,8 @@ RUN apt-get install -y --no-install-recommends \
     libgomp1 \
     zlib1g-dev \
     libzstd-dev \
+    libcurl4 \
+    libfreetype6 \
     bzip2 libbz2-dev \
     liblzma-dev libncurses5-dev \
     libcunit1 libhdf5-103 libidn11 libopenblas-base \

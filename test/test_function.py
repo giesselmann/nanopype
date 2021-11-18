@@ -192,7 +192,7 @@ if __name__ == '__main__':
     parser.add_argument("dir", help="Working directory for tests")
     parser.add_argument('-t', '--threads', type=int, default=4, help="Threads for parallel tests")
     parser.add_argument("--singularity", action="store_true", help="Use singularity version")
-    parser.add_argument("--container", type=str, help="Overwrite singularity container")
+    parser.add_argument("--container", type=str, help="Base directory for singularity container")
     parser.add_argument('--keep', action="store_true", help="Do not reset working directory after each test")
     args = parser.parse_args()
     # save current workdir
@@ -218,15 +218,20 @@ if __name__ == '__main__':
     config = suite_config.get('config') or {}
     test_dir = init_test_dir(repo_dir, test_dir, config=config, runnames=runnames)
     # modify env.yaml with container to use
-    if args.container and os.path.isfile(args.container):
+    if args.container:
         env_config_file = os.path.join(repo_dir, 'env.yaml')
         with open(env_config_file, 'r') as fp:
             env_config = yaml.safe_load(fp)
-        images = env_config.get('singularity_images') or {}
-        images[args.module] = args.container
+        #images = env_config.get('singularity_images') or {}
+        images = {'basecalling': '/home/pay/images/basecalling.sif',
+             'alignment': '/home/pay/images/alignment.sif'}
+        #images[args.module] = args.container
         env_config['singularity_images'] = images
         with open(env_config_file, 'w') as fp:
             print(yaml.dump(env_config, sort_keys=True), file=fp)
+    #elif args.container:
+    #    print("Error: Singularity image provided but not found")
+    #    exit(-1)
     # Base tests
     suite.addTest(test_case_raw(snakefile,
                     test_dir=test_dir,

@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-module
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         module:
           - basecalling
@@ -56,7 +56,7 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       -
-        name: Build-module
+        name: Test-module
         uses: ./.github/actions/test-docker
         with:
           module: ${{ matrix.module }}

@@ -53,9 +53,10 @@ runs:
       name: Test Image
       run: |
         export PATH=$HOME/bin:$PATH
-        singularity build ${{ inputs.module }}.sif docker-daemon://${{ inputs.module }}:latest
+        mkdir -p images
+        singularity build images/${{ inputs.module }}.sif docker-daemon://${{ inputs.module }}:latest
         python3 test/test_function.py DNA ${{ inputs.module }} $HOME/unit_tests \
-            --singularity --container ${{ inputs.module }}.sif
+            --singularity --container images/${{ inputs.module }}.sif
       shell: bash
     -
       name: Push Image

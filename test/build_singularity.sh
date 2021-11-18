@@ -12,9 +12,9 @@ docker build -t sv --shm-size 4g -f singularity/sv/Dockerfile .
 # transcript
 docker build -t transcript --shm-size 4g -f singularity/transcript/Dockerfile .
 # demux
-docker build -t demux --shm-size 4g -f singularity/demux/Dockerfile .
+#docker build -t demux --shm-size 4g -f singularity/demux/Dockerfile .
 # all-in-one
 docker build -t nanopype --shm-size 4g -f ./Dockerfile .
 
 docker images
-docker image rm basecalling alignment assembly methylation sv transcript demux nanopype
+#docker image rm basecalling alignment assembly methylation sv transcript demux nanopype

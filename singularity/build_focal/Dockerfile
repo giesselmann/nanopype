@@ -38,8 +38,10 @@ FROM base_focal:$TAG
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     #python-minimal \
     python3-dev \
+    pkg-config \
     wget rsync \
     git gcc g++ \
+    libfreetype-dev \
     binutils autoconf make cmake \
     libcunit1-dev libhdf5-dev libopenblas-dev \
     libzstd-dev \
