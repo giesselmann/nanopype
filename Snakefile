@@ -196,16 +196,12 @@ else:
 # location of singularity images, can be given in env.yaml and nanopype.yaml
 # singularity_images:
 #     basecalling : '/path/to/local/basecalling.sif'
-# defaults:
-config['singularity_images'] = {module:
-    "docker://nanopype/{module}:{tag}".format(tag=config['version']['tag'], module=module) for module in
-    ['basecalling', 'alignment', 'methylation', 'transcript', 'assembly', 'sv', 'demux']}
-env_singularity_images = nanopype_env.get("singularity_images") or {}
 cfg_singularity_images = config.get("singularity_images") or {}
+env_singularity_images = nanopype_env.get("singularity_images") or {}
 config['singularity_images'] = {}
 for module in ['basecalling', 'alignment', 'methylation', 'transcript', 'assembly', 'sv', 'demux']:
-    image = (cfg_singularity_images.get("module") or
-             env_singularity_images.get('module') or
+    image = (cfg_singularity_images.get(module) or
+             env_singularity_images.get(module) or
              "docker://nanopype/{module}:{tag}".format(tag=config['version']['tag'], module=module))
     config['singularity_images'][module] = image
 
