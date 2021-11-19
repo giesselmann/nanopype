@@ -32,6 +32,7 @@
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
 import os, sys, glob, argparse, yaml
+import pathlib
 import subprocess
 import unittest
 import filecmp, shutil, wget
@@ -178,21 +179,20 @@ class test_case_src(test_case_base):
 
 # main function
 if __name__ == '__main__':
+    modules = ['storage',
+     'basecalling', 'alignment', 'methylation',
+     'sv', 'assembly', 'transcript_isoforms', 'report']
     # cmd arguments
     parser = argparse.ArgumentParser(description="Nanopype raw data import script",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("suite", choices=['DNA', 'cDNA', 'mRNA'], help='Test suite to load')
     parser.add_argument("module", choices=
-        ['all', 'storage',
-         'basecalling', 'alignment', 'methylation',
-         'sv', 'assembly',
-         'transcript_isoforms',
-         'report'],
+        ['all'] + modules,
         help="Modules to test in selected suite")
     parser.add_argument("dir", help="Working directory for tests")
-    parser.add_argument('-t', '--threads', type=int, default=4, help="Threads for parallel tests")
+    parser.add_argument('-t', '--threads', type=int, default=4, help="Threads for snakemake")
     parser.add_argument("--singularity", action="store_true", help="Use singularity version")
-    parser.add_argument("--container", type=str, help="Base directory for singularity container")
+    parser.add_argument("--local_image_dir", type=str, help="Base directory for singularity container")
     parser.add_argument('--keep', action="store_true", help="Do not reset working directory after each test")
     args = parser.parse_args()
     # save current workdir
@@ -213,25 +213,18 @@ if __name__ == '__main__':
     if suite_config is None:
         print("Test suite {} not configured. Nothing to do.".format(args.suite), file=sys.stderr)
         exit(0)
-    assert suite_config is not None
     runnames = suite_config.get('runnames') or []
     config = suite_config.get('config') or {}
+    # add singularity images
+    if args.local_image_dir:
+        config['singularity_images'] = {}
+        # init with empty files
+        for module in modules:
+            p = os.path.join(args.local_image_dir, module + '.sif')
+            pathlib.Path(p).touch()
+            config['singularity_images'][module] = p
+    # init test dir
     test_dir = init_test_dir(repo_dir, test_dir, config=config, runnames=runnames)
-    # modify env.yaml with container to use
-    if args.container:
-        env_config_file = os.path.join(repo_dir, 'env.yaml')
-        with open(env_config_file, 'r') as fp:
-            env_config = yaml.safe_load(fp)
-        #images = env_config.get('singularity_images') or {}
-        images = {'basecalling': '/home/pay/images/basecalling.sif',
-             'alignment': '/home/pay/images/alignment.sif'}
-        #images[args.module] = args.container
-        env_config['singularity_images'] = images
-        with open(env_config_file, 'w') as fp:
-            print(yaml.dump(env_config, sort_keys=True), file=fp)
-    #elif args.container:
-    #    print("Error: Singularity image provided but not found")
-    #    exit(-1)
     # Base tests
     suite.addTest(test_case_raw(snakefile,
                     test_dir=test_dir,

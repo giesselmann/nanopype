@@ -193,19 +193,21 @@ else:
     raise RuntimeError("[ERROR] No memory scalings in environment configuration.")
 
 
-# location of singularity images, can be given in env.yaml
+# location of singularity images, can be given in env.yaml and nanopype.yaml
 # singularity_images:
 #     basecalling : '/path/to/local/basecalling.sif'
 # defaults:
 config['singularity_images'] = {module:
     "docker://nanopype/{module}:{tag}".format(tag=config['version']['tag'], module=module) for module in
     ['basecalling', 'alignment', 'methylation', 'transcript', 'assembly', 'sv', 'demux']}
-if 'singularity_images' in nanopype_env:
-    for module, container_path in nanopype_env['singularity_images'].items():
-        config['singularity_images'][module] = container_path
-        if not os.path.isfile(container_path):
-            print_("[WARNING] The container for {module} was overridden as {loc} but not found in the filesystem.".format(
-                module=module, loc=container_path), file=sys.stderr)
+env_singularity_images = nanopype_env.get("singularity_images") or {}
+cfg_singularity_images = config.get("singularity_images") or {}
+config['singularity_images'] = {}
+for module in ['basecalling', 'alignment', 'methylation', 'transcript', 'assembly', 'sv', 'demux']:
+    image = (cfg_singularity_images.get("module") or
+             env_singularity_images.get('module') or
+             "docker://nanopype/{module}:{tag}".format(tag=config['version']['tag'], module=module))
+    config['singularity_images'][module] = image
 
 
 # locations of helper scripts in rules/utils

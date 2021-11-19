@@ -60,5 +60,3 @@ jobs:
         uses: ./.github/actions/test-docker
         with:
           module: ${{ matrix.module }}
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
