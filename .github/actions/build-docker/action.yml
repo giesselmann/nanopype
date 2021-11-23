@@ -24,16 +24,16 @@ runs:
     -
       name: Load images
       run: |
-        mkdir -p /tmp/images
         find /tmp/images/ -type f -name '*.tar' | xargs --no-run-if-empty -L 1 docker load -i || true
         docker images
       shell: bash
     -
-      name: Build
+      name: Build Image
       uses: docker/build-push-action@v2
       with:
         context: .
         load: true
+        push: false
         file: ./singularity/${{ inputs.module }}/Dockerfile
         tags: ${{ inputs.module }}:latest
     -

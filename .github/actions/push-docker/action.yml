@@ -12,9 +12,6 @@ inputs:
   password:
     required: true
     type: string
-  tag:
-    required: true
-    type: string
 
 runs:
   using: "composite"
@@ -31,6 +28,18 @@ runs:
         username: ${{ inputs.username }}
         password: ${{ inputs.password }}
     -
+      name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v3
+      with:
+        # list of Docker images to use as base name for tags
+        images: |
+          nanopype/{{ inputs.module }}
+        # generate Docker tags based on the following events/attributes
+        tags: |
+          type=ref,event=branch
+          type=semver,pattern={{raw}}
+    -
       name: Download image artifact
       uses: actions/download-artifact@v2
       with:
@@ -39,7 +48,6 @@ runs:
     -
       name: Load image
       run: |
-        mkdir -p /tmp/images
         find /tmp/images/ -type f -name '*.tar' | xargs --no-run-if-empty -L 1 docker load -i || true
         docker images
       shell: bash
@@ -48,7 +56,6 @@ runs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        push: true
+        push: ${{ github.event_name == 'push' }}
         file: ./singularity/${{ inputs.module }}/Dockerfile
-        tags: |
-          $${{ inputs.username }}/${{ inputs.module }}:${{ inputs.tag }}
+        tags: ${{ steps.meta.outputs.tags }}

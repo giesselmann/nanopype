@@ -226,7 +226,8 @@ if __name__ == '__main__':
     # init test dir
     test_dir = init_test_dir(repo_dir, test_dir, config=config, runnames=runnames)
     # Base tests
-    suite.addTest(test_case_raw(snakefile,
+    if args.suite == 'DNA' and args.module in ['all', 'basecalling']:
+        suite.addTest(test_case_raw(snakefile,
                     test_dir=test_dir,
                     runnames=runnames,
                     singularity=args.singularity))

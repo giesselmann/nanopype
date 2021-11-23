@@ -56,29 +56,24 @@ def print_(*args, **kwargs):
 
 # get pipeline version
 def get_tag():
-    if 'TRAVIS_BRANCH' in os.environ and 'TRAVIS_TAG' in os.environ:
-        version = os.environ.get('TRAVIS_TAG') or '-'
-        branch = os.environ.get('TRAVIS_BRANCH') or 'latest'
-    else:
-        try:
-            cmd = 'git describe --tags'
-            version = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
-        except subprocess.CalledProcessError:
-            print_('[WARNING] Unable to get version from git tags.', file=sys.stderr)
-            version = '-'
-        try:
-            cmd = 'git rev-parse --abbrev-ref HEAD'
-            branch = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
-        except subprocess.CalledProcessError:
-            print_('[WARNING] Unable to get branch from git. Pulling development.', file=sys.stderr)
-            branch = 'development'
+    # Try to get tag
+    try:
+        cmd = 'git describe --tags'
+        version = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
+    except subprocess.CalledProcessError:
+        print_('[WARNING] Unable to get version from git tags.', file=sys.stderr)
+        version = '-'
+    # Try to get branch, default to master
+    try:
+        cmd = 'git rev-parse --abbrev-ref HEAD'
+        branch = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
+    except subprocess.CalledProcessError:
+        print_('[WARNING] Unable to get branch from git. Pulling master.', file=sys.stderr)
+        branch = 'master'
     if '-' in version:
         if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
-            print_("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container.", file=sys.stderr)
-        if branch == 'master':
-            return 'latest', version
-        else:
-            return branch, version
+            print_("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container. Pulling from {}.".format(branch), file=sys.stderr)
+        return branch, version
     else:   # clean tag checkout
         return version, version
 

@@ -22,9 +22,8 @@ runs:
         name: ${{ inputs.module }}
         path: /tmp/images/
     -
-      name: Load image
+      name: Load image into daemon
       run: |
-        mkdir -p /tmp/images
         find /tmp/images/ -type f -name '*.tar' | xargs --no-run-if-empty -L 1 docker load -i || true
         docker images
       shell: bash
@@ -40,10 +39,14 @@ runs:
         git config --global user.name "Github Runner"
       shell: bash
     -
-      name: Test Image
+      name: Test module
       run: |
         export PATH=$HOME/bin:$PATH
         singularity build /tmp/images/${{ inputs.module }}.sif docker-daemon://${{ inputs.module }}:latest
         python3 test/test_function.py DNA ${{ inputs.module }} ./unit_tests \
+            --singularity --local_image_dir /tmp/images/
+        python3 test/test_function.py cDNA ${{ inputs.module }} ./unit_tests \
+            --singularity --local_image_dir /tmp/images/
+        python3 test/test_function.py mDNA ${{ inputs.module }} ./unit_tests \
             --singularity --local_image_dir /tmp/images/
       shell: bash
