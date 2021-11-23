@@ -47,6 +47,6 @@ runs:
             --singularity --local_image_dir /tmp/images/
         python3 test/test_function.py cDNA ${{ inputs.module }} ./unit_tests \
             --singularity --local_image_dir /tmp/images/
-        python3 test/test_function.py mDNA ${{ inputs.module }} ./unit_tests \
+        python3 test/test_function.py mRNA ${{ inputs.module }} ./unit_tests \
             --singularity --local_image_dir /tmp/images/
       shell: bash

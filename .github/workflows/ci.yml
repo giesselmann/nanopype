@@ -2,12 +2,22 @@ name: ci
 
 on:
     push:
+      paths-ignore:
+        - 'README.md'
+        - 'docs/**'
+        - 'profiles/**'
+        - 'plugins/**'
       branches:
         - master
         - development
       tags:
         - 'v*.*.*'
     pull_request:
+      paths-ignore:
+        - 'README.md'
+        - 'docs/**'
+        - 'profiles/**'
+        - 'plugins/**'
       branches:
         - master
         - development
