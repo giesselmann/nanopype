@@ -264,7 +264,7 @@ rule methylation_single_read_run:
     params:
         input_prefix = lambda wildcards, input : input.fofn[:-5]
     singularity:
-        config['singularity_images']['alignment']
+        config['singularity_images']['methylation']
     shell:
         """
         cat {input.fofn} | while read line; do echo ${{line}}.bam; done | split -l $((`ulimit -n` -10)) - {params.input_prefix}.part_
@@ -287,7 +287,7 @@ rule methylation_single_read_tag:
     params:
         input_prefix = lambda wildcards, input : input.fofn[:-5]
     singularity:
-        config['singularity_images']['alignment']
+        config['singularity_images']['methylation']
     shell:
         """
         cat {input.fofn} | while read line; do echo ${{line}}.bam; done | split -l $((`ulimit -n` -10)) - {params.input_prefix}.part_
