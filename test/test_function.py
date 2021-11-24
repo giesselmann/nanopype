@@ -181,7 +181,7 @@ class test_case_src(test_case_base):
 if __name__ == '__main__':
     modules = ['storage',
      'basecalling', 'alignment', 'methylation',
-     'sv', 'assembly', 'transcript_isoforms', 'report']
+     'sv', 'assembly', 'transcript', 'report']
     # cmd arguments
     parser = argparse.ArgumentParser(description="Nanopype raw data import script",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)

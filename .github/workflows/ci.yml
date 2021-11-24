@@ -87,7 +87,7 @@ jobs:
           #- assembly       # doesn't work on minimal example
           - methylation
           - sv
-          #- transcript     #TODO: rename fron transcript_isoforms
+          - transcript
     steps:
       -
         name: Checkout

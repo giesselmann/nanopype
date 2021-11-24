@@ -66,7 +66,7 @@ test_suites:
             alignment:
                 - alignments/minimap2/guppy/batches/cDNA/20200624_FAN48644_FLO-MIN106_SQK-DCS109_sample/batch0.hg38_DNMT1.bam
                 - alignments/minimap2/guppy/cDNA.hg38_DNMT1.bam
-            transcript_isoforms:
+            transcript:
                 - transcript_isoforms/pinfish/minimap2/guppy/cDNA.hg38_DNMT1.gff
     mRNA:
         runnames:
@@ -83,5 +83,5 @@ test_suites:
             alignment:
                 - alignments/minimap2/guppy/batches/mRNA/20200227_FAL08241_FLO-MIN106_SQK-RNA002_sample/batch0.hg38_DNMT1.bam
                 - alignments/minimap2/guppy/mRNA.hg38_DNMT1.bam
-            transcript_isoforms:
+            transcript:
                 - transcript_isoforms/pinfish/minimap2/guppy/mRNA.hg38_DNMT1.gff
