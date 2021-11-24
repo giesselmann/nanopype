@@ -34,7 +34,7 @@ runs:
       with:
         # list of Docker images to use as base name for tags
         images: |
-          nanopype/{{ inputs.module }}
+          nanopype/${{ inputs.module }}
         # generate Docker tags based on the following events/attributes
         tags: |
           type=ref,event=branch
