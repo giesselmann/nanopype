@@ -67,7 +67,8 @@ COPY . /app/
 WORKDIR /app
 RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install setuptools wheel && \
-    python3 -m pip install -r singularity/requirements.txt
+    python3 -m pip install -r singularity/requirements.txt && \
+    python3 scripts/setup_path.py /usr/
 
 
 

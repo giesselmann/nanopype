@@ -8,6 +8,9 @@
 !rules/install.smk
 !singularity/requirements.txt
 
+# Include setup path script
+!scripts/setup_path.py
+
 # Include helper scripts
 !rules/utils/*.py
 
