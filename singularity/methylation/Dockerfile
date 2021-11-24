@@ -49,6 +49,7 @@ MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 RUN mkdir -p /build/src
 COPY --from=build_stage /build/bin/* /usr/bin/
 COPY --from=build_stage /build/lib/* /usr/lib/
+RUN python3 /app/scripts/setup_path.py /usr/
 
 WORKDIR /app
 # default entrypoint is /bin/sh
