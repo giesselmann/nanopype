@@ -83,9 +83,9 @@ rule methylation_nanopolish:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         fasta_fai = lambda wildcards: config['references'][wildcards.reference]['genome'] + '.fai'
     output:
-        ["methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.tsv.gz"] + [
-        "methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.raw.tsv.gz"
-        ] if config.get("methylation_nanopolish_keep_raw") else []
+        ["methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.tsv.gz"] +
+        (["methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.raw.tsv.gz"]
+        if config.get("methylation_nanopolish_keep_raw") else [])
     shadow: "shallow"
     threads: config['threads_methylation']
     resources:
@@ -94,7 +94,7 @@ rule methylation_nanopolish:
         time_min = lambda wildcards, input, threads, attempt: int((960 / threads) * attempt * config['runtime']['nanopolish'])   # 60 min / 16 threads
     params:
         index = lambda wildcards : '--index ' + os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn') if get_signal_batch(wildcards, config).endswith('.txt') else '',
-        raw_out = lambda wildcards, input, output : output[1] if len(output) == 2 else ''
+        raw_out = lambda wildcards, input, output : output[1] if len(output) == 2 else 't'
     singularity:
         config['singularity_images']['methylation']
     shell:
@@ -107,7 +107,7 @@ rule methylation_nanopolish:
         {config[bin_singularity][nanopolish]} call-methylation -t {threads} -r sequences.fastx -g {input.reference} -b {input.bam} > tmp.tsv
         cat tmp.tsv | {config[bin_singularity][python]} {config[sbin_singularity][methylation_nanopolish.py]} | sort -k1,1 -k2,2n | gzip > {output[0]}
         if [ \'{params.raw_out}\' != '' ]; then
-            cat tmp.tsv | gzip > {output[1]}
+            cat tmp.tsv | gzip > {params.raw_out};
         fi
         """
 
