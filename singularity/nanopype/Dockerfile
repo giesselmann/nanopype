@@ -33,17 +33,17 @@
 # ---------------------------------------------------------------------------------
 # MODULE STAGES
 ARG TAG=latest
-FROM nanopype/basecalling:$TAG as basecalling
-FROM nanopype/alignment:$TAG as alignment
-FROM nanopype/methylation:$TAG as methylation
-FROM nanopype/sv:$TAG as sv
-FROM nanopype/transcript:$TAG as transcript
-FROM nanopype/assembly:$TAG as assembly
-FROM nanopype/demux:$TAG as demux
+FROM basecalling:$TAG as basecalling
+FROM alignment:$TAG as alignment
+FROM methylation:$TAG as methylation
+FROM sv:$TAG as sv
+FROM transcript:$TAG as transcript
+FROM assembly:$TAG as assembly
+FROM demux:$TAG as demux
 
 
 # PACKAGE STAGE
-FROM nanopype/base_bionic:$TAG
+FROM base_focal:$TAG
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages

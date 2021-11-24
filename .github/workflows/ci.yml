@@ -1,0 +1,128 @@
+name: ci
+
+on:
+    push:
+      paths-ignore:
+        - 'README.md'
+        - 'docs/**'
+        - 'profiles/**'
+        - 'plugins/**'
+      branches:
+        - master
+        - development
+      tags:
+        - 'v*.*.*'
+    pull_request:
+      paths-ignore:
+        - 'README.md'
+        - 'docs/**'
+        - 'profiles/**'
+        - 'plugins/**'
+      branches:
+        - master
+        - development
+
+
+
+
+jobs:
+  # Baseline ubuntu images
+  build-base:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Base
+        uses: ./.github/actions/build-docker
+        with:
+          module: base_focal
+      -
+        name: Builder
+        uses: ./.github/actions/build-docker
+        with:
+          module: build_focal
+
+
+
+
+  # Module builder
+  build-module:
+    runs-on: ubuntu-latest
+    needs: build-base
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - basecalling
+          - alignment
+          - assembly
+          - methylation
+          - sv
+          - transcript
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Build-module
+        uses: ./.github/actions/build-docker
+        with:
+          module: ${{ matrix.module }}
+
+
+
+
+  # Module tester
+  test-module:
+    runs-on: ubuntu-latest
+    needs: build-module
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - basecalling
+          - alignment
+          #- assembly       # doesn't work on minimal example
+          - methylation
+          - sv
+          #- transcript     #TODO: rename fron transcript_isoforms
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Test module
+        uses: ./.github/actions/test-docker
+        with:
+          module: ${{ matrix.module }}
+
+
+
+
+  # Push module
+  push-module:
+    runs-on: ubuntu-latest
+    needs: test-module
+    if: ${{ github.event_name == 'push' }}
+    strategy:
+      matrix:
+        module:
+          - basecalling
+          - alignment
+          - assembly
+          - methylation
+          - sv
+          - transcript
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Push module
+        uses: ./.github/actions/push-docker
+        with:
+          module: ${{ matrix.module }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}

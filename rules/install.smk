@@ -44,7 +44,7 @@ rule demux:
 rule basecalling:
     input:
         "bin/guppy_basecaller",
-        "bin/flappie",
+        #"bin/flappie",
 
 rule alignment:
     input:
@@ -132,8 +132,9 @@ rule golang:
     shell:
         """
         mkdir -p src && cd src
-        wget -q -nc https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz
-        tar -xzf go1.13.4.linux-amd64.tar.gz
+        wget -q -nc https://dl.google.com/go/go1.17.3.linux-amd64.tar.gz
+        tar -xzf go1.17.3.linux-amd64.tar.gz
+        rm go1.17.3.linux-amd64.tar.gz
         """
 
 rule squashfs:
@@ -391,6 +392,7 @@ rule gitlfs:
         """
         mkdir -p src/gocode
         export GOPATH=$(pwd)/src/gocode
+        {input.go} env -w GO111MODULE=auto
         {input.go} get github.com/github/git-lfs
         cp src/gocode/bin/git-lfs bin/
         """
@@ -536,6 +538,7 @@ rule pinfish:
         mkdir -p src/gocode
         export PATH={params.go_dir}:$PATH
         export GOPATH=$(pwd)/src/gocode
+        {input.go} env -w GO111MODULE=auto
         {input.go} get github.com/biogo/biogo/...
         {input.go} get github.com/biogo/hts/...
         {input.go} get -u gonum.org/v1/gonum/...

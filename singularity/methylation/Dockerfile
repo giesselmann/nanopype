@@ -33,7 +33,7 @@
 # ---------------------------------------------------------------------------------
 # BUILD STAGE
 ARG TAG=latest
-FROM nanopype/build_bionic:$TAG as build_stage
+FROM build_focal:$TAG as build_stage
 
 ## run setup rules
 RUN mkdir /build
@@ -42,7 +42,7 @@ RUN snakemake --snakefile rules/install.smk --directory /build methylation
 
 
 # PACKAGE STAGE
-FROM nanopype/base_bionic:$TAG
+FROM base_focal:$TAG
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages

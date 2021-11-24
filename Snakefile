@@ -33,6 +33,7 @@
 # ---------------------------------------------------------------------------------
 # imports
 import os, sys, collections
+import textwrap
 import itertools
 import yaml, subprocess
 import snakemake.common
@@ -56,31 +57,42 @@ def print_(*args, **kwargs):
 
 # get pipeline version
 def get_tag():
-    if 'TRAVIS_BRANCH' in os.environ and 'TRAVIS_TAG' in os.environ:
-        version = os.environ.get('TRAVIS_TAG') or '-'
-        branch = os.environ.get('TRAVIS_BRANCH') or 'latest'
-    else:
-        try:
-            cmd = 'git describe --tags'
-            version = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
-        except subprocess.CalledProcessError:
-            print_('[WARNING] Unable to get version from git tags.', file=sys.stderr)
-            version = '-'
-        try:
-            cmd = 'git rev-parse --abbrev-ref HEAD'
-            branch = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
-        except subprocess.CalledProcessError:
-            print_('[WARNING] Unable to get branch from git. Pulling development.', file=sys.stderr)
-            branch = 'development'
-    if '-' in version:
+    # Try to get tag
+    try:
+        cmd = 'git describe --tags'
+        tag = subprocess.check_output(cmd.split(),
+            cwd=os.path.dirname(workflow.snakefile)).decode().strip()
+    except subprocess.CalledProcessError:
+        print_('[WARNING] Unable to get version from git tags.', file=sys.stderr)
+        tag = None
+    # Try to get branch
+    try:
+        cmd = 'git rev-parse --abbrev-ref HEAD'
+        branch = subprocess.check_output(cmd.split(),
+            cwd=os.path.dirname(workflow.snakefile)).decode().strip()
+    except subprocess.CalledProcessError:
+        print_('[WARNING] Unable to get branch from git.', file=sys.stderr)
+        branch = None
+    # Get best container version for tag/branch
+    if tag is None:
         if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
-            print_("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container.", file=sys.stderr)
-        if branch == 'master':
-            return 'latest', version
+            print_(textwrap.dedent("""
+                    [WARNING] You're using an untagged version of Nanopype with the Singularity backend.
+                    Make sure to also update the pipeline repository to avoid inconsistency between code and container.
+                    Pulling {branch} build.""".format(
+                        branch=branch if branch in ['master', 'development'] else
+                        'latest')),
+                   file=sys.stderr)
+        if branch in ['master', 'development']:
+            return branch, tag
         else:
-            return branch, version
-    else:   # clean tag checkout
-        return version, version
+            return 'latest', tag
+    else:
+        base_tag = version.split('-')[0]
+        if branch == 'development':
+            return 'development', tag
+        else:
+            return base_tag, tag
 
 
 nanopype_tag, nanopype_git_tag = get_tag()
@@ -193,19 +205,17 @@ else:
     raise RuntimeError("[ERROR] No memory scalings in environment configuration.")
 
 
-# location of singularity images, can be given in env.yaml
+# location of singularity images, can be given in env.yaml and nanopype.yaml
 # singularity_images:
 #     basecalling : '/path/to/local/basecalling.sif'
-# defaults:
-config['singularity_images'] = {module:
-    "docker://nanopype/{module}:{tag}".format(tag=config['version']['tag'], module=module) for module in
-    ['basecalling', 'alignment', 'methylation', 'transcript', 'assembly', 'sv', 'demux']}
-if 'singularity_images' in nanopype_env:
-    for module, container_path in nanopype_env['singularity_images'].items():
-        config['singularity_images'][module] = container_path
-        if not os.path.isfile(container_path):
-            print_("[WARNING] The container for {module} was overridden as {loc} but not found in the filesystem.".format(
-                module=module, loc=container_path), file=sys.stderr)
+cfg_singularity_images = config.get("singularity_images") or {}
+env_singularity_images = nanopype_env.get("singularity_images") or {}
+config['singularity_images'] = {}
+for module in ['basecalling', 'alignment', 'methylation', 'transcript', 'assembly', 'sv', 'demux']:
+    image = (cfg_singularity_images.get(module) or
+             env_singularity_images.get(module) or
+             "docker://nanopype/{module}:{tag}".format(tag=config['version']['tag'], module=module))
+    config['singularity_images'][module] = image
 
 
 # locations of helper scripts in rules/utils
@@ -372,7 +382,8 @@ def print_log(status='SUCCESS'):
     log_name = os.path.join('log', now.strftime('%Y%m%d_%H_%M_%S_%f.nanopype.log'))
     end_files = get_dir_files(workflow.workdir_init)
     with open(log_name, 'w') as fp:
-        print('Log file for Nanopype version {tag}'.format(tag=nanopype_tag), file=fp)
+        print('Log file for Nanopype version {tag} (git-tag: {git_tag})'.format(
+            tag=nanopype_tag, git_tag=nanopype_git_tag), file=fp)
         print("Workflow begin: {}".format(start_time.strftime('%d.%m.%Y %H:%M:%S')), file=fp)
         print("Workflow end:   {}".format(now.strftime('%d.%m.%Y %H:%M:%S')), file=fp)
         print('Command: {}'.format(' '.join(sys.argv)), file=fp)
@@ -402,25 +413,27 @@ def print_log(status='SUCCESS'):
 onsuccess:
     if workflow.mode == snakemake.common.Mode.default:
         log_name = print_log(status='SUCCESS')
-        print("""
-Nanopype completed successfully.
-The log file was written to {}.
+        print(textwrap.dedent("""
+                Nanopype completed successfully.
+                The log file was written to {}.
 
-If you use Nanopype in your research, please consider citing:
-Giesselmann, P. et al., Nanopype: a modular and scalable nanopore data processing pipeline. Bioinformatics, 2019.""".format(log_name), file=sys.stderr)
+                If you use Nanopype in your research, please consider citing:
+                Giesselmann, P. et al., Nanopype: a modular and scalable nanopore data processing pipeline. Bioinformatics, 2019.""".format(log_name)),
+            file=sys.stderr)
 
 
 onerror:
     if workflow.mode == snakemake.common.Mode.default:
         log_name = print_log(status='ERROR')
-        print("""
-Nanopype exited with an error.
-The log file was written to {}.
+        print(textwrap.dedent("""
+                Nanopype exited with an error.
+                The log file was written to {}.
 
-Please visit the documentation at
-    https://nanopype.readthedocs.io/
-to make sure everything is configured correctly.
+                Please visit the documentation at
+                https://nanopype.readthedocs.io/
+                to make sure everything is configured correctly.
 
-If you need further assistance, feel free to open an issue at
-    https://github.com/giesselmann/nanopype/issues
-and attach the above Snakemake and Nanopype log files.""".format(log_name), file=sys.stderr)
+                If you need further assistance, feel free to open an issue at
+                https://github.com/giesselmann/nanopype/issues
+                and attach the above Snakemake and Nanopype log files.""".format(log_name)),
+            file=sys.stderr)

@@ -6,6 +6,9 @@ Main release:
 :   * Add plugin support
     * Add plugin documentation
     * Update Flye from 2.7 to 2.8
+    * Update Go from 1.13 to 1.17
+    * Remove Deepbinner demultiplexing module
+    * Update Ubuntu in Singularity from 18.04 to 20.04
     * Add Winnowmap plugin (tested with v2.03-3-gf9a4c1a)
     * Add CONDA_PREFIX to cmake paths (#21)
 
