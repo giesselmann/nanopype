@@ -157,10 +157,18 @@ class test_case_src(test_case_base):
                 shutil.move(test_file, test_file + '.expected_output')
                 exp = True
             # run with --touch since file modification times might be messed up
-            subprocess.run(base_cmd + '-k --touch ' + test_file, check=False,
-                shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(base_cmd + '-k --touch ' + test_file,
+                check=False,
+                shell=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL)
             # run test
-            subprocess.run(base_cmd + test_file, check=True, shell=True, stdout=subprocess.PIPE)
+            subprocess.run(base_cmd + test_file,
+                check=True,
+                shell=True,
+                stdout=subprocess.PIPE,
+                #stderr=subprocess.PIPE
+                )
             # compare if expected output was present
             if exp:
                 equal = filecmp.cmp(test_file, test_file + '.expected_output')

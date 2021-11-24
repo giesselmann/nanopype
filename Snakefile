@@ -88,7 +88,7 @@ def get_tag():
         else:
             return 'latest', tag
     else:
-        base_tag = version.split('-')[0]
+        base_tag = tag.split('-')[0]
         if branch == 'development':
             return 'development', tag
         else:
@@ -248,9 +248,11 @@ config['bin']['python'] = sys.executable
 
 # In the container we just use python3
 if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
-	config['bin_singularity']['python'] = 'python3'
+    config['bin_singularity']['python'] = 'python3'
+    # Overwrite HDF5_PLUGIN_PATH within container
+    os.environ['HDF5_PLUGIN_PATH'] = '/usr/lib/'
 else:
-	config['bin_singularity']['python'] = sys.executable
+    config['bin_singularity']['python'] = sys.executable
 
 
 # names for multi-run rules

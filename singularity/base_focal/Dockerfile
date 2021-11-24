@@ -43,7 +43,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && update-ca-certificates
 
 RUN export LANG="en_US.utf8" && \
-    export LC_CTYPE="en_US.UTF-8"
+    export LC_CTYPE="en_US.UTF-8" && \
+    export LANGUAGE="en_US.utf8" && \
+    export LC_ALL="en_US.utf8"
 
 
 # dependencies

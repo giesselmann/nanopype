@@ -29,12 +29,12 @@ test_suites:
                 - methylation/nanopolish/minimap2/guppy/DNA.1x.NC_001416_1.bedGraph
                 - methylation/nanopolish/minimap2/guppy/DNA.1x.NC_001416_1.bw
                 - methylation/nanopolish/minimap2/guppy/DNA.NC_001416_1.bam
-                - methylation/flappie/minimap2/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.tsv.gz
-                - methylation/flappie/minimap2/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.bam
-                - methylation/flappie/minimap2/flappie/DNA.NC_001416_1.frequencies.tsv.gz
-                - methylation/flappie/minimap2/flappie/DNA.1x.NC_001416_1.bedGraph
-                - methylation/flappie/minimap2/flappie/DNA.1x.NC_001416_1.bw
-                - methylation/flappie/minimap2/flappie/DNA.NC_001416_1.bam
+                #- methylation/flappie/minimap2/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.tsv.gz
+                #- methylation/flappie/minimap2/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.bam
+                #- methylation/flappie/minimap2/flappie/DNA.NC_001416_1.frequencies.tsv.gz
+                #- methylation/flappie/minimap2/flappie/DNA.1x.NC_001416_1.bedGraph
+                #- methylation/flappie/minimap2/flappie/DNA.1x.NC_001416_1.bw
+                #- methylation/flappie/minimap2/flappie/DNA.NC_001416_1.bam
             sv:
                 - sv/sniffles/ngmlr/guppy/DNA.NC_001416_1.vcf
                 - sv/sniffles/ngmlr/guppy/DNA.NC_001416_1.vcf.gz

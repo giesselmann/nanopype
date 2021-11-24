@@ -19,7 +19,7 @@ Maintenance release:
     * Update Nanopolish to v0.13.2
     * Fix single read methylation bam for secondary alignments (minimap2)
     * Fix pdf report alignment part (#20)
-    * Add standalone vcf compression installation
+    * Add standalone vbz compression installation
 
 #### v1.0.1 - 2020-08-04
 Maintenance release:

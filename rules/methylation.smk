@@ -99,7 +99,6 @@ rule methylation_nanopolish:
         config['singularity_images']['methylation']
     shell:
         """
-        #export HDF5_PLUGIN_PATH=/project/minion/lib
         mkdir -p raw
         {config[bin_singularity][python]} {config[sbin_singularity][storage_fast5Index.py]} extract {input.batch} raw/ {params.index} --output_format lazy
         zcat {input.sequences} > sequences.fastx
