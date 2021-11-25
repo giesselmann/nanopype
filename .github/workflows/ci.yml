@@ -55,12 +55,12 @@ jobs:
       fail-fast: false
       matrix:
         module:
-          #- basecalling
-          #- alignment
-          #- assembly
-          #- methylation
+          - basecalling
+          - alignment
+          - assembly
+          - methylation
           - sv
-          #- transcript
+          - transcript
     steps:
       -
         name: Checkout
@@ -82,12 +82,12 @@ jobs:
       fail-fast: false
       matrix:
         module:
-          #- basecalling
-          #- alignment
+          - basecalling
+          - alignment
           #- assembly       # doesn't work on minimal example
-          #- methylation
+          - methylation
           - sv
-          #- transcript
+          - transcript
     steps:
       -
         name: Checkout
@@ -109,12 +109,12 @@ jobs:
     strategy:
       matrix:
         module:
-         # - basecalling
-         # - alignment
-         # - assembly
-         # - methylation
+          - basecalling
+          - alignment
+          - assembly
+          - methylation
           - sv
-          #- transcript
+          - transcript
     steps:
       -
         name: Checkout
