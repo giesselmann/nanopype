@@ -52,15 +52,7 @@ A suggested naming pattern for per flow cell directories is:
 **20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01**
 </center>
 
-with fixed first four fields separated by underscores and an arbitrary number of user defined tags at the end. Parsing of the run names can be configured in the nanopype.yaml configuration file. The settings for the suggested patterns are (indices are zero-based):
-
-```
-storage_runname:
-    delimiter: '_'
-    field_ID: 1
-    field_flowcell: 2
-    field_kit: 3
-```
+with fixed first four fields separated by underscores and an arbitrary number of user defined tags at the end.
 
 Copying the **nanopype.yaml** from the pipeline repository into the processing directory is the first step before further local workflow configuration and processing.
 

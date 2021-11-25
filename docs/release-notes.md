@@ -10,7 +10,9 @@ Main release:
     * Add Winnowmap plugin (tested with v2.03-3-gf9a4c1a)
     * Update Ubuntu in Singularity from 18.04 to 20.04
     * Remove Deepbinner demultiplexing module
-    * Remove Flappie basecaller support
+    * Remove Albacore support (deprecated by ONT, outperformed by guppy)
+    * Remove Flappie basecaller support (rules remain, builds are disabled)
+    * All-in-one Docker build (docker.com/nanopype/nanopype) is temporarily disabled
     * Add CONDA_PREFIX to cmake paths (#21)
 
 #### v1.1.0 - 2020-09-16

@@ -37,9 +37,9 @@ import os, sys, site
 rule default:
     shell : ""
 
-rule demux:
-    input:
-        "bin/deepbinner"
+#rule demux:
+#    input:
+#        "bin/deepbinner"
 
 rule basecalling:
     input:
@@ -363,25 +363,25 @@ rule svim:
         find {params.prefix}/bin {params.prefix}/local/bin -type f -name svim -exec cp {{}} ../../{output.bin} \; || true
         """
 
-rule deepbinner:
-    input:
-        rules.vbz_compression.output.lib
-    output:
-        bin = 'bin/deepbinner'
-    params:
-        prefix = lambda wildcards : sys.prefix
-    shell:
-        """
-        mkdir -p src && cd src
-        if [ ! -d Deepbinner ]; then
-            git clone https://github.com/rrwick/Deepbinner --branch v0.2.0 --depth=1 && cd Deepbinner
-        else
-            cd Deepbinner && git fetch --all --tags --prune && git checkout tags/v0.2.0
-        fi
-        {config[python]} -m pip install "tensorflow==1.15" "keras==2.2.5"
-        {config[python]} -m pip install .
-        find {params.prefix}/bin {params.prefix}/local/bin -type f -name deepbinner -exec cp {{}} ../../{output.bin} \; || true
-        """
+#rule deepbinner:
+#    input:
+#        rules.vbz_compression.output.lib
+#    output:
+#        bin = 'bin/deepbinner'
+#    params:
+#        prefix = lambda wildcards : sys.prefix
+#    shell:
+#        """
+#        mkdir -p src && cd src
+#        if [ ! -d Deepbinner ]; then
+#            git clone https://github.com/rrwick/Deepbinner --branch v0.2.0 --depth=1 && cd Deepbinner
+#        else
+#            cd Deepbinner && git fetch --all --tags --prune && git checkout tags/v0.2.0
+#        fi
+#        {config[python]} -m pip install "tensorflow==1.15" "keras==2.2.5"
+#        {config[python]} -m pip install .
+#        find {params.prefix}/bin {params.prefix}/local/bin -type f -name deepbinner -exec cp {{}} ../../{output.bin} \; || true
+#        """
 
 rule gitlfs:
     input:
@@ -432,34 +432,34 @@ rule hdf5:
         cmake --build . --config Release --target install
         """
 
-rule flappie:
-    input:
-        lambda wildcards,config=config: [rules.vbz_compression.output.lib, rules.gitlfs.output.bin] +
-        ([rules.OpenBLAS.output.src] if config['flappie_src'] else []) +
-        ([rules.hdf5.output.src] if config['flappie_src'] else [])
-    output:
-        bin = "bin/flappie"
-    threads: config['threads_build']
-    shell:
-        """
-        install_prefix=`pwd`
-        export PATH=$install_prefix/bin:$PATH
-        bin/git-lfs install
-        mkdir -p src && cd src
-        if [ ! -d flappie ]; then
-            git clone https://github.com/nanoporetech/flappie --branch master && cd flappie
-        else
-            cd flappie && git fetch --all --tags --prune && git checkout master
-        fi
-        # Hack for build on alpine linux
-        CMAKE_C_STANDARD_LIBRARIES=''
-        if [ -f /usr/lib/libargp.a ]; then
-            CMAKE_C_STANDARD_LIBRARIES='-DCMAKE_C_STANDARD_LIBRARIES="/usr/lib/libargp.a"'
-        fi
-        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} $CMAKE_C_STANDARD_LIBRARIES ../
-        cmake --build . --config Release -- -j {threads}
-        cp flappie ../../../{output.bin}
-        """
+#rule flappie:
+#    input:
+#        lambda wildcards,config=config: [rules.vbz_compression.output.lib, rules.gitlfs.output.bin] +
+#        ([rules.OpenBLAS.output.src] if config['flappie_src'] else []) +
+#        ([rules.hdf5.output.src] if config['flappie_src'] else [])
+#    output:
+#        bin = "bin/flappie"
+#    threads: config['threads_build']
+#    shell:
+#        """
+#        install_prefix=`pwd`
+#        export PATH=$install_prefix/bin:$PATH
+#        bin/git-lfs install
+#        mkdir -p src && cd src
+#        if [ ! -d flappie ]; then
+#            git clone https://github.com/nanoporetech/flappie --branch master && cd flappie
+#        else
+#            cd flappie && git fetch --all --tags --prune && git checkout master
+#        fi
+#        # Hack for build on alpine linux
+#        CMAKE_C_STANDARD_LIBRARIES=''
+#        if [ -f /usr/lib/libargp.a ]; then
+#            CMAKE_C_STANDARD_LIBRARIES='-DCMAKE_C_STANDARD_LIBRARIES="/usr/lib/libargp.a"'
+#        fi
+#        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} $CMAKE_C_STANDARD_LIBRARIES ../
+#        cmake --build . --config Release -- -j {threads}
+#        cp flappie ../../../{output.bin}
+#        """
 
 rule guppy:
     output:

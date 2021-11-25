@@ -33,13 +33,13 @@
 # ---------------------------------------------------------------------------------
 # MODULE STAGES
 ARG TAG=latest
-FROM basecalling:$TAG as basecalling
-FROM alignment:$TAG as alignment
-FROM methylation:$TAG as methylation
-FROM sv:$TAG as sv
-FROM transcript:$TAG as transcript
-FROM assembly:$TAG as assembly
-FROM demux:$TAG as demux
+FROM nanopype/basecalling:$TAG as basecalling
+FROM nanopype/alignment:$TAG as alignment
+FROM nanopype/methylation:$TAG as methylation
+FROM nanopype/sv:$TAG as sv
+FROM nanopype/transcript:$TAG as transcript
+FROM nanopype/assembly:$TAG as assembly
+#FROM nanopype/demux:$TAG as demux
 
 
 # PACKAGE STAGE
@@ -66,8 +66,8 @@ COPY --from=transcript /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/py
 COPY --from=assembly /usr/bin/* /usr/bin/
 COPY --from=assembly /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/
 
-COPY --from=demux /usr/bin/* /usr/bin/
-COPY --from=demux /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/
+#COPY --from=demux /usr/bin/* /usr/bin/
+#COPY --from=demux /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \

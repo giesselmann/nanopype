@@ -34,25 +34,25 @@
 import os
 
 # flowcell and kit parsing
-def get_ID(wildcards, config):
-    fields = wildcards.runname.split(config['storage_runname']['delimiter'])
-    return fields[config['storage_runname']['field_ID']]
-
-def get_flowcell(wildcards, config):
-    fields = wildcards.runname.split(config['storage_runname']['delimiter'])
-    if len(fields) > config['storage_runname']['field_flowcell'] and fields[config['storage_runname']['field_flowcell']] in ['FLO-MIN106', 'FLO-MIN107', 'FLO-PRO001', 'FLO-PRO002']:
-        flowcell = fields[config['storage_runname']['field_flowcell']]
-        # TODO fix as soon as albacore/guppy supports FLO-PRO002
-        if flowcell == 'FLO-PRO002':
-            flowcell = 'FLO-PRO001'
-        # end
-        return flowcell
-    else:
-        raise ValueError('Could not detect flowcell from ' + wildcards.runname)
-
-def get_kit(wildcards, config):
-    fields = wildcards.runname.split(config['storage_runname']['delimiter'])
-    if len(fields) > config['storage_runname']['field_kit']:
-        return fields[config['storage_runname']['field_kit']]
-    else:
-        raise ValueError('Could not find sequencing kit in {runname}'.format(runname=wildcards.runname))
+#def get_ID(wildcards, config):
+#    fields = wildcards.runname.split(config['storage_runname']['delimiter'])
+#    return fields[config['storage_runname']['field_ID']]
+#
+#def get_flowcell(wildcards, config):
+#    fields = wildcards.runname.split(config['storage_runname']['delimiter'])
+#    if len(fields) > config['storage_runname']['field_flowcell'] and fields[config['storage_runname']['field_flowcell']] in ['FLO-MIN106', 'FLO-MIN107', 'FLO-PRO001', 'FLO-PRO002']:
+#        flowcell = fields[config['storage_runname']['field_flowcell']]
+#        # TODO fix as soon as albacore/guppy supports FLO-PRO002
+#        if flowcell == 'FLO-PRO002':
+#            flowcell = 'FLO-PRO001'
+#        # end
+#        return flowcell
+#    else:
+#        raise ValueError('Could not detect flowcell from ' + wildcards.runname)
+#
+#def get_kit(wildcards, config):
+#    fields = wildcards.runname.split(config['storage_runname']['delimiter'])
+#    if len(fields) > config['storage_runname']['field_kit']:
+#        return fields[config['storage_runname']['field_kit']]
+#    else:
+#        raise ValueError('Could not find sequencing kit in {runname}'.format(runname=wildcards.runname))

@@ -2,17 +2,6 @@
 storage_data_raw : data/
 
 
-# How to parse the folders found in 'storage_data_raw'. A 'reads' subfolder is
-# expected containing the batches of fast5 raw reads.
-# A runname pattern could be 20180101_FAH12345_FLO-MIN106_SQK-LSK109_WA01
-# Field IDs are zero based.
-storage_runname:
-    delimiter: '_'
-    field_ID: 1
-    field_flowcell: 2
-    field_kit: 3
-
-
 # threads per processing batch, if given enough threads with -j n multiple
 # batches run in parallel. Also used as resource for cluster jobs.
 # Alignments need to be run with at least -j 2 for alignment and sam to bam
@@ -29,12 +18,6 @@ threads_asm: 4
 
 
 # basecalling
-# run basecalling and write predicted barcode into name of fastq/fasta output
-basecalling_albacore_barcoding: false
-# do not split output into pass and fail folders, report every sequence.
-basecalling_albacore_disable_filtering: true
-# command line flags directly passed to albacore e.g. --disable_pings
-basecalling_albacore_flags: ''
 # config file for guppy basecalling
 basecalling_guppy_config: 'dna_r9.4.1_450bps_fast.cfg'
 # quality qscore filter for guppy. 0 means all reads are written to the output
@@ -69,11 +52,7 @@ methylation_flappie_qval_threshold: 3
 
 # demux
 demux_batch_size: 4000
-demux_default: 'deepbinner'
-deepbinner_models:
-    default: 'SQK-RBK004_read_starts'
-    EXP-NBD103: 'EXP-NBD103_read_starts'
-    SQK-RBK004: 'SQK-RBK004_read_starts'
+demux_default: 'guppy'
 demux_seq_workflow : 'guppy'
 demux_seq_tag : 'default'
 demux_guppy_kits : 'EXP-NBD104'
