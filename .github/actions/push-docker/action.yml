@@ -64,10 +64,18 @@ runs:
         docker images
       shell: bash
     -
-      name: Push Image
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        push: ${{ github.event_name == 'push' }}
-        file: ./singularity/${{ inputs.module }}/Dockerfile
-        tags: ${{ steps.meta.outputs.tags }}
+      name: Push image
+      run: |
+        for tag in ${{ steps.meta.outputs.tags }}; do
+          docker tag ${{ inputs.module }} ${tag};
+          docker push ${tag};
+        done
+      if: ${{ github.event_name == 'push' }}
+    #-
+    #  name: Push Image
+    #  uses: docker/build-push-action@v2
+    #  with:
+    #    context: .
+    #    push: ${{ github.event_name == 'push' }}
+    #    file: ./singularity/${{ inputs.module }}/Dockerfile
+    #    tags: ${{ steps.meta.outputs.tags }}
