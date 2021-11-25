@@ -40,6 +40,18 @@ runs:
           type=ref,event=branch
           type=semver,pattern={{raw}}
     -
+      name: Download base artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: base_focal
+        path: /tmp/images/
+    -
+      name: Download build artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: build_focal
+        path: /tmp/images/
+    -
       name: Download image artifact
       uses: actions/download-artifact@v2
       with:
@@ -50,7 +62,6 @@ runs:
       run: |
         find /tmp/images/ -type f -name '*.tar' | xargs --no-run-if-empty -L 1 docker load -i || true
         docker images
-        echo ${{ steps.meta.outputs.tags }}
       shell: bash
     -
       name: Push Image
