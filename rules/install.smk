@@ -91,7 +91,7 @@ rule transcript:
 
 rule all:
     input:
-        rules.demux.input,
+        #rules.demux.input,
         rules.basecalling.input,
         rules.alignment.input,
         rules.methylation.input,
