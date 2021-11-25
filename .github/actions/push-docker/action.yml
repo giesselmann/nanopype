@@ -50,6 +50,7 @@ runs:
       run: |
         find /tmp/images/ -type f -name '*.tar' | xargs --no-run-if-empty -L 1 docker load -i || true
         docker images
+        echo ${{ steps.meta.outputs.tags }}
       shell: bash
     -
       name: Push Image
