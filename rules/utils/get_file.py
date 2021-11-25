@@ -33,7 +33,6 @@
 # ---------------------------------------------------------------------------------
 import os
 from snakemake.io import glob_wildcards
-from .storage import get_kit
 
 
 # check if tag maps to barcode
