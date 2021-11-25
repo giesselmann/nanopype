@@ -70,6 +70,7 @@ runs:
           docker tag ${{ inputs.module }} ${tag};
           docker push ${tag};
         done
+      shell: bash
       if: ${{ github.event_name == 'push' }}
     #-
     #  name: Push Image
