@@ -34,7 +34,8 @@
 # imports
 from rules.utils.get_file import get_batch_ids_raw
 # local rules
-localrules: deepbinner_barcode, guppy_barcode
+#localrules: deepbinner_barcode 
+localrules: guppy_barcode
 
 # get batches
 def get_batches_demux(wildcards):
