@@ -12,7 +12,6 @@ on:
         - development
       tags:
         - 'v*.*.*'
-        - 'devil'
     pull_request:
       paths-ignore:
         - 'README.md'

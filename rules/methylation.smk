@@ -33,8 +33,10 @@
 # ---------------------------------------------------------------------------------
 # imports
 import os, re
+import gzip
 from rules.utils.get_file import get_batch_ids_raw, get_signal_batch, get_sequence_batch, get_alignment_batch
 # local rules
+localrules: methylation_merge_nanopolish_raw_run
 localrules: methylation_merge_run, methylation_frequencies
 localrules: methylation_run_fofn, methylation_tag_fofn
 localrules: methylation_bedGraph, methylation_bigwig
@@ -153,12 +155,28 @@ rule methylation_guppy:
         {config[bin_singularity][samtools]} view -F 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][basecalling_guppy_mod.py]} align {input.hdf5} --reference {input.reference} | sort -k1,1 -k2,2n | gzip > {output}
         """
 
+rule methylation_merge_nanopolish_raw_run:
+    input:
+        lambda wildcards: [f + ".raw.tsv.gz" for runname in config['runnames'] for f in
+            get_batches_methylation(wildcards, config, methylation_caller='nanopolish', runname=runname)]
+    output:
+        "methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.\/#]*}.raw.tsv.gz"
+    run:
+        with gzip.open(output[0], 'wt') as fp_out:
+            for i, f in enumerate(input):
+                with gzip.open(f, 'rt') as fp_in:
+                    header, body = fp_in.read().split('\n', 1)
+                # get header
+                if i == 0:
+                    print(header, file=fp_out)
+                print(body, file=fp_out, end='')
+
 # merge batch tsv files
 rule methylation_merge_run:
     input:
         lambda wildcards: [f + ".tsv.gz" for f in get_batches_methylation(wildcards, config)]
     output:
-        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, ^.\/#]*}.tsv.gz"
+        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.\/#]*}.tsv.gz"
     run:
         with open(output[0], 'wb') as fp_out:
             for f in sorted(input):     # sort by file name, you never know
