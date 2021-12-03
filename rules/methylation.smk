@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # ---------------------------------------------------------------------------------
-# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2021, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,8 +33,10 @@
 # ---------------------------------------------------------------------------------
 # imports
 import os, re
+import gzip
 from rules.utils.get_file import get_batch_ids_raw, get_signal_batch, get_sequence_batch, get_alignment_batch
 # local rules
+localrules: methylation_merge_nanopolish_raw_run
 localrules: methylation_merge_run, methylation_frequencies
 localrules: methylation_run_fofn, methylation_tag_fofn
 localrules: methylation_bedGraph, methylation_bigwig
@@ -83,7 +85,9 @@ rule methylation_nanopolish:
         reference = lambda wildcards: config['references'][wildcards.reference]['genome'],
         fasta_fai = lambda wildcards: config['references'][wildcards.reference]['genome'] + '.fai'
     output:
-        "methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.tsv.gz"
+        ["methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.tsv.gz"] +
+        (["methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.{reference, [^.\/]*}.raw.tsv.gz"]
+        if config.get("methylation_nanopolish_keep_raw") else [])
     shadow: "shallow"
     threads: config['threads_methylation']
     resources:
@@ -91,17 +95,21 @@ rule methylation_nanopolish:
         mem_mb = lambda wildcards, input, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['nanopolish'][0] + config['memory']['nanopolish'][1] * threads)),
         time_min = lambda wildcards, input, threads, attempt: int((960 / threads) * attempt * config['runtime']['nanopolish'])   # 60 min / 16 threads
     params:
-        index = lambda wildcards : '--index ' + os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn') if get_signal_batch(wildcards, config).endswith('.txt') else ''
+        index = lambda wildcards : '--index ' + os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn') if get_signal_batch(wildcards, config).endswith('.txt') else '',
+        raw_out = lambda wildcards, input, output : output[1] if len(output) == 2 else 't'
     singularity:
         config['singularity_images']['methylation']
     shell:
         """
-        #export HDF5_PLUGIN_PATH=/project/minion/lib
         mkdir -p raw
         {config[bin_singularity][python]} {config[sbin_singularity][storage_fast5Index.py]} extract {input.batch} raw/ {params.index} --output_format lazy
         zcat {input.sequences} > sequences.fastx
         {config[bin_singularity][nanopolish]} index -d raw/ sequences.fastx
-        {config[bin_singularity][nanopolish]} call-methylation -t {threads} -r sequences.fastx -g {input.reference} -b {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][methylation_nanopolish.py]} | sort -k1,1 -k2,2n | gzip > {output}
+        {config[bin_singularity][nanopolish]} call-methylation -t {threads} -r sequences.fastx -g {input.reference} -b {input.bam} > tmp.tsv
+        cat tmp.tsv | {config[bin_singularity][python]} {config[sbin_singularity][methylation_nanopolish.py]} | sort -k1,1 -k2,2n | gzip > {output[0]}
+        if [ \'{params.raw_out}\' != '' ]; then
+            cat tmp.tsv | gzip > {params.raw_out};
+        fi
         """
 
 # Flappie basecaller methylation alignment
@@ -147,12 +155,28 @@ rule methylation_guppy:
         {config[bin_singularity][samtools]} view -F 4 {input.bam} | {config[bin_singularity][python]} {config[sbin_singularity][basecalling_guppy_mod.py]} align {input.hdf5} --reference {input.reference} | sort -k1,1 -k2,2n | gzip > {output}
         """
 
+rule methylation_merge_nanopolish_raw_run:
+    input:
+        lambda wildcards: [f + ".raw.tsv.gz" for runname in config['runnames'] for f in
+            get_batches_methylation(wildcards, config, methylation_caller='nanopolish', runname=runname)]
+    output:
+        "methylation/nanopolish/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/{tag, [^\/]*}.{reference, [^.\/#]*}.raw.tsv.gz"
+    run:
+        with gzip.open(output[0], 'wt') as fp_out:
+            for i, f in enumerate(input):
+                with gzip.open(f, 'rt') as fp_in:
+                    header, body = fp_in.read().split('\n', 1)
+                # get header
+                if i == 0:
+                    print(header, file=fp_out)
+                print(body, file=fp_out, end='')
+
 # merge batch tsv files
 rule methylation_merge_run:
     input:
         lambda wildcards: [f + ".tsv.gz" for f in get_batches_methylation(wildcards, config)]
     output:
-        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, ^.\/#]*}.tsv.gz"
+        "methylation/{methylation_caller, [^.\/]*}/{aligner, [^.\/]*}/{sequence_workflow, ((?!batches).)*}/batches/{tag, [^\/]*}/{runname, [^.\/]*}.{reference, [^.\/#]*}.tsv.gz"
     run:
         with open(output[0], 'wb') as fp_out:
             for f in sorted(input):     # sort by file name, you never know
@@ -264,7 +288,7 @@ rule methylation_single_read_run:
     params:
         input_prefix = lambda wildcards, input : input.fofn[:-5]
     singularity:
-        config['singularity_images']['alignment']
+        config['singularity_images']['methylation']
     shell:
         """
         cat {input.fofn} | while read line; do echo ${{line}}.bam; done | split -l $((`ulimit -n` -10)) - {params.input_prefix}.part_
@@ -287,7 +311,7 @@ rule methylation_single_read_tag:
     params:
         input_prefix = lambda wildcards, input : input.fofn[:-5]
     singularity:
-        config['singularity_images']['alignment']
+        config['singularity_images']['methylation']
     shell:
         """
         cat {input.fofn} | while read line; do echo ${{line}}.bam; done | split -l $((`ulimit -n` -10)) - {params.input_prefix}.part_

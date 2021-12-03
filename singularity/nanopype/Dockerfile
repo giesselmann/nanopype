@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # -----------------------------------------------------------------------
-# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2021, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,11 +39,11 @@ FROM nanopype/methylation:$TAG as methylation
 FROM nanopype/sv:$TAG as sv
 FROM nanopype/transcript:$TAG as transcript
 FROM nanopype/assembly:$TAG as assembly
-FROM nanopype/demux:$TAG as demux
+#FROM nanopype/demux:$TAG as demux
 
 
 # PACKAGE STAGE
-FROM nanopype/base_bionic:$TAG
+FROM base_focal:$TAG
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages
@@ -66,8 +66,8 @@ COPY --from=transcript /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/py
 COPY --from=assembly /usr/bin/* /usr/bin/
 COPY --from=assembly /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/
 
-COPY --from=demux /usr/bin/* /usr/bin/
-COPY --from=demux /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/
+#COPY --from=demux /usr/bin/* /usr/bin/
+#COPY --from=demux /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages/
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \

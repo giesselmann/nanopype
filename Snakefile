@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # ---------------------------------------------------------------------------------
-# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2021, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@
 # ---------------------------------------------------------------------------------
 # imports
 import os, sys, collections
+import textwrap
 import itertools
 import yaml, subprocess
 import snakemake.common
@@ -56,31 +57,42 @@ def print_(*args, **kwargs):
 
 # get pipeline version
 def get_tag():
-    if 'TRAVIS_BRANCH' in os.environ and 'TRAVIS_TAG' in os.environ:
-        version = os.environ.get('TRAVIS_TAG') or '-'
-        branch = os.environ.get('TRAVIS_BRANCH') or 'latest'
-    else:
-        try:
-            cmd = 'git describe --tags'
-            version = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
-        except subprocess.CalledProcessError:
-            print_('[WARNING] Unable to get version from git tags.', file=sys.stderr)
-            version = '-'
-        try:
-            cmd = 'git rev-parse --abbrev-ref HEAD'
-            branch = subprocess.check_output(cmd.split(), cwd=os.path.dirname(workflow.snakefile)).decode().strip()
-        except subprocess.CalledProcessError:
-            print_('[WARNING] Unable to get branch from git. Pulling development.', file=sys.stderr)
-            branch = 'development'
-    if '-' in version:
+    # Try to get tag
+    try:
+        cmd = 'git describe --tags'
+        tag = subprocess.check_output(cmd.split(),
+            cwd=os.path.dirname(workflow.snakefile)).decode().strip()
+    except subprocess.CalledProcessError:
+        print_('[WARNING] Unable to get version from git tags.', file=sys.stderr)
+        tag = None
+    # Try to get branch
+    try:
+        cmd = 'git rev-parse --abbrev-ref HEAD'
+        branch = subprocess.check_output(cmd.split(),
+            cwd=os.path.dirname(workflow.snakefile)).decode().strip()
+    except subprocess.CalledProcessError:
+        print_('[WARNING] Unable to get branch from git.', file=sys.stderr)
+        branch = None
+    # Get best container version for tag/branch
+    if tag is None:
         if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
-            print_("[WARNING] You're using an untagged version of Nanopype with the Singularity backend. Make sure to also update the pipeline repository to avoid inconsistency between code and container.", file=sys.stderr)
-        if branch == 'master':
-            return 'latest', version
+            print_(textwrap.dedent("""
+                    [WARNING] You're using an untagged version of Nanopype with the Singularity backend.
+                    Make sure to also update the pipeline repository to avoid inconsistency between code and container.
+                    Pulling {branch} build.""".format(
+                        branch=branch if branch in ['master', 'development'] else
+                        'latest')),
+                   file=sys.stderr)
+        if branch in ['master', 'development']:
+            return branch, tag
         else:
-            return branch, version
-    else:   # clean tag checkout
-        return version, version
+            return 'latest', tag
+    else:
+        base_tag = tag.split('-')[0]
+        if branch == 'development':
+            return 'development', tag
+        else:
+            return base_tag, tag
 
 
 nanopype_tag, nanopype_git_tag = get_tag()
@@ -193,19 +205,17 @@ else:
     raise RuntimeError("[ERROR] No memory scalings in environment configuration.")
 
 
-# location of singularity images, can be given in env.yaml
+# location of singularity images, can be given in env.yaml and nanopype.yaml
 # singularity_images:
 #     basecalling : '/path/to/local/basecalling.sif'
-# defaults:
-config['singularity_images'] = {module:
-    "docker://nanopype/{module}:{tag}".format(tag=config['version']['tag'], module=module) for module in
-    ['basecalling', 'alignment', 'methylation', 'transcript', 'assembly', 'sv', 'demux']}
-if 'singularity_images' in nanopype_env:
-    for module, container_path in nanopype_env['singularity_images'].items():
-        config['singularity_images'][module] = container_path
-        if not os.path.isfile(container_path):
-            print_("[WARNING] The container for {module} was overridden as {loc} but not found in the filesystem.".format(
-                module=module, loc=container_path), file=sys.stderr)
+cfg_singularity_images = config.get("singularity_images") or {}
+env_singularity_images = nanopype_env.get("singularity_images") or {}
+config['singularity_images'] = {}
+for module in ['basecalling', 'alignment', 'methylation', 'transcript', 'assembly', 'sv', 'demux']:
+    image = (cfg_singularity_images.get(module) or
+             env_singularity_images.get(module) or
+             "docker://nanopype/{module}:{tag}".format(tag=config['version']['tag'], module=module))
+    config['singularity_images'][module] = image
 
 
 # locations of helper scripts in rules/utils
@@ -238,15 +248,17 @@ config['bin']['python'] = sys.executable
 
 # In the container we just use python3
 if hasattr(workflow, 'use_singularity') and workflow.use_singularity:
-	config['bin_singularity']['python'] = 'python3'
+    config['bin_singularity']['python'] = 'python3'
+    # Overwrite HDF5_PLUGIN_PATH within container
+    os.environ['HDF5_PLUGIN_PATH'] = '/usr/lib/'
 else:
-	config['bin_singularity']['python'] = sys.executable
+    config['bin_singularity']['python'] = sys.executable
 
 
 # names for multi-run rules
 runnames = []
 if os.path.isfile('runnames.txt'):
-    runnames = [line.rstrip() for line in open('runnames.txt') if line.rstrip() and not line.startswith('#')]
+    runnames = [line.rstrip(' /\n') for line in open('runnames.txt') if line.rstrip() and not line.startswith('#')]
 config['runnames'] = runnames
 
 
@@ -254,7 +266,7 @@ config['runnames'] = runnames
 if not os.path.exists(config['storage_data_raw']):
     raise RuntimeError("[ERROR] Raw data archive not found.")
 else:
-    config['storage_data_raw'] = config['storage_data_raw'].rstrip('/')
+    config['storage_data_raw'] = config['storage_data_raw'].rstrip(' /')
     for runname in config['runnames']:
         loc = os.path.join(config['storage_data_raw'], runname)
         if not os.path.exists(loc):
@@ -316,6 +328,52 @@ include : "rules/asm.smk"
 include : "rules/report.smk"
 
 
+# load plugins
+plugin_dir = os.path.join(os.path.dirname(workflow.snakefile), 'plugins/')
+def try_load_plugin(plugin):
+    loc = os.path.join(plugin_dir, plugin)
+    if not os.path.isfile("{}/{}.smk".format(loc, plugin)):
+        print_("[WARNING] Plugin {} has no snakefile, skipping.".format(plugin))
+        return False
+    # load config first to be available in snakefile later
+    # load the plugin default configuration
+    default_config_file = os.path.join(loc, 'defaults.yaml')
+    if os.path.isfile(default_config_file):
+        try:
+            with open(default_config_file, 'r') as fp:
+                default_config = yaml.safe_load(fp)
+            for key, value in default_config.items():
+                config['plugin/{}/{}'.format(plugin, key)] = value
+        except Exception as ex:
+            print_("[WARNING] Exception while loading default config for {}".format(plugin))
+    # Load plugin site specific configuration
+    site_config_file = os.path.join(loc, 'site.yaml')
+    if os.path.isfile(site_config_file):
+        try:
+            with open(site_config_file, 'r') as fp:
+                site_config = yaml.safe_load(fp)
+            for key, value in site_config.items():
+                config['plugin/{}/{}'.format(plugin, key)] = value
+        except Exception as ex:
+            print_("[WARNING] Exception while loading site config for {}".format(plugin))
+    # load the plugins Snakefile
+    try:
+        include : "{}/{}.smk".format(loc, plugin)
+    except WorkflowError as ex:
+        print_("[WARNING] Exception while loading plugin {}".format(plugin))
+        print_(ex)
+        return False
+    return True
+
+
+for d in os.scandir(plugin_dir):
+    print_("[INFO] Trying to load plugin {}".format(d.name))
+    success = try_load_plugin(d.name)
+    if success:
+        print_("[INFO] Loaded plugin {}".format(d.name))
+    else:
+        print_("[WARNING] Failed to load plugin {}".format(d.name))
+
 
 
 
@@ -326,7 +384,8 @@ def print_log(status='SUCCESS'):
     log_name = os.path.join('log', now.strftime('%Y%m%d_%H_%M_%S_%f.nanopype.log'))
     end_files = get_dir_files(workflow.workdir_init)
     with open(log_name, 'w') as fp:
-        print('Log file for Nanopype version {tag}'.format(tag=nanopype_tag), file=fp)
+        print('Log file for Nanopype version {tag} (git-tag: {git_tag})'.format(
+            tag=nanopype_tag, git_tag=nanopype_git_tag), file=fp)
         print("Workflow begin: {}".format(start_time.strftime('%d.%m.%Y %H:%M:%S')), file=fp)
         print("Workflow end:   {}".format(now.strftime('%d.%m.%Y %H:%M:%S')), file=fp)
         print('Command: {}'.format(' '.join(sys.argv)), file=fp)
@@ -356,25 +415,27 @@ def print_log(status='SUCCESS'):
 onsuccess:
     if workflow.mode == snakemake.common.Mode.default:
         log_name = print_log(status='SUCCESS')
-        print("""
-Nanopype completed successfully.
-The log file was written to {}.
+        print(textwrap.dedent("""
+                Nanopype completed successfully.
+                The log file was written to {}.
 
-If you use Nanopype in your research, please consider citing:
-Giesselmann, P. et al., Nanopype: a modular and scalable nanopore data processing pipeline. Bioinformatics, 2019.""".format(log_name), file=sys.stderr)
+                If you use Nanopype in your research, please consider citing:
+                Giesselmann, P. et al., Nanopype: a modular and scalable nanopore data processing pipeline. Bioinformatics, 2019.""".format(log_name)),
+            file=sys.stderr)
 
 
 onerror:
     if workflow.mode == snakemake.common.Mode.default:
         log_name = print_log(status='ERROR')
-        print("""
-Nanopype exited with an error.
-The log file was written to {}.
+        print(textwrap.dedent("""
+                Nanopype exited with an error.
+                The log file was written to {}.
 
-Please visit the documentation at
-    https://nanopype.readthedocs.io/
-to make sure everything is configured correctly.
+                Please visit the documentation at
+                https://nanopype.readthedocs.io/
+                to make sure everything is configured correctly.
 
-If you need further assistance, feel free to open an issue at
-    https://github.com/giesselmann/nanopype/issues
-and attach the above Snakemake and Nanopype log files.""".format(log_name), file=sys.stderr)
+                If you need further assistance, feel free to open an issue at
+                https://github.com/giesselmann/nanopype/issues
+                and attach the above Snakemake and Nanopype log files.""".format(log_name)),
+            file=sys.stderr)

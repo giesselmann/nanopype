@@ -3,6 +3,7 @@
 We deploy new versions of Nanopype for both important updates in the included tools and for additional features of the pipeline. We use semantic versioning in the format v1.0.3 (MAJOR.MINOR.PATCH). The major version is increased on significant changes in the pipeline. Any version update of included tools forces a new minor version. Pipeline releases with the same major and minor version are expected to produce the same results across installations.
 
 Before starting the update process, please make sure to backup your configuration files. Changes to the Nanopype repository (e.g. *env.yaml*) will be lost after the update and have to be restored manually.
+If you have used plugins, don't forget to backup the *site.yaml* with site specific configuration for each plugin.
 
 Independant of the installation method, the repository of the pipeline needs to be updated. The examples illustrate an update to version v0.7.0. Please activate the virtual environment of nanopype, if you used one during initial installation.
 

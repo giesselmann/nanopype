@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # ---------------------------------------------------------------------------------
-# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2021, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@
 # imports
 import os, glob
 from rules.utils.get_file import get_batch_ids_raw, get_sequence_batch
-from rules.utils.storage import get_ID
+
 # local rules
 localrules: graphmap_index, ngmlr_index, aligner_merge_batches, aligner_merge_tag, aligner_1D2
 localrules: aligner_merge_batches_names, aligner_merge_tag_names

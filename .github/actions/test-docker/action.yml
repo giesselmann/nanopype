@@ -1,0 +1,52 @@
+name: 'Test Module'
+description: 'Test Pipeline Module'
+
+inputs:
+  module:  # pipeline module / tag
+    description: 'Pipeline module to test'
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    -
+      name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+      with:
+        driver: docker
+    -
+      name: Download image artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: ${{ inputs.module }}
+        path: /tmp/images/
+    -
+      name: Load image into daemon
+      run: |
+        find /tmp/images/ -type f -name '*.tar' | xargs --no-run-if-empty -L 1 docker load -i || true
+        docker images
+      shell: bash
+    -
+      name: Install pipeline
+      run: |
+        sudo apt-get install -y --no-install-recommends \
+                build-essential libssl-dev uuid-dev libgpgme11-dev \
+                libseccomp-dev pkg-config squashfs-tools
+        pip install -r requirements.txt --upgrade
+        snakemake --snakefile rules/install.smk --directory $HOME singularity
+        git config --global user.email "runner@runner.com"
+        git config --global user.name "Github Runner"
+      shell: bash
+    -
+      name: Test module
+      run: |
+        export PATH=$HOME/bin:$PATH
+        singularity build /tmp/images/${{ inputs.module }}.sif docker-daemon://${{ inputs.module }}:latest
+        python3 test/test_function.py DNA ${{ inputs.module }} ./unit_tests \
+            --singularity --local_image_dir /tmp/images/
+        python3 test/test_function.py cDNA ${{ inputs.module }} ./unit_tests \
+            --singularity --local_image_dir /tmp/images/
+        python3 test/test_function.py mRNA ${{ inputs.module }} ./unit_tests \
+            --singularity --local_image_dir /tmp/images/
+      shell: bash

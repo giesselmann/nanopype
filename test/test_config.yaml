@@ -8,13 +8,6 @@ test_suites:
             storage:
                 - data/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/reads.fofn
             basecalling:
-            # albacore is not part of the singularity container
-            #    - sequences/albacore/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.fastq.gz
-            #    - sequences/albacore/DNA.fastq.gz
-            # flappie is not producing output for >10mins and killed by Travis-CI
-            #    - sequences/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.fastq.gz
-            #    - sequences/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample.fastq.gz
-            #    - sequences/flappie/DNA.fastq.gz
                 - sequences/guppy/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.fastq.gz
                 - sequences/guppy/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample.fastq.gz
                 - sequences/guppy/DNA.fastq.gz
@@ -36,12 +29,12 @@ test_suites:
                 - methylation/nanopolish/minimap2/guppy/DNA.1x.NC_001416_1.bedGraph
                 - methylation/nanopolish/minimap2/guppy/DNA.1x.NC_001416_1.bw
                 - methylation/nanopolish/minimap2/guppy/DNA.NC_001416_1.bam
-                - methylation/flappie/minimap2/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.tsv.gz
-                - methylation/flappie/minimap2/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.bam
-                - methylation/flappie/minimap2/flappie/DNA.NC_001416_1.frequencies.tsv.gz
-                - methylation/flappie/minimap2/flappie/DNA.1x.NC_001416_1.bedGraph
-                - methylation/flappie/minimap2/flappie/DNA.1x.NC_001416_1.bw
-                - methylation/flappie/minimap2/flappie/DNA.NC_001416_1.bam
+                #- methylation/flappie/minimap2/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.tsv.gz
+                #- methylation/flappie/minimap2/flappie/batches/DNA/20190225_FAH93688_FLO-MIN106_SQK-LSK109_sample/batch0.NC_001416_1.bam
+                #- methylation/flappie/minimap2/flappie/DNA.NC_001416_1.frequencies.tsv.gz
+                #- methylation/flappie/minimap2/flappie/DNA.1x.NC_001416_1.bedGraph
+                #- methylation/flappie/minimap2/flappie/DNA.1x.NC_001416_1.bw
+                #- methylation/flappie/minimap2/flappie/DNA.NC_001416_1.bam
             sv:
                 - sv/sniffles/ngmlr/guppy/DNA.NC_001416_1.vcf
                 - sv/sniffles/ngmlr/guppy/DNA.NC_001416_1.vcf.gz
@@ -73,7 +66,7 @@ test_suites:
             alignment:
                 - alignments/minimap2/guppy/batches/cDNA/20200624_FAN48644_FLO-MIN106_SQK-DCS109_sample/batch0.hg38_DNMT1.bam
                 - alignments/minimap2/guppy/cDNA.hg38_DNMT1.bam
-            transcript_isoforms:
+            transcript:
                 - transcript_isoforms/pinfish/minimap2/guppy/cDNA.hg38_DNMT1.gff
     mRNA:
         runnames:
@@ -90,5 +83,5 @@ test_suites:
             alignment:
                 - alignments/minimap2/guppy/batches/mRNA/20200227_FAL08241_FLO-MIN106_SQK-RNA002_sample/batch0.hg38_DNMT1.bam
                 - alignments/minimap2/guppy/mRNA.hg38_DNMT1.bam
-            transcript_isoforms:
+            transcript:
                 - transcript_isoforms/pinfish/minimap2/guppy/mRNA.hg38_DNMT1.gff

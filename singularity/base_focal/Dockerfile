@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # -----------------------------------------------------------------------
-# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2021, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@
 #
 # Written by Pay Giesselmann
 # ---------------------------------------------------------------------------------
-FROM ubuntu:bionic as build
+FROM ubuntu:focal as build
 
 # locales
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -43,7 +43,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && update-ca-certificates
 
 RUN export LANG="en_US.utf8" && \
-    export LC_CTYPE="en_US.UTF-8"
+    export LC_CTYPE="en_US.UTF-8" && \
+    export LANGUAGE="en_US.utf8" && \
+    export LC_ALL="en_US.utf8"
 
 
 # dependencies
@@ -52,9 +54,11 @@ RUN apt-get install -y --no-install-recommends \
     libgomp1 \
     zlib1g-dev \
     libzstd-dev \
+    libcurl4 \
+    libfreetype6 \
     bzip2 libbz2-dev \
     liblzma-dev libncurses5-dev \
-    libcunit1 libhdf5-100 libidn11 libopenblas-base \
+    libcunit1 libhdf5-103 libidn11 libopenblas-base \
     libgssapi-krb5-2 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -68,10 +72,8 @@ RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install -r singularity/requirements.txt
 
 
-
-
 # Squash into flat image
-FROM ubuntu:bionic
+FROM ubuntu:focal
 COPY --from=build / /
 
 RUN export LANG="en_US.utf8" && \

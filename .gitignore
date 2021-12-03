@@ -1,3 +1,5 @@
 **/__pycache__
 test/*/
 site/
+build/
+nanopype.egg-info/

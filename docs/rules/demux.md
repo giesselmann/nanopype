@@ -36,23 +36,15 @@ The demultiplexing module can create the following file structure relative to th
 
 ```sh
 |--demux/
-   |--deepbinner/                                          # Deepbinner neural network
-      |--batches/
-         |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
-            |--0.tsv                                       # classified batches
-            |--1.tsv
-          ...
-      |--barcodes/
-         |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
-            |--1/                                          # raw barcode for tag:barcode mapping
-               |--0.txt                                    # 4k reads of barcode 1
-               |--1.txt
-            |--2/
    |--guppy/
+      |--batches/
+          |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
+             |--0.tsv                                       # classified batches
+             |--1.tsv
       |--barcodes/
          |--20180101_FAH12345_FLO-MIN106_SQK-LSK108_WA01/
-            |--barcode01/
-               |--0.txt
+            |--barcode01/                                   # raw barcode for tag:barcode mapping
+               |--0.txt                                     # 4k reads of barcode01
 ```
 
 ## Tools
@@ -62,21 +54,11 @@ The demultiplexing module includes the following tools and their respective conf
 ```
 threads_demux: 4
 demux_batch_size: 4000
-demux_default: 'deepbinner'
+demux_default: 'guppy'
 ```
 
 Demultiplexing is not encoded into the output paths of the subsequent workflows, with the 'demux_default' option the demultiplexer is configured to be one of the following tools.
 
-### Deepbinner
-
-Deepbinner: Demultiplexing barcoded Oxford Nanopore Technologies reads with deep convolutional neural networks (CNN). The network is trained to classify barcodes based on the raw nanopore signal. The model for the CNN needs to be copied from the Deepbinner repository to the working directory and depends on the used sequencing kit. The kit is parsed from the run name as described in the [configuration](../installation/configuration.md), alternatively the *default* mapping can be used to override the kit of the run name.
-
-```
-deepbinner_models:
-    default: SQK-RBK004_read_starts
-    EXP-NBD103: EXP-NBD103_read_starts
-    SQK-RBK004: SQK-RBK004_read_starts
-```
 
 ### Guppy
 

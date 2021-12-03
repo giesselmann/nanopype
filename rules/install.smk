@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # ---------------------------------------------------------------------------------
-# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2021, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,14 +37,14 @@ import os, sys, site
 rule default:
     shell : ""
 
-rule demux:
-    input:
-        "bin/deepbinner"
+#rule demux:
+#    input:
+#        "bin/deepbinner"
 
 rule basecalling:
     input:
         "bin/guppy_basecaller",
-        "bin/flappie",
+        #"bin/flappie",
 
 rule alignment:
     input:
@@ -91,7 +91,7 @@ rule transcript:
 
 rule all:
     input:
-        rules.demux.input,
+        #rules.demux.input,
         rules.basecalling.input,
         rules.alignment.input,
         rules.methylation.input,
@@ -100,6 +100,10 @@ rule all:
         rules.assembly.input
 
 
+# add conda paths to cmake
+if 'CONDA_PREFIX' in os.environ:
+    os.environ['CMAKE_INCLUDE_PATH'] = os.environ['CONDA_PREFIX/include'] + os.pathsep + os.environ['CMAKE_INCLUDE_PATH']
+    os.environ['CMAKE_LIBRARY_PATH'] = os.environ['CONDA_PREFIX/lib'] + os.pathsep + os.environ['CMAKE_LIBRARY_PATH']
 
 
 # helper functions
@@ -128,8 +132,9 @@ rule golang:
     shell:
         """
         mkdir -p src && cd src
-        wget -q -nc https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz
-        tar -xzf go1.13.4.linux-amd64.tar.gz
+        wget -q -nc https://dl.google.com/go/go1.17.3.linux-amd64.tar.gz
+        tar -xzf go1.17.3.linux-amd64.tar.gz
+        rm go1.17.3.linux-amd64.tar.gz
         """
 
 rule squashfs:
@@ -181,7 +186,7 @@ rule vbz_compression:
         install_prefix=`pwd`
         mkdir -p lib
         mkdir -p src && cd src
-        if [ ! -d singularity ]; then
+        if [ ! -d vbz_compression ]; then
             git clone https://github.com/nanoporetech/vbz_compression --recursive --branch v1.0.1 --depth=1 && cd vbz_compression
         else
             cd vbz_compression && git fetch --all --tags --prune && git checkout tags/v1.0.1
@@ -358,25 +363,25 @@ rule svim:
         find {params.prefix}/bin {params.prefix}/local/bin -type f -name svim -exec cp {{}} ../../{output.bin} \; || true
         """
 
-rule deepbinner:
-    input:
-        rules.vbz_compression.output.lib
-    output:
-        bin = 'bin/deepbinner'
-    params:
-        prefix = lambda wildcards : sys.prefix
-    shell:
-        """
-        mkdir -p src && cd src
-        if [ ! -d Deepbinner ]; then
-            git clone https://github.com/rrwick/Deepbinner --branch v0.2.0 --depth=1 && cd Deepbinner
-        else
-            cd Deepbinner && git fetch --all --tags --prune && git checkout tags/v0.2.0
-        fi
-        {config[python]} -m pip install "tensorflow==1.15" "keras==2.2.5"
-        {config[python]} -m pip install .
-        find {params.prefix}/bin {params.prefix}/local/bin -type f -name deepbinner -exec cp {{}} ../../{output.bin} \; || true
-        """
+#rule deepbinner:
+#    input:
+#        rules.vbz_compression.output.lib
+#    output:
+#        bin = 'bin/deepbinner'
+#    params:
+#        prefix = lambda wildcards : sys.prefix
+#    shell:
+#        """
+#        mkdir -p src && cd src
+#        if [ ! -d Deepbinner ]; then
+#            git clone https://github.com/rrwick/Deepbinner --branch v0.2.0 --depth=1 && cd Deepbinner
+#        else
+#            cd Deepbinner && git fetch --all --tags --prune && git checkout tags/v0.2.0
+#        fi
+#        {config[python]} -m pip install "tensorflow==1.15" "keras==2.2.5"
+#        {config[python]} -m pip install .
+#        find {params.prefix}/bin {params.prefix}/local/bin -type f -name deepbinner -exec cp {{}} ../../{output.bin} \; || true
+#        """
 
 rule gitlfs:
     input:
@@ -387,6 +392,7 @@ rule gitlfs:
         """
         mkdir -p src/gocode
         export GOPATH=$(pwd)/src/gocode
+        {input.go} env -w GO111MODULE=auto
         {input.go} get github.com/github/git-lfs
         cp src/gocode/bin/git-lfs bin/
         """
@@ -426,34 +432,34 @@ rule hdf5:
         cmake --build . --config Release --target install
         """
 
-rule flappie:
-    input:
-        lambda wildcards,config=config: [rules.vbz_compression.output.lib, rules.gitlfs.output.bin] +
-        ([rules.OpenBLAS.output.src] if config['flappie_src'] else []) +
-        ([rules.hdf5.output.src] if config['flappie_src'] else [])
-    output:
-        bin = "bin/flappie"
-    threads: config['threads_build']
-    shell:
-        """
-        install_prefix=`pwd`
-        export PATH=$install_prefix/bin:$PATH
-        bin/git-lfs install
-        mkdir -p src && cd src
-        if [ ! -d flappie ]; then
-            git clone https://github.com/nanoporetech/flappie --branch master && cd flappie
-        else
-            cd flappie && git fetch --all --tags --prune && git checkout master
-        fi
-        # Hack for build on alpine linux
-        CMAKE_C_STANDARD_LIBRARIES=''
-        if [ -f /usr/lib/libargp.a ]; then
-            CMAKE_C_STANDARD_LIBRARIES='-DCMAKE_C_STANDARD_LIBRARIES="/usr/lib/libargp.a"'
-        fi
-        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} $CMAKE_C_STANDARD_LIBRARIES ../
-        cmake --build . --config Release -- -j {threads}
-        cp flappie ../../../{output.bin}
-        """
+#rule flappie:
+#    input:
+#        lambda wildcards,config=config: [rules.vbz_compression.output.lib, rules.gitlfs.output.bin] +
+#        ([rules.OpenBLAS.output.src] if config['flappie_src'] else []) +
+#        ([rules.hdf5.output.src] if config['flappie_src'] else [])
+#    output:
+#        bin = "bin/flappie"
+#    threads: config['threads_build']
+#    shell:
+#        """
+#        install_prefix=`pwd`
+#        export PATH=$install_prefix/bin:$PATH
+#        bin/git-lfs install
+#        mkdir -p src && cd src
+#        if [ ! -d flappie ]; then
+#            git clone https://github.com/nanoporetech/flappie --branch master && cd flappie
+#        else
+#            cd flappie && git fetch --all --tags --prune && git checkout master
+#        fi
+#        # Hack for build on alpine linux
+#        CMAKE_C_STANDARD_LIBRARIES=''
+#        if [ -f /usr/lib/libargp.a ]; then
+#            CMAKE_C_STANDARD_LIBRARIES='-DCMAKE_C_STANDARD_LIBRARIES="/usr/lib/libargp.a"'
+#        fi
+#        mkdir -p build && cd build && rm -rf * && cmake -DCMAKE_BUILD_TYPE=Release -DOPENBLAS_ROOT=$install_prefix -DHDF5_ROOT=$install_prefix -G{config[build_generator]} $CMAKE_C_STANDARD_LIBRARIES ../
+#        cmake --build . --config Release -- -j {threads}
+#        cp flappie ../../../{output.bin}
+#        """
 
 rule guppy:
     output:
@@ -532,6 +538,7 @@ rule pinfish:
         mkdir -p src/gocode
         export PATH={params.go_dir}:$PATH
         export GOPATH=$(pwd)/src/gocode
+        {input.go} env -w GO111MODULE=auto
         {input.go} get github.com/biogo/biogo/...
         {input.go} get github.com/biogo/hts/...
         {input.go} get -u gonum.org/v1/gonum/...
@@ -579,9 +586,9 @@ rule flye:
         """
         mkdir -p src && cd src
         if [ ! -d Flye ]; then
-            git clone https://github.com/fenderglass/Flye --branch 2.7 && cd Flye
+            git clone https://github.com/fenderglass/Flye --branch 2.8.3 && cd Flye
         else
-            cd Flye && git fetch --all --tags --prune && git checkout tags/2.7
+            cd Flye && git fetch --all --tags --prune && git checkout tags/2.8.3
         fi
         make
         {config[python]} setup.py install

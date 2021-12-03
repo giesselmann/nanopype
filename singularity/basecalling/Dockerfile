@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # -----------------------------------------------------------------------
-# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2021, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@
 # ---------------------------------------------------------------------------------
 # BUILD STAGE
 ARG TAG=latest
-FROM nanopype/build_bionic:$TAG as build_stage
+FROM build_focal:$TAG as build_stage
 
 ## run setup rules
 RUN mkdir /build
@@ -42,7 +42,7 @@ RUN snakemake --snakefile rules/install.smk --directory /build basecalling
 
 
 # PACKAGE STAGE
-FROM nanopype/base_bionic:$TAG
+FROM base_focal:$TAG
 MAINTAINER Pay Giesselmann <giesselmann@molgen.mpg.de>
 
 ## packages

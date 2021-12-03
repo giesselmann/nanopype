@@ -1,5 +1,20 @@
 # Release notes
 
+#### v1.2.0 - 2021-12-
+Main release:
+
+:   * Add plugin support
+    * Add plugin documentation
+    * Update Flye from 2.7 to 2.8
+    * Update Go from 1.13 to 1.17
+    * Add Winnowmap plugin (tested with v2.03-3-gf9a4c1a)
+    * Update Ubuntu in Singularity from 18.04 to 20.04
+    * Remove Deepbinner demultiplexing module
+    * Remove Albacore support (deprecated by ONT, outperformed by guppy)
+    * Remove Flappie basecaller support (rules remain, builds are disabled)
+    * All-in-one Docker build (docker.com/nanopype/nanopype) is temporarily disabled
+    * Add CONDA_PREFIX to cmake paths (#21)
+
 #### v1.1.0 - 2020-09-16
 Maintenance release:
 
@@ -7,7 +22,7 @@ Maintenance release:
     * Update Nanopolish to v0.13.2
     * Fix single read methylation bam for secondary alignments (minimap2)
     * Fix pdf report alignment part (#20)
-    * Add standalone vcf compression installation
+    * Add standalone vbz compression installation
 
 #### v1.0.1 - 2020-08-04
 Maintenance release:

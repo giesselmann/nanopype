@@ -54,7 +54,7 @@ The batch processing output of the alignment module can be cleaned up by running
 
     snakemake --snakefile /path/to/nanopype/Snakefile alignment_clean
 
-This will delete all files and folders inside of any **batches** directory and should only be used at the very end of an analysis workflow. The methylation module for instance relies on the single batch alignment files.
+This will delete all files and folders inside of any **batches** directory and should only be used at the very end of an analysis workflow. The [methylation](rules/methylation.md) module for instance relies on the single batch alignment files.
 
 ## Tools
 

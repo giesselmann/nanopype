@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # ---------------------------------------------------------------------------------
-# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2021, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@
 # imports
 import os, sys
 from rules.utils.get_file import get_batch_ids_raw, get_signal_batch
-from rules.utils.storage import get_flowcell, get_kit
+
 # local rules
 localrules: basecaller_merge_batches, basecaller_merge_tag
 
@@ -59,37 +59,6 @@ def get_batches_basecaller2(wildcards):
         )
     return batches
 
-
-# albacore basecalling
-rule albacore:
-    input:
-        batch = lambda wildcards : get_signal_batch(wildcards, config),
-        run = lambda wildcards : [os.path.join(config['storage_data_raw'], wildcards.runname)] + ([os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn')] if get_signal_batch(wildcards, config).endswith('.txt') else [])
-    output:
-        "sequences/albacore/batches/{tag, [^\/]*}/{runname, [^.\/]*}/{batch, [^.]*}.fastq.gz"
-    shadow: "shallow"
-    threads: config['threads_basecalling']
-    resources:
-        threads = lambda wildcards, threads: threads,
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['albacore'][0] + config['memory']['albacore'][1] * threads)),
-        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['albacore']) # 60 min / 16 threads
-    params:
-        flowcell = lambda wildcards: get_flowcell(wildcards, config),
-        kit = lambda wildcards: get_kit(wildcards, config),
-        barcoding = lambda wildcards : '--barcoding' if config['basecalling_albacore_barcoding'] else '',
-        filtering = lambda wildcards : '--disable_filtering' if config['basecalling_albacore_disable_filtering'] else '',
-        index = lambda wildcards : '--index ' + os.path.join(config['storage_data_raw'], wildcards.runname, 'reads.fofn') if get_signal_batch(wildcards, config).endswith('.txt') else ''
-    shell:
-        """
-        mkdir -p raw
-        {config[bin][python]} {config[sbin][storage_fast5Index.py]} extract {input.batch} raw/ {params.index} --output_format single
-        {config[bin][albacore]} -i raw/ --recursive -t {threads} -s raw/ --flowcell {params.flowcell} --kit {params.kit} --output_format fastq {params.filtering} {params.barcoding} {config[basecalling_albacore_flags]}
-        FASTQ_DIR='raw/workspace/'
-        if [ \'{params.filtering}\' = '' ]; then
-            FASTQ_DIR='raw/workspace/pass'
-        fi
-        find ${{FASTQ_DIR}} -regextype posix-extended -regex '^.*f(ast)?q' -exec cat {{}} \; | gzip > {output}
-        """
 
 # guppy basecalling
 rule guppy:

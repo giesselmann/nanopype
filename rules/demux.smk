@@ -9,7 +9,7 @@
 #  REQUIRES      : none
 #
 # ---------------------------------------------------------------------------------
-# Copyright (c) 2018-2020, Pay Giesselmann, Max Planck Institute for Molecular Genetics
+# Copyright (c) 2018-2021, Pay Giesselmann, Max Planck Institute for Molecular Genetics
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,8 @@
 # imports
 from rules.utils.get_file import get_batch_ids_raw
 # local rules
-localrules: deepbinner_barcode, guppy_barcode
+#localrules: deepbinner_barcode 
+localrules: guppy_barcode
 
 # get batches
 def get_batches_demux(wildcards):
@@ -52,26 +53,54 @@ def get_batches_demux_seq(wildcards):
 
 
 # deepbinner demux
-rule deepbinner:
-    input:
-        signal = lambda wildcards : get_signal_batch(wildcards, config),
-        model = lambda wildcards : config["deepbinner_models"][get_kit(wildcards)] if get_kit(wildcards, config) in config["deepbinner_models"] else config["deepbinner_models"]['default']
-    output:
-        "demux/deepbinner/batches/{runname, [^.\/]*}/{batch, [^.\/]*}.tsv"
-    shadow: "minimal"
-    threads: config['threads_demux']
-    resources:
-        threads = lambda wildcards, threads: threads,
-        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['deepbinner'][0] + config['memory']['deepbinner'][1] * threads)),
-        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['deepbinner']) # 60 min / 16 threads
-    singularity:
-        config['singularity_images']['demux']
-    shell:
-        """
-        mkdir -p raw
-        {config[bin_singularity][python]} {config[sbin_singularity][storage_fast5Index.py]} extract {input.signal} raw/ --output_format single
-        {config[bin_singularity][python]} {config[bin_singularity][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads {threads} --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
-        """
+#rule deepbinner:
+#    input:
+#        signal = lambda wildcards : get_signal_batch(wildcards, config),
+#        model = lambda wildcards : config["deepbinner_models"][get_kit(wildcards)] if get_kit(wildcards, config) in config["deepbinner_models"] else config["deepbinner_models"]['default']
+#    output:
+#        "demux/deepbinner/batches/{runname, [^.\/]*}/{batch, [^.\/]*}.tsv"
+#    shadow: "minimal"
+#    threads: config['threads_demux']
+#    resources:
+#        threads = lambda wildcards, threads: threads,
+#        mem_mb = lambda wildcards, threads, attempt: int((1.0 + (0.1 * (attempt - 1))) * (config['memory']['deepbinner'][0] + config['memory']['deepbinner'][1] * threads)),
+#        time_min = lambda wildcards, threads, attempt: int((960 / threads) * attempt * config['runtime']['deepbinner']) # 60 min / 16 threads
+#    singularity:
+#        config['singularity_images']['demux']
+#    shell:
+#        """
+#        mkdir -p raw
+#        {config[bin_singularity][python]} {config[sbin_singularity][storage_fast5Index.py]} extract {input.signal} raw/ --output_format single
+#        {config[bin_singularity][python]} {config[bin_singularity][deepbinner]} classify raw -s {input.model} --intra_op_parallelism_threads {threads} --omp_num_threads {threads} --inter_op_parallelism_threads {threads} | tail -n +2 > {output}
+#        """
+
+
+# split into barcode id list per run
+#checkpoint deepbinner_barcode:
+#    input:
+#        batches = lambda wildcards: get_batches_demux(wildcards)
+#    output:
+#        barcodes = directory("demux/deepbinner/barcodes/{runname}/")
+#    run:
+#        import os, itertools, collections
+#        os.makedirs(output.barcodes, exist_ok=True)
+#        barcode_ids = collections.defaultdict(list)
+#        for f in input.batches:
+#            read_barcodes = []
+#            with open(f, 'r') as fp:
+#                read_barcodes = [tuple(line.split('\t')) for line in fp.read().split('\n') if line]
+#            read_barcodes.sort(key=lambda x : x[1])
+#            for bc, ids in itertools.groupby(read_barcodes, key=lambda x:x[1]):
+#                barcode_ids[bc].extend([id for id, barcode in ids])
+#        def chunked(l, n):
+#            for i in range(0, len(l), n):
+#                yield l[i:i + n]
+#        for barcode, ids in barcode_ids.items():
+#            os.mkdir(os.path.join(output.barcodes, barcode))
+#            for i, batch in enumerate(chunked(ids, config['demux_batch_size'])):
+#                with open(os.path.join(output.barcodes, barcode, str(i) + '.txt'), 'w') as fp:
+#                    print('\n'.join(batch), file=fp)
+
 
 checkpoint guppy_barcode_batches:
     input:
@@ -114,8 +143,11 @@ checkpoint guppy_barcode:
         def fastq_ID(iterable):
             fq_iter = itertools.islice(iterable, 0, None, 4)
             while True:
-                header = next(fq_iter).decode('utf-8')
-                yield header[1:].split()[0]
+                try:
+                    header = next(fq_iter).decode('utf-8')
+                    yield header[1:].split()[0]
+                except StopIteration:
+                    return
         def touch(fname, times=None):
             with open(fname, 'a'):
                 os.utime(fname, times)
@@ -157,29 +189,3 @@ checkpoint guppy_barcode:
                         shutil.rmtree(target_path)
                     shutil.copytree(os.path.join('demux', 'guppy', 'batches', wildcards.runname, barcode),
                                     target_path)
-
-# split into barcode id list per run
-checkpoint deepbinner_barcode:
-    input:
-        batches = lambda wildcards: get_batches_demux(wildcards)
-    output:
-        barcodes = directory("demux/deepbinner/barcodes/{runname}/")
-    run:
-        import os, itertools, collections
-        os.makedirs(output.barcodes, exist_ok=True)
-        barcode_ids = collections.defaultdict(list)
-        for f in input.batches:
-            read_barcodes = []
-            with open(f, 'r') as fp:
-                read_barcodes = [tuple(line.split('\t')) for line in fp.read().split('\n') if line]
-            read_barcodes.sort(key=lambda x : x[1])
-            for bc, ids in itertools.groupby(read_barcodes, key=lambda x:x[1]):
-                barcode_ids[bc].extend([id for id, barcode in ids])
-        def chunked(l, n):
-            for i in range(0, len(l), n):
-                yield l[i:i + n]
-        for barcode, ids in barcode_ids.items():
-            os.mkdir(os.path.join(output.barcodes, barcode))
-            for i, batch in enumerate(chunked(ids, config['demux_batch_size'])):
-                with open(os.path.join(output.barcodes, barcode, str(i) + '.txt'), 'w') as fp:
-                    print('\n'.join(batch), file=fp)
