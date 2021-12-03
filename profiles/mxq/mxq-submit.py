@@ -45,6 +45,7 @@ if __name__ == '__main__':
     threads = '1'
     runtime = '60'
     memory = '16000'
+    tmpdir = '20G'
     # parse resources
     if job_properties["type"] == "group":
         group_name = job_properties["groupid"]
@@ -59,8 +60,9 @@ if __name__ == '__main__':
 
     # cmd and submission
     cmd = """mxqsub --threads={threads} --memory={memory} --runtime={runtime} \
---group-name={group_name} --command-alias={group_name} --tmpdir 20G {jobscript}""".format(
+--group-name={group_name} --command-alias={group_name} --tmpdir {tmpdir} {jobscript}""".format(
             threads=threads, memory=memory, runtime=runtime,
+            tmpdir=tmpdir,
             group_name=group_name, jobscript=jobscript)
     try:
         ret = subprocess.run(cmd, check=True, shell=True, stdout=subprocess.PIPE)
