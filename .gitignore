@@ -3,3 +3,4 @@ test/*/
 site/
 build/
 nanopype.egg-info/
+env.yaml.bak
