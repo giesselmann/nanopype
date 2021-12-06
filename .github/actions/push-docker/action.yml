@@ -66,8 +66,9 @@ runs:
     -
       name: Push image
       run: |
-        echo ${{ steps.meta.outputs.tags }}
-        for tag in ${{ steps.meta.outputs.tags }}; do
+        tags=$(echo '{{ steps.meta.outputs.tags }}' | tr '\n' ' ')
+        echo ${tags}
+        for tag in ${tags}; do
           docker tag ${{ inputs.module }} ${tag};
           docker push ${tag};
         done
