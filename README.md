@@ -1,6 +1,6 @@
 # Nanopype
 
-[![Latest GitHub release](https://img.shields.io/github/release/giesselmann/nanopype.svg)](https://github.com/giesselmann/nanopype/releases/latest) [![Build Status](https://travis-ci.org/giesselmann/nanopype.svg?branch=master)](https://travis-ci.org/giesselmann/nanopype) [![Read the Docs (version)](https://img.shields.io/readthedocs/nanopype/latest.svg)](https://nanopype.readthedocs.io/en/latest/)
+[![Latest GitHub release](https://img.shields.io/github/release/giesselmann/nanopype.svg)](https://github.com/giesselmann/nanopype/releases/latest) [![ci](https://github.com/giesselmann/nanopype/actions/workflows/ci.yml/badge.svg)](https://github.com/giesselmann/nanopype/actions/workflows/ci.yml) [![Read the Docs (version)](https://img.shields.io/readthedocs/nanopype/latest.svg)](https://nanopype.readthedocs.io/en/latest/)
 
 ## Documentation
 
