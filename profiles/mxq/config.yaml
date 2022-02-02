@@ -7,7 +7,7 @@ jobscript: "mxq-jobscript.sh"
 # params
 latency-wait: 600
 jobs: 2048
-restart-times: 3
+restart-times: 1
 immediate-submit: false
 # singularity
 #use-singularity: false
